@@ -38,5 +38,5 @@
   with_items: "{{ ibm_infosvr_impexp_bg_export }}"
 
 - name: export_glossary - cleanup exported files
-  file: path=/tmp/__export_bg_{{ item.dest | basename }}.xml state=absent
+  file: path=/tmp/__export_bg_{{ item.dest | basename }} state=absent
   with_items: "{{ ibm_infosvr_impexp_bg_export }}"
