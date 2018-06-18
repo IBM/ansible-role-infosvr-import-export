@@ -16,10 +16,14 @@ See `defaults/main.yml` for inline documentation, and the example below for the 
 
 The role includes the ability to both export and import a number of different asset types in Information Server. The role can be imported into another playbook providing only the variables of interest in order to restrict the assets to include in either an import or export (empty variables will mean the role will skip any processing of those asset types). (Thus the need for Ansible v2.4.x and the `import_role` module.)
 
+Use `tasks_from` to define whether to run an `import` or an `export` -- or leave it off entirely to run both (export will run first so you could use this to eg. first do a backup of certain structures and content prior to importing).
+
 For example:
 
 ```
-- import_role: name=IBM.infosvr-import-export
+- import_role:
+    name: IBM.infosvr-import-export
+    tasks_from: import
   vars:
     ibm_infosvr_impexp_ds_import:
       - { src: "/some/directory/file1.isx", project: "dstage1", overwrite: True }
