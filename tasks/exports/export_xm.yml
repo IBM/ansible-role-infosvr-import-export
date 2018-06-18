@@ -1,0 +1,77 @@
+---
+###
+# Copyright 2018 IBM Corp. All Rights Reserved.
+# 
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+# 
+#      http://www.apache.org/licenses/LICENSE-2.0
+# 
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+###
+
+- name: export_xm - get changed assets
+  igc_get_changed_assets:
+    host: "{{ ibm_infosvr_impexp_services_host }}"
+    port: "{{ ibm_infosvr_impexp_services_console_port }}"
+    user: "{{ ibm_infosvr_impexp_infosvr_admin_user }}"
+    password: "{{ ibm_infosvr_impexp_infosvr_admin_user_pwd }}"
+    asset_type: extension_mapping_document
+    from_time: >
+              {% if item.changes_in_last_hours is defined %}
+              {{ (__ibm_infosvr_impexp_to_epoch | int) - ((item.changes_in_last_hours | int) * 3600 * 1000) }}
+              {% else %}
+              1
+              {% endif %}
+    to_time: >
+              {{ __ibm_infosvr_impexp_to_epoch | int }}
+    conditions: "{{ item.conditions | default(omit) }}"
+  register: __ibm_infosvr_impexp_xm_export_changes
+  with_items: "{{ ibm_infosvr_impexp_xm_export }}"
+
+- name: export_xm - export extension mapping documents
+  shell: >
+          source ~/.bashrc &&
+          . dsenv &&
+          {{ ibm_infosvr_impexp_infosvr_install_location }}/Clients/istools/cli/istool.sh
+          workbench extension mapping export
+          -u {{ ibm_infosvr_impexp_infosvr_admin_user }}
+          -p {{ ibm_infosvr_impexp_infosvr_admin_user_pwd }}
+          -dom {{ ibm_infosvr_impexp_services_host | lower }}:{{ ibm_infosvr_impexp_services_console_port }}
+          -pt '{{ item.1.name }}%'
+          -dir /tmp
+          -o /tmp/__export_xm_{{ item.0.item.dest | basename }}.log
+  args:
+    executable: /bin/bash
+    chdir: "{{ ibm_infosvr_impexp_infosvr_install_location }}/Server/DSEngine"
+  with_subelements:
+    - "{{ __ibm_infosvr_impexp_xm_export_changes.results }}"
+    - "assets"
+  loop_control:
+    label: "{{ item.0.item.dest | basename }} - {{ item.1.name }}"
+
+- name: export_xm - bundle exported files
+  archive:
+    dest: /tmp/__export_xm_{{ item.item.dest | basename }}
+    path: >
+          {{ item | to_json | from_json | json_query("assets[*].join('',['/tmp/',file])") }}
+    format: zip
+    remove: yes
+  when: item.assets is defined and (item.assets | length) > 0
+  with_items: "{{ __ibm_infosvr_impexp_xm_export_changes.results }}"
+  loop_control:
+    label: "{{ item.item.dest | basename }}"
+
+- name: export_xm - transfer archive
+  fetch: src=/tmp/__export_xm_{{ item.dest | basename }} dest={{ item.dest }} flat=yes
+  with_items: "{{ ibm_infosvr_impexp_xm_export }}"
+  when: (__ibm_infosvr_impexp_xm_export_changes.results | length) > 0
+
+- name: export_xm - cleanup exported files
+  file: path=/tmp/__export_xm_{{ item.dest | basename }} state=absent
+  with_items: "{{ ibm_infosvr_impexp_xm_export }}"

@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--============================================================================== -->
+<!-- Copyright 2018 IBM Corp. All Rights Reserved. -->
+
+<!-- Licensed under the Apache License, Version 2.0 (the "License"); -->
+<!-- you may not use this file except in compliance with the License. -->
+<!-- You may obtain a copy of the License at -->
+
+<!--      http://www.apache.org/licenses/LICENSE-2.0 -->
+
+<!-- Unless required by applicable law or agreed to in writing, software -->
+<!-- distributed under the License is distributed on an "AS IS" BASIS, -->
+<!-- WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. -->
+<!-- See the License for the specific language governing permissions and -->
+<!-- limitations under the License. -->
+<!-- ============================================================================== -->
+
+<!-- For permitted classes and attributes, see: https://www.ibm.com/support/knowledgecenter/en/SSZJPZ_11.7.0/com.ibm.swg.im.iis.iisinfsv.assetint.doc/topics/r_using_mapping_file.html#r_using_response_file -->
+<Mapping xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="SampleArchiveMappingFile.xsd">
+	<ObjectMappings>
+{% for mapping in item.map %}
+{% for model in hostvars[groups['ibm-information-server-domain'][0]]['__ibm_infosvr_impexp_model_versions'] %}
+{% if mapping.type in model.get('types') %}
+		<ObjectMapping>
+			<Attribute attrname="{{ mapping.attr }}" classname="{{ mapping.type }}" packageNsUri="{{ model.version }}"/>
+			<CurrentValue val="{{ mapping.from }}"/>
+			<NewValue val="{{ mapping.to }}"/>
+		</ObjectMapping>
+{% endif %}
+{% endfor %}
+{% endfor %}
+	</ObjectMappings>
+</Mapping>

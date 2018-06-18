@@ -1,0 +1,156 @@
+---
+- hosts:
+    - ibm-information-server-engine
+    - ibm-information-server-domain
+  roles:
+    - IBM.infosvr-import-export
+  any_errors_fatal: true
+  vars:
+    ibm_infosvr_impexp_cm_cadefs_export:
+      - { dest: "cache/cm_cadefs_all.isx", area: "*", type: "*", attr: "*" }
+    
+    ibm_infosvr_impexp_cm_export:
+      - { dest: "cache/cm_hosts.isx", path: "/*.hst" }
+      - { dest: "cache/cm_databases.isx", path: "/*/*.db" }
+      - { dest: "cache/cm_schemas.isx", path: "/*/*/*.sch" }
+      - { dest: "cache/cm_tables.isx", path: "/*/*/*/*.tbl" }
+      - { dest: "cache/cm_procedures.isx", path: "/*/*/*/*.sp" }
+      - { dest: "cache/cm_columns.isx", path: "/*/*/*/*/*.sdd" }
+      - { dest: "cache/cm_file_folders.isx", path: "/*/*/*.fdr" }
+      - { dest: "cache/cm_files.isx", path: "/*/*/*.fl" }
+      - { dest: "cache/cm_file_structures.isx", path: "/*/*/*/*.dcl" }
+      - { dest: "cache/cm_file_domains.isx", path: "/*/*/*/*/*.fdd" }
+      - { dest: "cache/cm_file_defs.isx", path: "/*/*.fd" }
+      - { dest: "cache/cm_file_def_structures.isx", path: "/*/*/*.fdl" }
+      - { dest: "cache/cm_file_def_domains.isx", path: "/*/*/*/*.ddd" }
+      - { dest: "cache/cm_fields.isx", path: "/*/*.did" }
+      - { dest: "cache/cm_pdms.isx", path: "/*/*.pm" }
+      - { dest: "cache/cm_pdm_tables.isx", path: "/*/*/*.dtl" }
+      - { dest: "cache/cm_pdm_procedures.isx", path: "/*/*/*.dp" }
+      - { dest: "cache/cm_pdm_domains.isx", path: "/*/*/*/*.pdd" }
+      - { dest: "cache/cm_bi_servers.isx", path: "/*.srv" }
+      - { dest: "cache/cm_bi_folders.isx", path: "/*/*/*.fld" }
+      - { dest: "cache/cm_bi_models.isx", path: "/*/*/*.oml" }
+      - { dest: "cache/cm_bi_collections.isx", path: "/*/*/*/*/*.ocl" }
+      - { dest: "cache/cm_bi_cubes.isx", path: "/*/*/*/*/*.ocb" }
+      - { dest: "cache/cm_bi_reports.isx", path: "/*/*/*.rdf" }
+      - { dest: "cache/cm_bi_queries.isx", path: "/*/*/*/*/*.rds" }
+      - { dest: "cache/cm_dataconnections.isx", path: "/*/*.dcn" }
+      - { dest: "cache/cm_contract_libraries.isx", path: "/*.cl" }
+
+    ibm_infosvr_impexp_lm_export:
+      - { dest: "cache/ldms.isx", path: "/*/*.lm" }
+      - { dest: "cache/ldm_entities.isx", path: "/*/*/*.ent" }
+      - { dest: "cache/ldm_relationships.isx", path: "/*/*/*/*/*.rel" }
+      - { dest: "cache/ldm_generalizations.isx", path: "/*/*/*/*/*/*.gen" }
+      - { dest: "cache/ldm_domains.isx", path: "/*/*/*/*.dom" }
+      - { dest: "cache/ldm_subjectareas.isx", path: "/*/*/*.sa" }
+    
+    ibm_infosvr_impexp_mdm_export:
+      - { dest: "cache/mdm.isx", path: "/*/*.mdm" }
+    
+    ibm_infosvr_impexp_dc_export:
+      - dest: "cache/dc_last48hrs.isx"
+        changes_in_last_hours: 48
+
+    ibm_infosvr_impexp_ds_export:
+      - dest: cache/ds_dstage1_last48hrs.isx
+        changes_in_last_hours: 48
+        conditions:
+          - { property: "transformation_project.name", operator: "=", value: "dstage1" }
+
+    ibm_infosvr_impexp_ia_export:
+      - { dest: "cache/ia_all.isx", projects: "*", options: "-includeResultHistory -includeCommonMetadata -includeProjectRoles -includeReports -tablelevel" }
+
+    ibm_infosvr_impexp_xa_export:
+      - dest: "cache/xa_apps_last48hrs.csv"
+        changes_in_last_hours: 48
+        type: application
+      - dest: "cache/xa_files_last48hrs.csv"
+        changes_in_last_hours: 48
+        type: file
+      - dest: "cache/xa_sprocs_last48hrs.csv"
+        changes_in_last_hours: 48
+        type: stored_procedure_definition
+    
+    ibm_infosvr_impexp_xm_export:
+      - dest: "cache/xm_last48hrs.zip"
+        changes_in_last_hours: 48
+        
+    ibm_infosvr_impexp_bg_export:
+      - { dest: "cache/bg_all.xml", categories: "*", options: "-includeassignedassets -includestewardship -includeassetcollections -includelabeledassets -includetermhistory -allpoliciesrules -devglossary" }
+
+    ibm_infosvr_impexp_igc_relns_export:
+      - dest: cache/term2assets_last48hrs.json
+        type: term
+        relationship: assigned_assets
+        changes_in_last_hours: 48
+
+    ibm_infosvr_impexp_cm_cadefs_import:
+      - { src: "cache/cm_cadefs_all.isx", overwrite: True }
+    
+    ibm_infosvr_impexp_cm_import:
+      - { src: "cache/cm_hosts.isx", overwrite: True }
+      - { src: "cache/cm_databases.isx", overwrite: True }
+      - { src: "cache/cm_schemas.isx", overwrite: True }
+      - { src: "cache/cm_tables.isx", overwrite: True }
+      - { src: "cache/cm_procedures.isx", overwrite: True }
+      - { src: "cache/cm_columns.isx", overwrite: True }
+      - { src: "cache/cm_file_folders.isx", overwrite: True }
+      - { src: "cache/cm_files.isx", overwrite: True }
+      - { src: "cache/cm_file_structures.isx", overwrite: True }
+      - { src: "cache/cm_file_domains.isx", overwrite: True }
+      - { src: "cache/cm_file_defs.isx", overwrite: True }
+      - { src: "cache/cm_file_def_structures.isx", overwrite: True }
+      - { src: "cache/cm_file_def_domains.isx", overwrite: True }
+      - { src: "cache/cm_fields.isx", overwrite: True }
+      - { src: "cache/cm_pdms.isx", overwrite: True }
+      - { src: "cache/cm_pdm_tables.isx", overwrite: True }
+      - { src: "cache/cm_pdm_procedures.isx", overwrite: True }
+      - { src: "cache/cm_pdm_domains.isx", overwrite: True }
+      - { src: "cache/cm_bi_servers.isx", overwrite: True }
+      - { src: "cache/cm_bi_folders.isx", overwrite: True }
+      - { src: "cache/cm_bi_models.isx", overwrite: True }
+      - { src: "cache/cm_bi_collections.isx", overwrite: True }
+      - { src: "cache/cm_bi_cubes.isx", overwrite: True }
+      - { src: "cache/cm_bi_reports.isx", overwrite: True }
+      - { src: "cache/cm_bi_queries.isx", overwrite: True }
+      - { src: "cache/cm_dataconnections.isx", overwrite: True }
+      - { src: "cache/cm_contract_libraries.isx", overwrite: True }
+
+    ibm_infosvr_impexp_lm_import:
+      - { src: "cache/ldms.isx", overwrite: True }
+      - { src: "cache/ldm_entities.isx", overwrite: True }
+      - { src: "cache/ldm_relationships.isx", overwrite: True }
+      - { src: "cache/ldm_generalizations.isx", overwrite: True }
+      - { src: "cache/ldm_domains.isx", overwrite: True }
+      - { src: "cache/ldm_subjectareas.isx", overwrite: True }
+    
+    ibm_infosvr_impexp_mdm_import:
+      - { src: "cache/mdm.isx", overwrite: True }
+    
+    ibm_infosvr_impexp_dc_import:
+      - { src: "cache/dc_last48hrs.isx", overwrite: True }
+
+    ibm_infosvr_impexp_ds_import:
+      - { src: cache/ds_dstage1_last48hrs.isx, project: dstage1, overwrite: True }
+
+    ibm_infosvr_impexp_ia_import:
+      - { src: "cache/ia_all.isx", overwrite: True }
+
+    ibm_infosvr_impexp_xa_import:
+      - { src: "cache/xa_apps_last48hrs.csv", overwrite: True }
+      - { src: "cache/xa_files_last48hrs.csv", overwrite: True }
+      - { src: "cache/xa_sprocs_last48hrs.csv", overwrite: True }
+    
+    ibm_infosvr_impexp_xm_import:
+      - { src: "cache/xm_last48hrs.zip", overwrite: True }
+        
+    ibm_infosvr_impexp_bg_import:
+      - { src: "cache/bg_all.xml", merge: "mergeoverwrite" }
+
+    ibm_infosvr_impexp_igc_relns_import:
+      - dest: cache/term2assets_last48hrs.json
+        type: term
+        relationship: assigned_assets
+        mode: REPLACE_ALL
