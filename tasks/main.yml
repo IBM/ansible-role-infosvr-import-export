@@ -16,15 +16,9 @@
 ###
 
 - import_tasks: export.yml
-  become_user: "{{ ibm_infosvr_impexp_infosvr_dsadm_user }}"
-  become: yes
-  when: ('ibm-information-server-engine' in group_names)
   tags:
     - export
 
 - import_tasks: import.yml
-  become_user: "{{ ibm_infosvr_impexp_infosvr_dsadm_user }}"
-  become: yes
-  when: ('ibm-information-server-engine' in group_names)
   tags:
     - import

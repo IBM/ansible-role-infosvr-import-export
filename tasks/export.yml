@@ -24,42 +24,65 @@
   yum: state=latest name={{ item }}
   with_items:
     - python-requests
+  become: yes
 
 # Security (-sec)
 
 - import_tasks: exports/export_cm_cadefs.yml
-  when: ibm_infosvr_impexp_cm_cadefs_export is defined
+  become_user: "{{ ibm_infosvr_impexp_infosvr_dsadm_user }}"
+  become: yes
+  when: ('ibm-information-server-engine' in group_names) and ibm_infosvr_impexp_cm_cadefs_export is defined
 
 - import_tasks: exports/export_cm.yml
-  when: ibm_infosvr_impexp_cm_export is defined
+  become_user: "{{ ibm_infosvr_impexp_infosvr_dsadm_user }}"
+  become: yes
+  when: ('ibm-information-server-engine' in group_names) and ibm_infosvr_impexp_cm_export is defined
 
 - import_tasks: exports/export_lm.yml
-  when: ibm_infosvr_impexp_lm_export is defined
+  become_user: "{{ ibm_infosvr_impexp_infosvr_dsadm_user }}"
+  become: yes
+  when: ('ibm-information-server-engine' in group_names) and ibm_infosvr_impexp_lm_export is defined
 
 - import_tasks: exports/export_mdm.yml
-  when: ibm_infosvr_impexp_mdm_export is defined
+  become_user: "{{ ibm_infosvr_impexp_infosvr_dsadm_user }}"
+  become: yes
+  when: ('ibm-information-server-engine' in group_names) and ibm_infosvr_impexp_mdm_export is defined
 
 - import_tasks: exports/export_dc.yml
-  when: ibm_infosvr_impexp_dc_export is defined
+  become_user: "{{ ibm_infosvr_impexp_infosvr_dsadm_user }}"
+  become: yes
+  when: ('ibm-information-server-engine' in group_names) and ibm_infosvr_impexp_dc_export is defined
 
 - import_tasks: exports/export_datastage.yml
-  when: ibm_infosvr_impexp_ds_export is defined
+  become_user: "{{ ibm_infosvr_impexp_infosvr_dsadm_user }}"
+  become: yes
+  when: ('ibm-information-server-engine' in group_names) and ibm_infosvr_impexp_ds_export is defined
 
 # Reports (-rep)
 
 - import_tasks: exports/export_ia.yml
-  when: ibm_infosvr_impexp_ia_export is defined
+  become_user: "{{ ibm_infosvr_impexp_infosvr_dsadm_user }}"
+  become: yes
+  when: ('ibm-information-server-engine' in group_names) and ibm_infosvr_impexp_ia_export is defined
 
 # FastTrack (-fasttrack)
 
 - import_tasks: exports/export_xa.yml
-  when: ibm_infosvr_impexp_xa_export is defined
+  become_user: "{{ ibm_infosvr_impexp_infosvr_dsadm_user }}"
+  become: yes
+  when: ('ibm-information-server-engine' in group_names) and ibm_infosvr_impexp_xa_export is defined
 
 - import_tasks: exports/export_xm.yml
-  when: ibm_infosvr_impexp_xm_export is defined
+  become_user: "{{ ibm_infosvr_impexp_infosvr_dsadm_user }}"
+  become: yes
+  when: ('ibm-information-server-engine' in group_names) and ibm_infosvr_impexp_xm_export is defined
 
 - import_tasks: exports/export_glossary.yml
-  when: ibm_infosvr_impexp_bg_export is defined
+  become_user: "{{ ibm_infosvr_impexp_infosvr_dsadm_user }}"
+  become: yes
+  when: ('ibm-information-server-engine' in group_names) and ibm_infosvr_impexp_bg_export is defined
 
 - import_tasks: exports/export_igc_relns.yml
-  when: ibm_infosvr_impexp_igc_relns_export is defined
+  become_user: "{{ ibm_infosvr_impexp_infosvr_dsadm_user }}"
+  become: yes
+  when: ('ibm-information-server-engine' in group_names) and ibm_infosvr_impexp_igc_relns_export is defined
