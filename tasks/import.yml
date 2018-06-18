@@ -15,6 +15,27 @@
 # limitations under the License.
 ###
 
+- name: get date and time inputs
+  set_fact:
+    __ibm_infosvr_impexp_timestamp: "{{ ansible_date_time.iso8601_basic }}"
+    __ibm_infosvr_impexp_to_epoch: "{{ (ansible_date_time.epoch | int) * 1000 }}"
+
+- name: install prerequisite packages
+  yum: state=latest name={{ item }}
+  with_items:
+    - python-requests
+
+- name: load mapping defaults
+  import_tasks: imports/setup_mappings.yml
+  when: ('ibm-information-server-domain' in group_names)
+
+- name: ensure common backup location exists
+  file:
+    path: "{{ ibm_infosvr_impexp_backup_first }}/{{ __ibm_infosvr_impexp_timestamp }}"
+    state: directory
+  register: __ibm_infosvr_impexp_backup_dir
+  when: ibm_infosvr_impexp_backup_first is defined
+
 # Security (-sec)
 
 - import_tasks: imports/import_cm_cadefs.yml

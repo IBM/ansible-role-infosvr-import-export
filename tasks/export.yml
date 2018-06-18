@@ -15,6 +15,16 @@
 # limitations under the License.
 ###
 
+- name: get date and time inputs
+  set_fact:
+    __ibm_infosvr_impexp_timestamp: "{{ ansible_date_time.iso8601_basic }}"
+    __ibm_infosvr_impexp_to_epoch: "{{ (ansible_date_time.epoch | int) * 1000 }}"
+
+- name: install prerequisite packages
+  yum: state=latest name={{ item }}
+  with_items:
+    - python-requests
+
 # Security (-sec)
 
 - import_tasks: exports/export_cm_cadefs.yml
