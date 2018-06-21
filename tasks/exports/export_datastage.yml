@@ -21,7 +21,7 @@
     port: "{{ ibm_infosvr_impexp_services_console_port }}"
     user: "{{ ibm_infosvr_impexp_infosvr_admin_user }}"
     password: "{{ ibm_infosvr_impexp_infosvr_admin_user_pwd }}"
-    asset_type: dsjob
+    asset_type: "{{ item.type }}"
     from_time: >
               {% if item.changes_in_last_hours is defined %}
               {{ (__ibm_infosvr_impexp_to_epoch | int) - ((item.changes_in_last_hours | int) * 3600 * 1000) }}

@@ -306,6 +306,7 @@ The only required parameters for the import are the `src` file from which to and
 ibm_infosvr_impexp_ds_export:
   - dest: "<path>"
     changes_in_last_hours: <int>
+    type: "<string>"
     conditions:
       - { property: "<string>", operator: "<string>", value: "<value>" }
       - ...
@@ -314,6 +315,8 @@ ibm_infosvr_impexp_ds_export:
 
 Conditions are purely optional, take the form of the IGC REST API's conditions (see http://www.ibm.com/support/docview.wss?uid=swg27047054) and are currently always AND'd (all conditions must be met). The `changes_in_last_hours` is also optional; if used, specify the number of hours prior to the playbook running from which to identify (and extract) any changes.
 
+The `type` should be one of `dsjob`, `routine`, `shared_container`, `table_definition` or `parameter_set`, and any conditions specified should be within the context of that specified asset type.
+
 **Examples**:
 
 ```
@@ -321,8 +324,9 @@ ibm_infosvr_impexp_ds_import:
   - { src: "import.isx", project: "dstage1", overwrite: True }
 
 ibm_infosvr_impexp_ds_export:
-  - dest: "cache/ds_dstage1_changes_in_last48hrs.isx"
+  - dest: "cache/ds_dstage1_jobs_changes_in_last48hrs.isx"
     changes_in_last_hours: 48
+    type: "dsjob"
     conditions:
       - { property: "transformation_project.name", operator: "=", value: "dstage1" }
 ```

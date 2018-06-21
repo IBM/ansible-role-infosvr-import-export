@@ -56,6 +56,7 @@
     ibm_infosvr_impexp_ds_export:
       - dest: cache/ds_dstage1_last48hrs.isx
         changes_in_last_hours: 48
+        type: dsjob
         conditions:
           - { property: "transformation_project.name", operator: "=", value: "dstage1" }
 
