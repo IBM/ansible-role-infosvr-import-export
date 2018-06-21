@@ -30,7 +30,7 @@ asset_type_to_properties = {
   "dsjob": [ "type" ] + common_properties,
   "routine": common_properties,
   "shared_container": [ "type" ] + common_properties,
-  "table_definition": common_properties,
+  "table_definition": [ "data_store", "data_schema", "data_source_name" ] + common_properties,
   "parameter_set": common_properties,
   "data_class": [ "class_code" ] + common_properties,
   "extension_mapping_document": [ "file_name", "parent_folder" ] + common_properties,
@@ -134,6 +134,14 @@ def _getDsSharedContainerExtractObjects(rest_result):
     extract['jobs'] += ".*"
   return extract
 
+def _getQualifiedNameForTableDefinition(rest_result):
+  qualifiedName = rest_result['_name']
+  if rest_result['data_source_name'] != '':
+    qualifiedName = rest_result['data_source_name'] + '\\\\' + qualifiedName
+  if rest_result['data_store'] != '':
+    qualifiedName = rest_result['data_store'] + '\\\\' + qualifiedName
+  return qualifiedName
+
 def _getDsTableDefinitionExtractObjects(rest_result):
   # https://www.ibm.com/support/knowledgecenter/en/SSZJPZ_11.7.0/com.ibm.swg.im.iis.iisinfsv.assetint.doc/topics/depasset.html
   # Note: because table definitions must be universally unique in naming within a project (irrespective of folder) we can
@@ -142,7 +150,7 @@ def _getDsTableDefinitionExtractObjects(rest_result):
     "host": rest_result['_context'][0]['_name'],
     "project": rest_result['_context'][1]['_name'],
     "folder": "*",
-    "jobs": rest_result['_name']
+    "jobs": _getQualifiedNameForTableDefinition(rest_result)
   }
   extract['jobs'] += ".tbd"
   return extract
