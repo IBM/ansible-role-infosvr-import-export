@@ -53,6 +53,16 @@ xa_asset_type_to_extract_type = {
   "output_value": "OutputValue"
 }
 
+# Necessary to avoid trying to export default objects that are there as part of vanilla Information Server installation
+asset_blacklists = {
+  "table_definition": [
+    "Examples\\\\Folder",
+    "WebSphere MQ Connector\\\\MQMessage",
+    "Examples\\\\SOAPbody",
+    "Distributed Transaction\\\\TransactionStatus"
+  ]
+}
+
 def get_properties(asset_type):
   if asset_type in asset_type_to_properties:
     return asset_type_to_properties[asset_type]
@@ -140,7 +150,10 @@ def _getQualifiedNameForTableDefinition(rest_result):
     qualifiedName = rest_result['data_source_name'] + '\\\\' + qualifiedName
   if rest_result['data_store'] != '':
     qualifiedName = rest_result['data_store'] + '\\\\' + qualifiedName
-  return qualifiedName
+  if qualifiedName not in asset_blacklists['table_definition']:
+    return qualifiedName + ".tbd"
+  else:
+    return ""
 
 def _getDsTableDefinitionExtractObjects(rest_result):
   # https://www.ibm.com/support/knowledgecenter/en/SSZJPZ_11.7.0/com.ibm.swg.im.iis.iisinfsv.assetint.doc/topics/depasset.html
@@ -152,8 +165,8 @@ def _getDsTableDefinitionExtractObjects(rest_result):
     "folder": "*",
     "jobs": _getQualifiedNameForTableDefinition(rest_result)
   }
-  extract['jobs'] += ".tbd"
-  return extract
+  if extract['jobs'] != '':
+    return extract
 
 def _getDsParameterSetExtractObjects(rest_result):
   # https://www.ibm.com/support/knowledgecenter/en/SSZJPZ_11.7.0/com.ibm.swg.im.iis.iisinfsv.assetint.doc/topics/depasset.html
