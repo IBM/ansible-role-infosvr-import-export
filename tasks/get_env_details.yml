@@ -64,8 +64,7 @@
 - name: register WAS install location for reference
   set_fact:
     __ibm_infosvr_impexp_was_location: '{{ __ibm_infosvr_impexp_was_location_xml.matches[0]["{http://www.ibm.com/LocalInstallRegistry}PersistedVariable"].value }}'
-
-- debug: var=__ibm_infosvr_impexp_was_location
+  when: ('ibm-information-server-domain' in group_names)
 
 - name: retrieve database type
   xml:
@@ -80,8 +79,7 @@
 - name: register database type for reference
   set_fact:
     __ibm_infosvr_impexp_dbtype: '{{ __ibm_infosvr_impexp_dbtype_xml.matches[0]["{http://www.ibm.com/LocalInstallRegistry}PersistedVariable"].value }}'
-
-- debug: var=__ibm_infosvr_impexp_dbtype
+  when: ('ibm-information-server-domain' in group_names)
 
 # TODO:
 # - retrieve database version
