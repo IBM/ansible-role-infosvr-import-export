@@ -22,3 +22,7 @@
 - import_tasks: import.yml
   tags:
     - import
+
+- import_tasks: get_env_details.yml
+  tags:
+    - envdetails

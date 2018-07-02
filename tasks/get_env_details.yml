@@ -1,0 +1,125 @@
+---
+###
+# Copyright 2018 IBM Corp. All Rights Reserved.
+# 
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+# 
+#      http://www.apache.org/licenses/LICENSE-2.0
+# 
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+###
+
+- name: get date and time inputs
+  set_fact:
+    __ibm_infosvr_impexp_timestamp: "{{ ansible_date_time.iso8601_basic }}"
+    __ibm_infosvr_impexp_to_epoch: "{{ (ansible_date_time.epoch | int) * 1000 }}"
+
+- name: ensure XML library is installed
+  yum: name=python-lxml state=latest
+  become: yes
+
+- name: retrieve Version.xml
+  fetch:
+    src: "{{ ibm_infosvr_impexp_infosvr_install_location }}/Version.xml"
+    dest: "{{ ibm_infosvr_impexp_fetch_location }}/Version_{{ inventory_hostname }}.xml"
+    flat: yes
+
+- name: retrieve Information Server version
+  xml:
+    path: "{{ ibm_infosvr_impexp_infosvr_install_location }}/Version.xml"
+    xpath: /x:LocalInstallRegistry/x:InstallType
+    namespaces:
+      x: http://www.ibm.com/LocalInstallRegistry
+    content: attribute
+  register: __ibm_infosvr_impexp_version_xml
+
+- name: register version number for reference
+  set_fact:
+    __ibm_infosvr_impexp_version_full: '{{ __ibm_infosvr_impexp_version_xml.matches[0]["{http://www.ibm.com/LocalInstallRegistry}InstallType"].currentVersion }}'
+    __ibm_infosvr_impexp_version: '{{ __ibm_infosvr_impexp_version_xml.matches[0]["{http://www.ibm.com/LocalInstallRegistry}InstallType"].currentVersion[:4] }}'
+
+- name: retrieve Information Server JDK version
+  shell: >
+          {{ ibm_infosvr_impexp_infosvr_install_location }}/jdk/bin/java -version
+  when: ('ibm-information-server-domain' in group_names)
+  register: __ibm_infosvr_impexp_isjdk_version
+  changed_when: False
+
+- name: retrieve WAS install location
+  xml:
+    path: "{{ ibm_infosvr_impexp_infosvr_install_location }}/Version.xml"
+    xpath: /x:LocalInstallRegistry/x:PersistedVariables/x:PersistedVariable[@name='was.install.location']
+    namespaces:
+      x: http://www.ibm.com/LocalInstallRegistry
+    content: attribute
+  when: ('ibm-information-server-domain' in group_names)
+  register: __ibm_infosvr_impexp_was_location_xml
+
+- name: register WAS install location for reference
+  set_fact:
+    __ibm_infosvr_impexp_was_location: '{{ __ibm_infosvr_impexp_was_location_xml.matches[0]["{http://www.ibm.com/LocalInstallRegistry}PersistedVariable"].value }}'
+
+- debug: var=__ibm_infosvr_impexp_was_location
+
+- name: retrieve database type
+  xml:
+    path: "{{ ibm_infosvr_impexp_infosvr_install_location }}/Version.xml"
+    xpath: /x:LocalInstallRegistry/x:PersistedVariables/x:PersistedVariable[@name='xmeta.driver.type']
+    namespaces:
+      x: http://www.ibm.com/LocalInstallRegistry
+    content: attribute
+  when: ('ibm-information-server-domain' in group_names)
+  register: __ibm_infosvr_impexp_dbtype_xml
+
+- name: register database type for reference
+  set_fact:
+    __ibm_infosvr_impexp_dbtype: '{{ __ibm_infosvr_impexp_dbtype_xml.matches[0]["{http://www.ibm.com/LocalInstallRegistry}PersistedVariable"].value }}'
+
+- debug: var=__ibm_infosvr_impexp_dbtype
+
+# TODO:
+# - retrieve database version
+
+- name: retrieve WebSphere Application Server version
+  shell: >
+          {{ __ibm_infosvr_impexp_was_location }}/bin/versionInfo.sh
+  when: ('ibm-information-server-domain' in group_names)
+  register: __ibm_infosvr_impexp_was_version
+  changed_when: False
+
+- name: retrieve WebSphere Application Server JDK version
+  shell: >
+          {{ __ibm_infosvr_impexp_was_location }}/java/{{ (__ibm_infosvr_impexp_version == '11.7') | ternary('8.0/','') }}bin/java -version
+  when: ('ibm-information-server-domain' in group_names)
+  register: __ibm_infosvr_impexp_wasjdk_version
+  changed_when: False
+
+- name: record details
+  local_action:
+    module: blockinfile
+    path: "{{ ibm_infosvr_impexp_fetch_location }}/envdetails.txt"
+    create: yes
+    marker: "####### {mark} ENVIRONMENT DETAILS #######"
+    block: |
+      ================================================================================
+      Repository host: {{ groups['ibm-information-server-repo'] | default([]) | join(", ") }}
+      Domain host(s) : {{ groups['ibm-information-server-domain'] | default([]) | join(", ") }}
+      Engine host(s) : {{ groups['ibm-information-server-engine'] | default([]) | join(", ") }}
+      InfoSvr version: {{ __ibm_infosvr_impexp_version_full }}
+      ================================================================================
+      InfoSvr JDK:
+      {{ __ibm_infosvr_impexp_isjdk_version.stderr }}
+      ================================================================================
+      WAS details:
+      {{ __ibm_infosvr_impexp_was_version.stdout }}
+      ================================================================================
+      WAS JDK:
+      {{ __ibm_infosvr_impexp_wasjdk_version.stderr }}
+      ================================================================================
+  when: ('ibm-information-server-domain' in group_names)
