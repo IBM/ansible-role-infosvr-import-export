@@ -71,7 +71,7 @@
   become: yes
   when: ('ibm-information-server-engine' in group_names) and ibm_infosvr_impexp_ds_import is defined
 
-- import_tasks: imports/import_ds_vars.yml
+- include_tasks: imports/import_ds_vars.yml
   become_user: "{{ ibm_infosvr_impexp_infosvr_dsadm_user }}"
   become: yes
   when: ('ibm-information-server-engine' in group_names) and ibm_infosvr_impexp_ds_vars_import is defined
