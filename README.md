@@ -362,7 +362,11 @@ ibm_infosvr_impexp_ds_vars_import:
   - { src: "ds_dstage1_vars.yml", project: "dstage1" }
 
 ibm_infosvr_impexp_ds_vars_export:
-  - { dest: "vars/ds_dstage1_vars.yml", project: "dstage1" }
+  - dest: "vars/ds_dstage1_vars.yml"
+    project: "dstage1"
+    vars:
+      - ODPPLL
+      - TMPDIR
 ```
 
 ### Information Analyzer assets
