@@ -30,7 +30,8 @@ galaxy_info:
     - 6
 
   galaxy_tags:
-    - import-export
+    - import
+    - export
     - ibm
     - infosphere
     - informationserver
