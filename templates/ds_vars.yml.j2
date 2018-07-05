@@ -25,7 +25,9 @@ ibm_infosvr_impexp_ds_vars_import_values:
 {% set storetype = lookup('csvfile', properties[0] + ' file=' + item.dest + '.dsparams delimiter=\\ col=3 default=STRING') %}
 {% set prompt = lookup('csvfile', properties[0] + ' file=' + item.dest + '.dsparams delimiter=\\ col=7 default=' + properties[0]) %}
   - name: {{ properties[0] }}
-    type: {{ storetype }}
-    prompt: {{ prompt }}
+{% if vartype == 'User Defined' %}
+    type: {{ storetype | upper }}
+    prompt: "{{ prompt | replace('"', '\"') }}"
+{% endif %}
     value: "{{ properties[1] | replace('"', '\"') }}"
 {% endfor %}
