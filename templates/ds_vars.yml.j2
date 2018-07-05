@@ -17,11 +17,15 @@
 
 ibm_infosvr_impexp_ds_vars_import_values:
 {% set contents = lookup('file', item.dest + '.properties') %}
+{% set dsparams = lookup('file', item.dest + '.dsparams') %}
 {% set lines = contents.split('\n') %}
 {% for line in lines %}
 {% set properties = line.split('=') %}
+{% set vartype = lookup('csvfile', properties[0] + ' file=' + item.dest + '.dsparams delimiter=\\ col=1 default=blah') %}
+{% set storetype = lookup('csvfile', properties[0] + ' file=' + item.dest + '.dsparams delimiter=\\ col=3 default=STRING') %}
+{% set prompt = lookup('csvfile', properties[0] + ' file=' + item.dest + '.dsparams delimiter=\\ col=7 default=' + properties[0]) %}
   - name: {{ properties[0] }}
-    type: STRING
-    prompt: "{{ properties[0] }}"
+    type: {{ storetype }}
+    prompt: {{ prompt }}
     value: "{{ properties[1] | replace('"', '\"') }}"
 {% endfor %}
