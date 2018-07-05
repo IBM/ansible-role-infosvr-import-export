@@ -118,8 +118,8 @@ def _getDsJobExtractObjects(rest_result):
 
 def _getDsRoutineExtractObjects(rest_result):
     # https://www.ibm.com/support/knowledgecenter/en/SSZJPZ_11.7.0/com.ibm.swg.im.iis.iisinfsv.assetint.doc/topics/depasset.html
-    # Note: because routines must be universally unique in naming within a project (irrespective of folder) we can
-    # safely ignore the folder altogether (just wildcard it)
+    # Note: because routines must be universally unique in naming within a project (irrespective of folder)
+    # we can safely ignore the folder altogether (just wildcard it)
     extract = {
         "host": rest_result['_context'][0]['_name'],
         "project": rest_result['_context'][1]['_name'],
@@ -134,8 +134,8 @@ def _getDsRoutineExtractObjects(rest_result):
 
 def _getDsSharedContainerExtractObjects(rest_result):
     # https://www.ibm.com/support/knowledgecenter/en/SSZJPZ_11.7.0/com.ibm.swg.im.iis.iisinfsv.assetint.doc/topics/depasset.html
-    # Note: because shared containres must be universally unique in naming within a project (irrespective of folder) we can
-    # safely ignore the folder altogether (just wildcard it)
+    # Note: because shared containres must be universally unique in naming within a project (irrespective of folder)
+    # we can safely ignore the folder altogether (just wildcard it)
     extract = {
         "host": rest_result['_context'][0]['_name'],
         "project": rest_result['_context'][1]['_name'],
@@ -165,8 +165,8 @@ def _getQualifiedNameForTableDefinition(rest_result):
 
 def _getDsTableDefinitionExtractObjects(rest_result):
     # https://www.ibm.com/support/knowledgecenter/en/SSZJPZ_11.7.0/com.ibm.swg.im.iis.iisinfsv.assetint.doc/topics/depasset.html
-    # Note: because table definitions must be universally unique in naming within a project (irrespective of folder) we can
-    # safely ignore the folder altogether (just wildcard it)
+    # Note: because table definitions must be universally unique in naming within a project (irrespective of folder)
+    # we can safely ignore the folder altogether (just wildcard it)
     extract = {
         "host": rest_result['_context'][0]['_name'],
         "project": rest_result['_context'][1]['_name'],

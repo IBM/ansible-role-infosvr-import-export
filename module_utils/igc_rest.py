@@ -66,7 +66,7 @@ class RestIGC(object):
                 return {'items': []}
         else:
             return {'items': []}
-  
+
     def getAllPages(self, items, paging):
         results = self.getNextPage(paging)
         if len(results['items']) > 0:
