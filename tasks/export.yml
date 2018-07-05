@@ -58,6 +58,11 @@
   become: yes
   when: ('ibm-information-server-engine' in group_names) and ibm_infosvr_impexp_ds_export is defined
 
+- import_tasks: exports/export_ds_vars.yml
+  become_user: "{{ ibm_infosvr_impexp_infosvr_dsadm_user }}"
+  become: yes
+  when: ('ibm-information-server-engine' in group_names) and ibm_infosvr_impexp_ds_vars_export is defined
+
 # Reports (-rep)
 
 - import_tasks: exports/export_ia.yml
