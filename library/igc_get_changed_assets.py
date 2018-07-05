@@ -16,6 +16,9 @@
 # limitations under the License.
 ###
 
+from __future__ import (absolute_import, division, print_function)
+__metaclass__ = type
+
 ANSIBLE_METADATA = {
     'metadata_version': '1.1',
     'status': ['preview'],
@@ -154,9 +157,6 @@ assets:
 from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.igc_rest import RestIGC
 from ansible.module_utils.infosvr_types import get_properties, get_asset_extract_object
-
-from __future__ import (absolute_import, division, print_function)
-__metaclass__ = type
 
 
 def main():

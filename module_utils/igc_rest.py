@@ -17,13 +17,13 @@
 This module adds generic utility functions for interacting with IGC REST APIs
 """
 
+from __future__ import (absolute_import, division, print_function)
+__metaclass__ = type
+
 import requests
 import json
 import logging
 import re
-
-from __future__ import (absolute_import, division, print_function)
-__metaclass__ = type
 
 
 class RestIGC(object):
