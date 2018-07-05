@@ -2,13 +2,13 @@
 
 ###
 # Copyright 2018 IBM Corp. All Rights Reserved.
-# 
+#
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
-# 
+#
 #      http://www.apache.org/licenses/LICENSE-2.0
-# 
+#
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -17,9 +17,9 @@
 ###
 
 ANSIBLE_METADATA = {
-  'metadata_version': '1.1',
-  'status': ['preview'],
-  'supported_by': 'community'
+    'metadata_version': '1.1',
+    'status': ['preview'],
+    'supported_by': 'community'
 }
 
 DOCUMENTATION = '''
@@ -29,7 +29,7 @@ module: igc_get_changed_assets
 short_description: Retrieves a listing of changed assets from an IBM Information Governance Catalog environment
 
 description:
-  - "Retrieves a listing of changed assets from an IBM Information Governance Catalog environment, based on the criteria provided"
+  - "Retrieves a listing of changed assets from an IBM IGC environment, based on the criteria provided"
 
 version_added: "2.4"
 
@@ -59,7 +59,7 @@ options:
     type: str
   asset_type:
     description:
-      - The IGC REST asset type (eg. C(term)) for which to retrieve relationships. (See "GET /ibm/iis/igc-rest/v1/types" in your environment for choices.)
+      - The IGC REST asset type (eg. C(term)) for which to retrieve relationships. (See "GET /ibm/iis/igc-rest/v1/types")
     required: true
     type: str
   from_time:
@@ -81,7 +81,7 @@ options:
     suboptions:
       property:
         description:
-          - The property of the I(asset_type) to set the condition against. (See "GET /ibm/iis/igc-rest/v1/types/<asset_type>?showEditProperties=true&showViewProperties=true&showCreateProperties=true" in your environment for choices.)
+          - The property of the I(asset_type) to set the condition against. (See "GET /ibm/iis/igc-rest/v1/types/<asset_type>?showViewProperties=true")
         required: true
         type: str
       operator:
@@ -152,166 +152,164 @@ assets:
 '''
 
 from ansible.module_utils.basic import AnsibleModule
-from ansible.module_utils._text import to_bytes, to_native
+#from ansible.module_utils._text import to_bytes, to_native
 from ansible.module_utils.igc_rest import RestIGC
 from ansible.module_utils.infosvr_types import get_properties, get_asset_extract_object
-import os
-import os.path
-import tempfile
-import json
 
 def main():
 
-  module_args = dict(
-    host=dict(type='str', required=True),
-    port=dict(type='str', required=True),
-    user=dict(type='str', required=True),
-    password=dict(type='str', required=True, no_log=True),
-    asset_type=dict(type='str', required=True),
-    from_time=dict(type='int', required=True),
-    to_time=dict(type='int', required=True),
-    conditions=dict(type='list', required=False, default=[]),
-    batch=dict(type='int', required=False, default=100)
-  )
 
-  module = AnsibleModule(
-    argument_spec=module_args,
-    supports_check_mode=True
-  )
+    module_args = dict(
+        host=dict(type='str', required=True),
+        port=dict(type='str', required=True),
+        user=dict(type='str', required=True),
+        password=dict(type='str', required=True, no_log=True),
+        asset_type=dict(type='str', required=True),
+        from_time=dict(type='int', required=True),
+        to_time=dict(type='int', required=True),
+        conditions=dict(type='list', required=False, default=[]),
+        batch=dict(type='int', required=False, default=100)
+    )
 
-  result = dict(
-    changed=False,
-    queries=[],
-    assets=[]
-  )
+    module = AnsibleModule(
+        argument_spec=module_args,
+        supports_check_mode=True
+    )
 
-  # if the user is working with this module in only check mode we do not
-  # want to make any changes to the environment, just return the current
-  # state with no modifications
-  if module.check_mode:
-    return result
+    result = dict(
+        changed=False,
+        queries=[],
+        assets=[]
+    )
 
-  # Setup REST API connectivity via module_utils.igc_rest class
-  igcrest = RestIGC(
-    module,
-    result,
-    username=module.params['user'],
-    password=module.params['password'],
-    host=module.params['host'],
-    port=module.params['port']
-  )
+    # if the user is working with this module in only check mode we do not
+    # want to make any changes to the environment, just return the current
+    # state with no modifications
+    if module.check_mode:
+        return result
 
-  conditions = module.params['conditions']
-  asset_type = module.params['asset_type']
+    # Setup REST API connectivity via module_utils.igc_rest class
+    igcrest = RestIGC(
+        module,
+        result,
+        username=module.params['user'],
+        password=module.params['password'],
+        host=module.params['host'],
+        port=module.params['port']
+    )
 
-  # Basic query
-  reqJSON = {
-    "properties": get_properties(module.params['asset_type']),
-    "types": [ module.params['asset_type'] ],
-    "where": {
-      "conditions" : [],
-      "operator": "and"
+    conditions = module.params['conditions']
+    asset_type = module.params['asset_type']
+
+    # Basic query
+    reqJSON = {
+        "properties": get_properties(module.params['asset_type']),
+        "types": [module.params['asset_type']],
+        "where": {
+            "conditions": [],
+            "operator": "and"
+        }
     }
-  }
 
-  # Handle extended data sources in special way (to catch any changes in their underlying
-  # granular assets as well) -- requires nested OR'd conditions to check for changes
-  if asset_type == 'application':
-    reqJSON['where']['conditions'].append({ "conditions": [], "operator": "or" })
-    reqJSON['where']['conditions'][0]['conditions'].append({
-      "min": module.params['from_time'],
-      "max": module.params['to_time'],
-      "property": "modified_on",
-      "operator": "between"
-    })
-    reqJSON['where']['conditions'][0]['conditions'].append({
-      "min": module.params['from_time'],
-      "max": module.params['to_time'],
-      "property": "object_types.modified_on",
-      "operator": "between"
-    })
-    reqJSON['where']['conditions'][0]['conditions'].append({
-      "min": module.params['from_time'],
-      "max": module.params['to_time'],
-      "property": "object_types.methods.modified_on",
-      "operator": "between"
-    })
-    reqJSON['where']['conditions'][0]['conditions'].append({
-      "min": module.params['from_time'],
-      "max": module.params['to_time'],
-      "property": "object_types.methods.input_parameters.modified_on",
-      "operator": "between"
-    })
-    reqJSON['where']['conditions'][0]['conditions'].append({
-      "min": module.params['from_time'],
-      "max": module.params['to_time'],
-      "property": "object_types.methods.output_values.modified_on",
-      "operator": "between"
-    })
-  elif asset_type == 'stored_procedure_definition':
-    reqJSON['where']['conditions'].append({ "conditions": [], "operator": "or" })
-    reqJSON['where']['conditions'][0]['conditions'].append({
-      "min": module.params['from_time'],
-      "max": module.params['to_time'],
-      "property": "modified_on",
-      "operator": "between"
-    })
-    reqJSON['where']['conditions'][0]['conditions'].append({
-      "min": module.params['from_time'],
-      "max": module.params['to_time'],
-      "property": "in_parameters.modified_on",
-      "operator": "between"
-    })
-    reqJSON['where']['conditions'][0]['conditions'].append({
-      "min": module.params['from_time'],
-      "max": module.params['to_time'],
-      "property": "out_parameters.modified_on",
-      "operator": "between"
-    })
-    reqJSON['where']['conditions'][0]['conditions'].append({
-      "min": module.params['from_time'],
-      "max": module.params['to_time'],
-      "property": "inout_parameters.modified_on",
-      "operator": "between"
-    })
-    reqJSON['where']['conditions'][0]['conditions'].append({
-      "min": module.params['from_time'],
-      "max": module.params['to_time'],
-      "property": "result_columns.modified_on",
-      "operator": "between"
-    })
-  else:
-    reqJSON['where']['conditions'].append({
-      "min": module.params['from_time'],
-      "max": module.params['to_time'],
-      "property": "modified_on",
-      "operator": "between"
-    })
+    # Handle extended data sources in special way (to catch any changes in their underlying
+    # granular assets as well) -- requires nested OR'd conditions to check for changes
+    if asset_type == 'application':
+        reqJSON['where']['conditions'].append({"conditions": [], "operator": "or"})
+        reqJSON['where']['conditions'][0]['conditions'].append({
+            "min": module.params['from_time'],
+            "max": module.params['to_time'],
+            "property": "modified_on",
+            "operator": "between"
+        })
+        reqJSON['where']['conditions'][0]['conditions'].append({
+            "min": module.params['from_time'],
+            "max": module.params['to_time'],
+            "property": "object_types.modified_on",
+            "operator": "between"
+        })
+        reqJSON['where']['conditions'][0]['conditions'].append({
+            "min": module.params['from_time'],
+            "max": module.params['to_time'],
+            "property": "object_types.methods.modified_on",
+            "operator": "between"
+        })
+        reqJSON['where']['conditions'][0]['conditions'].append({
+            "min": module.params['from_time'],
+            "max": module.params['to_time'],
+            "property": "object_types.methods.input_parameters.modified_on",
+            "operator": "between"
+        })
+        reqJSON['where']['conditions'][0]['conditions'].append({
+            "min": module.params['from_time'],
+            "max": module.params['to_time'],
+            "property": "object_types.methods.output_values.modified_on",
+            "operator": "between"
+        })
+    elif asset_type == 'stored_procedure_definition':
+        reqJSON['where']['conditions'].append({"conditions": [], "operator": "or"})
+        reqJSON['where']['conditions'][0]['conditions'].append({
+            "min": module.params['from_time'],
+            "max": module.params['to_time'],
+            "property": "modified_on",
+            "operator": "between"
+        })
+        reqJSON['where']['conditions'][0]['conditions'].append({
+            "min": module.params['from_time'],
+            "max": module.params['to_time'],
+            "property": "in_parameters.modified_on",
+            "operator": "between"
+        })
+        reqJSON['where']['conditions'][0]['conditions'].append({
+            "min": module.params['from_time'],
+            "max": module.params['to_time'],
+            "property": "out_parameters.modified_on",
+            "operator": "between"
+        })
+        reqJSON['where']['conditions'][0]['conditions'].append({
+            "min": module.params['from_time'],
+            "max": module.params['to_time'],
+            "property": "inout_parameters.modified_on",
+            "operator": "between"
+        })
+        reqJSON['where']['conditions'][0]['conditions'].append({
+            "min": module.params['from_time'],
+            "max": module.params['to_time'],
+            "property": "result_columns.modified_on",
+            "operator": "between"
+        })
+    else:
+        reqJSON['where']['conditions'].append({
+            "min": module.params['from_time'],
+            "max": module.params['to_time'],
+            "property": "modified_on",
+            "operator": "between"
+        })
 
-  # Extend basic query with any optional conditions (in the outer, AND'd portion)
-  if len(conditions) > 0:
-    reqJSON['where']['conditions'] += conditions
+    # Extend basic query with any optional conditions (in the outer, AND'd portion)
+    if len(conditions) > 0:
+        reqJSON['where']['conditions'] += conditions
 
-  jsonResults = igcrest.search(reqJSON)
-  
-  # Ensure search worked before proceeding
-  if jsonResults == '':
-    module.fail_json(msg='Initial IGC REST API search failed', **result)
+    jsonResults = igcrest.search(reqJSON)
 
-  result['asset_count'] = len(jsonResults)
+    # Ensure search worked before proceeding
+    if jsonResults == '':
+        module.fail_json(msg='Initial IGC REST API search failed', **result)
 
-  # Translate the retrieved item details into exportable strings
-  for item in jsonResults:
-    result_obj = get_asset_extract_object(module.params['asset_type'], item)
-    if result_obj == "UNIMPLEMENTED":
-      module.fail_json(msg='Unable to convert asset_type "' + module.params['asset_type'] + '"', **result)
-    elif result_obj != None:
-      result['assets'].append(result_obj)
-  
-  # Close the IGC REST API session
-  igcrest.closeSession()
+    result['asset_count'] = len(jsonResults)
 
-  module.exit_json(**result)
+    # Translate the retrieved item details into exportable strings
+    for item in jsonResults:
+        result_obj = get_asset_extract_object(module.params['asset_type'], item)
+        if result_obj == "UNIMPLEMENTED":
+            module.fail_json(msg='Unable to convert asset_type "' + module.params['asset_type'] + '"', **result)
+        elif result_obj is not None:
+            result['assets'].append(result_obj)
+
+    # Close the IGC REST API session
+    igcrest.closeSession()
+
+    module.exit_json(**result)
+
 
 if __name__ == '__main__':
-  main()
+    main()

@@ -2,13 +2,13 @@
 
 ###
 # Copyright 2018 IBM Corp. All Rights Reserved.
-# 
+#
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
-# 
+#
 #      http://www.apache.org/licenses/LICENSE-2.0
-# 
+#
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -17,9 +17,9 @@
 ###
 
 ANSIBLE_METADATA = {
-  'metadata_version': '1.1',
-  'status': ['preview'],
-  'supported_by': 'community'
+    'metadata_version': '1.1',
+    'status': ['preview'],
+    'supported_by': 'community'
 }
 
 DOCUMENTATION = '''
@@ -29,7 +29,7 @@ module: igc_extract_relationships
 short_description: Extracts metadata relationships from an IBM Information Governance Catalog environment
 
 description:
-  - "Extracts metadata relationships from an IBM Information Governance Catalog environment, based on the criteria provided"
+  - "Extracts metadata relationships from an IBM IGC, based on the criteria provided"
 
 version_added: "2.4"
 
@@ -59,12 +59,12 @@ options:
     type: str
   asset_type:
     description:
-      - The IGC REST asset type (eg. C(term)) for which to retrieve relationships. (See "GET /ibm/iis/igc-rest/v1/types" in your environment for choices.)
+      - The IGC REST asset type (eg. C(term)) for which to retrieve relationships. (See "GET /ibm/iis/igc-rest/v1/types")
     required: true
     type: str
   relationship:
     description:
-      - The IGC REST asset's property (eg. C(assigned_assets)) to use to retrieve relationships. (See "GET /ibm/iis/igc-rest/v1/types/<asset_type>?showEditProperties=true&showViewProperties=true&showCreateProperties=true" in your environment for choices.)
+      - The IGC REST asset's property (eg. C(assigned_assets)) to use to retrieve relationships. (See "GET /ibm/iis/igc-rest/v1/types/<asset_type>?showViewProperties=true")
     required: true
     type: str
   dest:
@@ -91,7 +91,7 @@ options:
     suboptions:
       property:
         description:
-          - The property of the I(asset_type) to set the condition against. (See "GET /ibm/iis/igc-rest/v1/types/<asset_type>?showEditProperties=true&showViewProperties=true&showCreateProperties=true" in your environment for choices.)
+          - The property of the I(asset_type) to set the condition against. (See "GET /ibm/iis/igc-rest/v1/types/<asset_type>?showViewProperties=true")
         required: true
         type: str
       operator:
@@ -107,7 +107,7 @@ options:
         type: str
   limit:
     description:
-      - A second IGC REST asset type (eg. C(database_column)) to which to limit the relationships that are retrieved. (See "GET /ibm/iis/igc-rest/v1/types" in your environment for choices.)
+      - A second IGC REST asset type (eg. C(database_column)) to which to limit the relationships that are retrieved. (See "GET /ibm/iis/igc-rest/v1/types")
     required: false
     type: str
     default: ""
@@ -180,139 +180,141 @@ import os.path
 import tempfile
 import json
 
+
 def main():
 
-  module_args = dict(
-    host=dict(type='str', required=True),
-    port=dict(type='str', required=True),
-    user=dict(type='str', required=True),
-    password=dict(type='str', required=True, no_log=True),
-    asset_type=dict(type='str', required=True),
-    relationship=dict(type='str', required=True),
-    dest=dict(type='path', required=True),
-    from_time=dict(type='int', required=False, default=-1),
-    to_time=dict(type='int', required=False),
-    conditions=dict(type='list', required=False, default=[]),
-    limit=dict(type='str', required=False, default=""),
-    batch=dict(type='int', required=False, default=100),
-    unsafe_writes=dict(type='bool', required=False, default=False)
-  )
+    module_args = dict(
+        host=dict(type='str', required=True),
+        port=dict(type='str', required=True),
+        user=dict(type='str', required=True),
+        password=dict(type='str', required=True, no_log=True),
+        asset_type=dict(type='str', required=True),
+        relationship=dict(type='str', required=True),
+        dest=dict(type='path', required=True),
+        from_time=dict(type='int', required=False, default=-1),
+        to_time=dict(type='int', required=False),
+        conditions=dict(type='list', required=False, default=[]),
+        limit=dict(type='str', required=False, default=""),
+        batch=dict(type='int', required=False, default=100),
+        unsafe_writes=dict(type='bool', required=False, default=False)
+    )
 
-  module = AnsibleModule(
-    argument_spec=module_args,
-    supports_check_mode=True
-  )
+    module = AnsibleModule(
+        argument_spec=module_args,
+        supports_check_mode=True
+    )
 
-  result = dict(
-    changed=False,
-    queries=[],
-    asset_count=0,
-    relationship_count=0
-  )
+    result = dict(
+        changed=False,
+        queries=[],
+        asset_count=0,
+        relationship_count=0
+    )
 
-  # if the user is working with this module in only check mode we do not
-  # want to make any changes to the environment, just return the current
-  # state with no modifications
-  if module.check_mode:
-    return result
+    # if the user is working with this module in only check mode we do not
+    # want to make any changes to the environment, just return the current
+    # state with no modifications
+    if module.check_mode:
+        return result
 
-  # Setup REST API connectivity via module_utils.igc_rest class
-  igcrest = RestIGC(
-    module,
-    result,
-    username=module.params['user'],
-    password=module.params['password'],
-    host=module.params['host'],
-    port=module.params['port']
-  )
+    # Setup REST API connectivity via module_utils.igc_rest class
+    igcrest = RestIGC(
+        module,
+        result,
+        username=module.params['user'],
+        password=module.params['password'],
+        host=module.params['host'],
+        port=module.params['port']
+    )
 
-  relnprop = module.params['relationship']
-  limit = module.params['limit']
+    relnprop = module.params['relationship']
+    limit = module.params['limit']
 
-  # Basic query
-  reqJSON = {
-    "properties": [ relnprop ],
-    "types": [ module.params['asset_type'] ],
-    "pageSize": module.params['batch']
-  }
-
-  # Extend basic query with any optional conditions
-  if len(module.params['conditions']) > 0:
-    reqJSON['where'] = {
-      "conditions": module.params['conditions'],
-      "operator": "and"
+    # Basic query
+    reqJSON = {
+        "properties": [relnprop],
+        "types": [module.params['asset_type']],
+        "pageSize": module.params['batch']
     }
-  if module.params['from_time'] != -1:
-    if 'where' not in reqJSON:
-      reqJSON['where'] = {
-        "conditions": [],
-        "operator": "and"
-      }
-    reqJSON['where']['conditions'].append({
-      "min": module.params['from_time'],
-      "max": module.params['to_time'],
-      "property": "modified_on",
-      "operator": "between"
-    })
 
-  result['queries'].append(reqJSON)
+    # Extend basic query with any optional conditions
+    if len(module.params['conditions']) > 0:
+        reqJSON['where'] = {
+            "conditions": module.params['conditions'],
+            "operator": "and"
+        }
+    if module.params['from_time'] != -1:
+        if 'where' not in reqJSON:
+            reqJSON['where'] = {
+                "conditions": [],
+                "operator": "and"
+            }
+        reqJSON['where']['conditions'].append({
+            "min": module.params['from_time'],
+            "max": module.params['to_time'],
+            "property": "modified_on",
+            "operator": "between"
+        })
 
-  # Execute the search
-  jsonResults = igcrest.search(reqJSON)
+    result['queries'].append(reqJSON)
 
-  # Ensure search worked before proceeding
-  if jsonResults == '':
-    module.fail_json(msg='Initial IGC REST API search failed', **result)
+    # Execute the search
+    jsonResults = igcrest.search(reqJSON)
 
-  result['asset_count'] = len(jsonResults)
+    # Ensure search worked before proceeding
+    if jsonResults == '':
+        module.fail_json(msg='Initial IGC REST API search failed', **result)
 
-  for item in jsonResults:
-    item[relnprop] = igcrest.getAllPages(item[relnprop]['items'], item[relnprop]['paging'])
-    for relation in item[relnprop]:
-      # Limit included relationships to only those types of interest
-      if limit != "" and limit != relation['_type']:
-        relation.clear()
-      else:
-        relnCtx = igcrest.getContextForItem(relation['_id'], relation['_type'])
-        if relnCtx == '':
-          module.fail_json(msg='Unable to retieve context for search result', **result)
-        else:
-          result['relationship_count'] += 1
-          relation['_context'] = relnCtx
+    result['asset_count'] = len(jsonResults)
 
-  # Close the IGC REST API session
-  igcrest.closeSession()
+    for item in jsonResults:
+        item[relnprop] = igcrest.getAllPages(item[relnprop]['items'], item[relnprop]['paging'])
+        for relation in item[relnprop]:
+            # Limit included relationships to only those types of interest
+            if limit != "" and limit != relation['_type']:
+                relation.clear()
+            else:
+                relnCtx = igcrest.getContextForItem(relation['_id'], relation['_type'])
+                if relnCtx == '':
+                    module.fail_json(msg='Unable to retieve context for search result', **result)
+                else:
+                    result['relationship_count'] += 1
+                    relation['_context'] = relnCtx
 
-  # Write temporary file with the JSON output,
-  # and then move to specified dest location
-  try:
-    tmpfd, tmpfile = tempfile.mkstemp()
-    f = os.fdopen(tmpfd, 'wb')
-    json.dump(jsonResults, f)
-    f.close()
-  except:
-    module.fail_json(msg='Unable to create temporary file to output relationship results', **result)
+    # Close the IGC REST API session
+    igcrest.closeSession()
 
-  # Checksumming to identify change...
-  checksum_src = module.sha1(tmpfile)
-  checksum_dest = None
-  dest = module.params['dest']
-  b_dest = to_bytes(dest, errors='surrogate_or_strict')
-  if os.access(b_dest, os.R_OK):
-    checksum_dest = module.sha1(dest)
+    # Write temporary file with the JSON output,
+    # and then move to specified dest location
+    try:
+        tmpfd, tmpfile = tempfile.mkstemp()
+        f = os.fdopen(tmpfd, 'wb')
+        json.dump(jsonResults, f)
+        f.close()
+    except:
+        module.fail_json(msg='Unable to create temporary file to output relationship results', **result)
 
-  # If the file does not already exist and/or checksums are different,
-  # move the new file over the old one and mark it as changed; otherwise
-  # leave the original file (delete the tmpfile) and that there was no change
-  if checksum_src != checksum_dest:
-    module.atomic_move(tmpfile,
-              to_native(os.path.realpath(b_dest), errors='surrogate_or_strict'),
-              unsafe_writes=module.params['unsafe_writes'])
-    result['changed'] = True
-  else:
-    os.unlink(tmpfile)
+    # Checksumming to identify change...
+    checksum_src = module.sha1(tmpfile)
+    checksum_dest = None
+    dest = module.params['dest']
+    b_dest = to_bytes(dest, errors='surrogate_or_strict')
+    if os.access(b_dest, os.R_OK):
+        checksum_dest = module.sha1(dest)
 
-  module.exit_json(**result)
+    # If the file does not already exist and/or checksums are different,
+    # move the new file over the old one and mark it as changed; otherwise
+    # leave the original file (delete the tmpfile) and that there was no change
+    if checksum_src != checksum_dest:
+        module.atomic_move(tmpfile,
+                            to_native(os.path.realpath(b_dest), errors='surrogate_or_strict'),
+                            unsafe_writes=module.params['unsafe_writes'])
+        result['changed'] = True
+    else:
+        os.unlink(tmpfile)
+
+    module.exit_json(**result)
+
 
 if __name__ == '__main__':
-  main()
+    main()
