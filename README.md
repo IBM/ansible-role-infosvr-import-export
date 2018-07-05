@@ -331,6 +331,40 @@ ibm_infosvr_impexp_ds_export:
       - { property: "transformation_project.name", operator: "=", value: "dstage1" }
 ```
 
+### DataStage project variables
+
+**Imports**:
+
+```
+ibm_infosvr_impexp_ds_vars_import:
+  - { src: "<path>", project: "<string>" }
+  - ...
+```
+
+The only required parameters for the import are the `src` file from which to and the `project` into which to load them. The import process will look for the `src` file within your playbook's `vars` directory.
+
+**Exports**:
+
+```
+ibm_infosvr_impexp_ds_vars_export:
+  - dest: "<path>"
+    project: "<string>"
+    vars:
+      - ...
+```
+
+The only required parameters for the export are the `dest` file into which to capture the variables and their values and the `project` from which to export them. The `vars` list is optional, to specify which variables should be included; if not specified, all variables are included.
+
+**Examples**:
+
+```
+ibm_infosvr_impexp_ds_vars_import:
+  - { src: "ds_dstage1_vars.yml", project: "dstage1" }
+
+ibm_infosvr_impexp_ds_vars_export:
+  - { dest: "vars/ds_dstage1_vars.yml", project: "dstage1" }
+```
+
 ### Information Analyzer assets
 
 **Imports**:
