@@ -32,10 +32,34 @@
   loop_control:
     label: "{{ item.dest | basename }} - {{ item.project }}"
 
-- name: export_ds_vars - transfer files
-  fetch: src=/tmp/__export_ds_vars_{{ item.dest | basename }} dest={{ item.dest }} flat=yes
+- name: export_ds_vars - limit vars in file
+  shell: >
+          grep '^{{ item.1 }}'
+          /tmp/__export_ds_vars_{{ item.dest | basename }}
+          >> /tmp/__export_ds_vars_{{ item.dest | basename }}.limited
+  when: item.0.vars is defined
+  with_subelements:
+    - "{{ ibm_infosvr_impexp_ds_vars_export }}"
+    - "vars"
+  loop_control:
+    label: "{{ item.0.dest | basename }} - {{ item.1 }}"
+
+- name: export_ds_vars - transfer (limited) files
+  fetch: src=/tmp/__export_ds_vars_{{ item.dest | basename }}.limited dest={{ item.dest }} flat=yes
+  when: item.vars is defined
   with_items: "{{ ibm_infosvr_impexp_ds_vars_export }}"
 
-- name: export_ds_vars - cleanup exported files
+- name: export_ds_vars - transfer (complete) files
+  fetch: src=/tmp/__export_ds_vars_{{ item.dest | basename }} dest={{ item.dest }} flat=yes
+  when: item.vars is not defined
+  with_items: "{{ ibm_infosvr_impexp_ds_vars_export }}"
+
+- name: export_ds_vars - cleanup (limited) exported files
+  file: path=/tmp/__export_ds_vars_{{ item.dest | basename }}.limited state=absent
+  when: item.vars is defined
+  with_items: "{{ ibm_infosvr_impexp_ds_vars_export }}"
+
+- name: export_ds_vars - cleanup (complete) exported files
   file: path=/tmp/__export_ds_vars_{{ item.dest | basename }} state=absent
+  when: item.vars is not defined
   with_items: "{{ ibm_infosvr_impexp_ds_vars_export }}"
