@@ -35,11 +35,10 @@
 - name: export_ds_vars - limit vars in file
   shell: >
           grep '^{{ item.1 }}'
-          /tmp/__export_ds_vars_{{ item.dest | basename }}
-          >> /tmp/__export_ds_vars_{{ item.dest | basename }}.limited
-  when: item.0.vars is defined
+          /tmp/__export_ds_vars_{{ item.0.dest | basename }}
+          >> /tmp/__export_ds_vars_{{ item.0.dest | basename }}.limited
   with_subelements:
-    - "{{ ibm_infosvr_impexp_ds_vars_export }}"
+    - "{{ ibm_infosvr_impexp_ds_vars_export | selectattr('vars', 'defined') | list }}"
     - "vars"
   loop_control:
     label: "{{ item.0.dest | basename }} - {{ item.1 }}"
