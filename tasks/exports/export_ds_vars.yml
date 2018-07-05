@@ -43,22 +43,39 @@
   loop_control:
     label: "{{ item.0.dest | basename }} - {{ item.1 }}"
 
-- name: export_ds_vars - transfer (limited) files
-  fetch: src=/tmp/__export_ds_vars_{{ item.dest | basename }}.limited dest={{ item.dest }} flat=yes
+- name: export_ds_vars - rename (limited) files
+  copy:
+    src: /tmp/__export_ds_vars_{{ item.dest | basename }}.limited
+    dest: /tmp/__export_ds_vars_{{ item.dest | basename }}
+    remote_src: True
   when: item.vars is defined
   with_items: "{{ ibm_infosvr_impexp_ds_vars_export }}"
 
-- name: export_ds_vars - transfer (complete) files
-  fetch: src=/tmp/__export_ds_vars_{{ item.dest | basename }} dest={{ item.dest }} flat=yes
-  when: item.vars is not defined
-  with_items: "{{ ibm_infosvr_impexp_ds_vars_export }}"
-
-- name: export_ds_vars - cleanup (limited) exported files
+- name: export_ds_vars - remove (limited) files
   file: path=/tmp/__export_ds_vars_{{ item.dest | basename }}.limited state=absent
   when: item.vars is defined
   with_items: "{{ ibm_infosvr_impexp_ds_vars_export }}"
 
-- name: export_ds_vars - cleanup (complete) exported files
-  file: path=/tmp/__export_ds_vars_{{ item.dest | basename }} state=absent
-  when: item.vars is not defined
+- name: export_ds_vars - transfer files
+  fetch: src=/tmp/__export_ds_vars_{{ item.dest | basename }} dest={{ item.dest }}.properties flat=yes
   with_items: "{{ ibm_infosvr_impexp_ds_vars_export }}"
+
+- name: export_ds_vars - cleanup exported files
+  file: path=/tmp/__export_ds_vars_{{ item.dest | basename }} state=absent
+  with_items: "{{ ibm_infosvr_impexp_ds_vars_export }}"
+
+- name: export_ds_vars - convert properties to YAML
+  local_action:
+    module: template
+    src: ds_vars.yml.j2
+    dest: "{{ item.dest }}"
+  with_items: "{{ ibm_infosvr_impexp_ds_vars_export }}"
+  become: no
+
+- name: export_ds_vars - remove properties file
+  local_action:
+    module: file
+    path: "{{ item.dest }}.properties"
+    state: absent
+  with_items: "{{ ibm_infosvr_impexp_ds_vars_export }}"
+  become: no
