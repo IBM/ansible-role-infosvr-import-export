@@ -299,7 +299,7 @@ def main():
         f = os.fdopen(tmpfd, 'wb')
         json.dump(jsonResults, f)
         f.close()
-    except:
+    except IOError:
         module.fail_json(msg='Unable to create temporary file to output relationship results', **result)
 
     # Checksumming to identify change...
@@ -315,8 +315,8 @@ def main():
     # leave the original file (delete the tmpfile) and that there was no change
     if checksum_src != checksum_dest:
         module.atomic_move(tmpfile,
-            to_native(os.path.realpath(b_dest), errors='surrogate_or_strict'),
-            unsafe_writes=module.params['unsafe_writes'])
+                to_native(os.path.realpath(b_dest), errors='surrogate_or_strict'),
+                unsafe_writes=module.params['unsafe_writes'])
         result['changed'] = True
     else:
         os.unlink(tmpfile)
