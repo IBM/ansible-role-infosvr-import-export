@@ -152,12 +152,14 @@ assets:
 '''
 
 from ansible.module_utils.basic import AnsibleModule
-#from ansible.module_utils._text import to_bytes, to_native
 from ansible.module_utils.igc_rest import RestIGC
 from ansible.module_utils.infosvr_types import get_properties, get_asset_extract_object
 
-def main():
+from __future__ import (absolute_import, division, print_function)
+__metaclass__ = type
 
+
+def main():
 
     module_args = dict(
         host=dict(type='str', required=True),

@@ -190,13 +190,16 @@ relationship_update_count:
 '''
 
 from ansible.module_utils.basic import AnsibleModule
-#from ansible.module_utils._text import to_bytes, to_native
+from ansible.module_utils._text import to_bytes
 from ansible.module_utils.igc_rest import RestIGC
 import os.path
 import json
 
-def main():
+from __future__ import (absolute_import, division, print_function)
+__metaclass__ = type
 
+
+def main():
 
     module_args = dict(
         host=dict(type='str', required=True),
@@ -255,7 +258,7 @@ def main():
     if not src_exists:
         module.fail_json(rc=257, msg='Src %s does not exist !' % src)
 
-    f = open(src, 'rb')
+    f = open(to_bytes(src), 'rb')
     allAssets = json.load(f)
     f.close()
 
