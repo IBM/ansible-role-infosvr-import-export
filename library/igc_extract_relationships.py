@@ -32,7 +32,8 @@ module: igc_extract_relationships
 short_description: Extracts metadata relationships from an IBM Information Governance Catalog environment
 
 description:
-  - "Extracts metadata relationships from an IBM IGC, based on the criteria provided"
+  - Extracts metadata relationships from an IBM Information Governance Catalog environment.
+  - Extracts based on the criteria provided.
 
 version_added: "2.4"
 
@@ -62,12 +63,14 @@ options:
     type: str
   asset_type:
     description:
-      - The IGC REST asset type (eg. C(term)) for which to retrieve relationships. (See "GET /ibm/iis/igc-rest/v1/types")
+      - The IGC REST asset type (eg. C(term)) for which to retrieve relationships.
+      - (See "GET /ibm/iis/igc-rest/v1/types" in your environment for choices.)
     required: true
     type: str
   relationship:
     description:
-      - The IGC REST asset's property (eg. C(assigned_assets)) to use to retrieve relationships. (See "GET /ibm/iis/igc-rest/v1/types/<asset_type>?showViewProperties=true")
+      - The IGC REST asset's property (eg. C(assigned_assets)) to use to retrieve relationships.
+      - (See "GET /ibm/iis/igc-rest/v1/types/<asset_type>?showViewProperties=true" in your environment for choices.)
     required: true
     type: str
   dest:
@@ -94,7 +97,8 @@ options:
     suboptions:
       property:
         description:
-          - The property of the I(asset_type) to set the condition against. (See "GET /ibm/iis/igc-rest/v1/types/<asset_type>?showViewProperties=true")
+          - The property of the I(asset_type) to set the condition against.
+          - (See "GET /ibm/iis/igc-rest/v1/types/<asset_type>?showViewProperties=true" in your environment.)
         required: true
         type: str
       operator:
@@ -110,7 +114,8 @@ options:
         type: str
   limit:
     description:
-      - A second IGC REST asset type (eg. C(database_column)) to which to limit the relationships that are retrieved. (See "GET /ibm/iis/igc-rest/v1/types")
+      - A second IGC REST asset type (eg. C(database_column)) to which to limit the relationships that are retrieved.
+      - (See "GET /ibm/iis/igc-rest/v1/types" in your environment for choices.)
     required: false
     type: str
     default: ""
@@ -310,8 +315,8 @@ def main():
     # leave the original file (delete the tmpfile) and that there was no change
     if checksum_src != checksum_dest:
         module.atomic_move(tmpfile,
-                            to_native(os.path.realpath(b_dest), errors='surrogate_or_strict'),
-                            unsafe_writes=module.params['unsafe_writes'])
+            to_native(os.path.realpath(b_dest), errors='surrogate_or_strict'),
+            unsafe_writes=module.params['unsafe_writes'])
         result['changed'] = True
     else:
         os.unlink(tmpfile)

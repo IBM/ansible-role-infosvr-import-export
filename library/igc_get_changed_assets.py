@@ -62,7 +62,8 @@ options:
     type: str
   asset_type:
     description:
-      - The IGC REST asset type (eg. C(term)) for which to retrieve relationships. (See "GET /ibm/iis/igc-rest/v1/types")
+      - The IGC REST asset type (eg. C(term)) for which to retrieve relationships.
+      - (See "GET /ibm/iis/igc-rest/v1/types" in your environment for choices.)
     required: true
     type: str
   from_time:
@@ -84,7 +85,8 @@ options:
     suboptions:
       property:
         description:
-          - The property of the I(asset_type) to set the condition against. (See "GET /ibm/iis/igc-rest/v1/types/<asset_type>?showViewProperties=true")
+          - The property of the I(asset_type) to set the condition against.
+          - (See "GET /ibm/iis/igc-rest/v1/types/<asset_type>?showViewProperties=true" in your environment.)
         required: true
         type: str
       operator:

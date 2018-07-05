@@ -62,12 +62,14 @@ options:
     type: str
   asset_type:
     description:
-      - The IGC REST asset type (eg. C(term)) for which to load relationships. (See "GET /ibm/iis/igc-rest/v1/types")
+      - The IGC REST asset type (eg. C(term)) for which to load relationships.
+      - (See "GET /ibm/iis/igc-rest/v1/types" in your environment for choices.)
     required: true
     type: str
   relationship:
     description:
-      - The IGC REST asset's property (eg. C(assigned_assets)) to use to load relationships. (See "GET /ibm/iis/igc-rest/v1/types/<asset_type>?showViewProperties=true")
+      - The IGC REST asset's property (eg. C(assigned_assets)) to use to load relationships.
+      - (See "GET /ibm/iis/igc-rest/v1/types/<asset_type>?showViewProperties=true" in your environment for choices.)
     required: true
     type: str
   src:
@@ -77,19 +79,22 @@ options:
     type: path
   mappings:
     description:
-      - A list of mappings to be applied to any of the assets that compose the relationships (eg. host names, database names, etc)
+      - A list of mappings to be applied to any of the assets that compose the relationships.
+      - For example: host names, database names, etc.
     required: false
     type: list
     default: []
     suboptions:
       type:
         description:
-          - The type of asset for which to define a mapping. (See "GET /ibm/iis/igc-rest/v1/types")
+          - The type of asset for which to define a mapping.
+          - (See "GET /ibm/iis/igc-rest/v1/types" in your environment for choices.)
         required: true
         type: str
       property:
         description:
-          - The attribute of the asset I(type) to map; in almost all cases you would use C(name), but for C(data_file) you may also use C(path)
+          - The attribute of the asset I(type) to map.
+          - In almost all cases you would use C(name), but for C(data_file) you may also use C(path).
         required: true
         type: str
         choices: [ "name", "path" ]
@@ -117,14 +122,16 @@ options:
     default: ""
   conditions:
     description:
-      - Additional conditions by which to restrict the replacement of the relationships when I(mode) is C(REPLACE_SOME). Basically these are query criteria for the asset type specified by I(replace_type).
+      - Additional conditions to restrict the replacement of the relationships when I(mode) is C(REPLACE_SOME).
+      - Basically these are query criteria for the asset type specified by I(replace_type).
     required: false
     type: list
     default: []
     suboptions:
       property:
         description:
-          - The property of the I(replace_type) to set the condition against. (See "GET /ibm/iis/igc-rest/v1/types/<asset_type>?showViewProperties=true")
+          - The property of the I(replace_type) to set the condition against.
+          - (See "GET /ibm/iis/igc-rest/v1/types/<asset_type>?showViewProperties=true" in your environment.)
         required: true
         type: str
       operator:
