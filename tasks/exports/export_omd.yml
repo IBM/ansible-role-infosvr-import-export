@@ -87,7 +87,7 @@
     - "{{ __ibm_infosvr_impexp_omd_extract.results }}"
     - "flow_files"
   loop_control:
-    label: "{{ item.0.item.dest }}"
+    label: "{{ item.0.item.dest }}/{{ item.1 }}"
 
 #- name: export_omd - cleanup exported files
 #  file: path="{{ ibm_infosvr_impexp_omd_backup_dir }}/{{ item.1 }}" state=absent
