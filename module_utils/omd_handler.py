@@ -89,9 +89,9 @@ class OMDHandler(object):
 
     def _getDataResourceIdentity(self, resource, conn_string):
         return self._getDataResourceHost(resource) + "::"
-             + self._getDataResourceStore(resource, conn_string) + "::"
-             + self._getDataResourceSchema(resource) + "::"
-             + self._getDataResourceTable(resource)
+                + self._getDataResourceStore(resource, conn_string) + "::"
+                + self._getDataResourceSchema(resource) + "::"
+                + self._getDataResourceTable(resource)
 
     def _getDataCollectionColumns(self, collection):
         aFields = []
