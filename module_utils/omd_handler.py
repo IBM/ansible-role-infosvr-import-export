@@ -88,10 +88,11 @@ class OMDHandler(object):
         return resource.find("./LocatorComponent[@SubClass='Table']").get("Name")
 
     def _getDataResourceIdentity(self, resource, conn_string):
-        return self._getDataResourceHost(resource) + "::"
-                + self._getDataResourceStore(resource, conn_string) + "::"
-                + self._getDataResourceSchema(resource) + "::"
-                + self._getDataResourceTable(resource)
+        host = self._getDataResourceHost(resource)
+        db = self._getDataResourceStore(resource, conn_string)
+        schema = self._getDataResourceSchema(resource)
+        table = self._getDataResourceTable(resource)
+        return host + "::" + db + "::" + schema + "::" + table
 
     def _getDataCollectionColumns(self, collection):
         aFields = []
