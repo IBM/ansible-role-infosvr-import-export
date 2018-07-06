@@ -587,19 +587,64 @@ ibm_infosvr_impexp_igc_relns_import:
   - src: terms2assets.json
     type: term
     relationship: assigned_assets
-    map: "{{ ibm_infosvr_samples_igc_relns_mappings }}"
+    map: "{{ ibm_infosvr_impexp_igc_relns_mappings }}"
     mode: REPLACE_SOME
     replace_type: database_column
     conditions:
       - { property: "database_table_or_view.name", operator: "=", value: "MYTABLE" }
 
-ibm_infosvr_samples_igc_relns_export:
+ibm_infosvr_impexp_igc_relns_export:
   - dest: cache/terms2assets_underSomeCategory_changed_in_last48hrs.json
     type: term
     relationship: assigned_assets
     changes_in_last_hours: 48
     conditions:
       - { property: "category_path._id", operator: "=", value: "6662c0f2.ee6a64fe.ko15n9ej3.cq2arq8.ld2q5u.2qonhvupr4m3b68ouj93c" }
+```
+
+### Operational metadata (OMD)
+
+**Imports**:
+
+```
+ibm_infosvr_impexp_omd_mappings:
+  - { type: "<string>", property: "<string>", from: "<value>", to: "<value>" }
+  - ...
+
+ibm_infosvr_impexp_omd_import:
+  - src: "<path>"
+    map: "<list>"
+  - ...
+```
+
+The required parameter for the import is the `src` file from which to load the operational metadata.
+
+Mappings are optional, but when specified take a slightly different form from mappings for other asset types. The `type` should match the REST API asset type string (see `GET /ibm/iis/igc-rest/v1/types` in your environment for choices) while the `property` should match the REST API asset property string (see `GET /ibm/iis/igc-rest/v1/types/<asset_type>?showEditProperties=true&showViewProperties=true&showCreateProperties=true` in your environment for choices). The `from` can be a Python regular expression against which all matches will be replaced by the `to`.
+
+**Exports**:
+
+```
+ibm_infosvr_impexp_omd_export:
+  - dest: "<path>"
+    changes_in_last_hours: <int>
+  - ...
+```
+
+The `dest` is required, and describes where the operational metadata should be stored, equivalent of `src` for the import.
+
+**Examples**:
+
+```
+ibm_infosvr_impexp_omd_mappings:
+  - { type: "host", property: "name", from: "MY", to: "YOUR" }
+
+ibm_infosvr_impexp_omd_import:
+  - src: something.flow
+    map: "{{ ibm_infosvr_impexp_omd_mappings }}"
+
+ibm_infosvr_impexp_omd_export:
+  - dest: cache/something.flow
+    changes_in_last_hours: 48
 ```
 
 ## License

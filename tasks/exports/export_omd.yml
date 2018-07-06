@@ -1,0 +1,96 @@
+---
+###
+# Copyright 2018 IBM Corp. All Rights Reserved.
+# 
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+# 
+#      http://www.apache.org/licenses/LICENSE-2.0
+# 
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+###
+
+- name: export_omd - ensure XML backup dir exists
+  file:
+    path: "{{ ibm_infosvr_impexp_omd_backup_dir }}"
+    state: directory
+    owner: "{{ ibm_infosvr_impexp_infosvr_dsadm_user }}"
+    group: "{{ ibm_infosvr_impexp_infosvr_dsadm_group }}"
+    mode: 0755
+  become_user: root
+  become: yes
+
+- name: export_omd - check if backup is enabled
+  lineinfile:
+    path: "{{ ibm_infosvr_impexp_infosvr_install_location }}/Server/DSOMD/omdmonapp.config"
+    regexp: "^OMDXMLBackupEnabled"
+    line: "OMDXMLBackupEnabled=1"
+    state: present
+  check_mode: yes
+  register: __ibm_infosvr_impexp_omd_enabled
+
+- name: export_omd - shutdown OMDMonApp (if needed)
+  shell: ". `cat /.dshome`/dsenv && ./bin/DSOMDMonApp.sh -stop"
+  args:
+    executable: /bin/bash
+    chdir: "{{ ibm_infosvr_impexp_infosvr_install_location }}/Server/DSOMD"
+  ignore_errors: yes
+  when: (__ibm_infosvr_impexp_omd_enabled | changed) or (__ibm_infosvr_impexp_omd_enabled | failed)
+
+# TODO: determine whether we really need to backup both OMD (raw and enriched) or just one or the other?
+
+- name: export_omd - enable OMD backup
+  lineinfile:
+    path: "{{ ibm_infosvr_impexp_infosvr_install_location }}/Server/DSOMD/omdmonapp.config"
+    regexp: "^OMDXMLBackupEnabled"
+    line: "OMDXMLBackupEnabled=1"
+    state: present
+  when: (__ibm_infosvr_impexp_omd_enabled | changed) or (__ibm_infosvr_impexp_omd_enabled | failed)
+
+- name: export_omd - enable enriched OMD backup
+  lineinfile:
+    path: "{{ ibm_infosvr_impexp_infosvr_install_location }}/Server/DSOMD/omdmonapp.config"
+    regexp: "^OMDFlowBackupEnabled"
+    line: "OMDFlowBackupEnabled=1"
+    state: present
+  when: (__ibm_infosvr_impexp_omd_enabled | changed) or (__ibm_infosvr_impexp_omd_enabled | failed)
+
+- name: export_omd - set backup directory for OMD files
+  lineinfile:
+    path: "{{ ibm_infosvr_impexp_infosvr_install_location }}/Server/DSOMD/omdmonapp.config"
+    regexp: "^OMDXMLBackupDir"
+    line: "OMDXMLBackupDir={{ ibm_infosvr_impexp_omd_backup_dir }}"
+    state: present
+  when: (__ibm_infosvr_impexp_omd_enabled | changed) or (__ibm_infosvr_impexp_omd_enabled | failed)
+
+- name: export_omd - set backup directory for enriched OMD files
+  lineinfile:
+    path: "{{ ibm_infosvr_impexp_infosvr_install_location }}/Server/DSOMD/omdmonapp.config"
+    regexp: "^OMDFlowBackupDir"
+    line: "OMDFlowBackupDir={{ ibm_infosvr_impexp_omd_backup_dir }}"
+    state: present
+  when: (__ibm_infosvr_impexp_omd_enabled | changed) or (__ibm_infosvr_impexp_omd_enabled | failed)
+
+- name: export_omd - startup OMDMonApp (if needed)
+  shell: ". `cat /.dshome`/dsenv && ./bin/DSOMDMonApp.sh -start"
+  args:
+    executable: /bin/bash
+    chdir: "{{ ibm_infosvr_impexp_infosvr_install_location }}/Server/DSOMD"
+  ignore_errors: yes
+  when: (__ibm_infosvr_impexp_omd_enabled | changed) or (__ibm_infosvr_impexp_omd_enabled | failed)
+
+- name: export_omd - transfer files
+  fetch:
+    src: "{{ ibm_infosvr_impexp_omd_backup_dir }}/???"
+    dest: "{{ item.dest }}"
+    flat: yes
+  with_items: "{{ ibm_infosvr_impexp_omd_export }}"
+
+#- name: export_omd - cleanup exported files
+#  file: path=/tmp/__export_ds_vars_{{ item.dest | basename }} state=absent
+#  with_items: "{{ ibm_infosvr_impexp_ds_vars_export }}"

@@ -91,3 +91,8 @@
   become_user: "{{ ibm_infosvr_impexp_infosvr_dsadm_user }}"
   become: yes
   when: ('ibm-information-server-engine' in group_names) and ibm_infosvr_impexp_igc_relns_export is defined
+
+- import_tasks: exports/export_omd.yml
+  become_user: "{{ ibm_infosvr_impexp_infosvr_dsadm_user }}"
+  become: yes
+  when: ('ibm-information-server-engine' in group_names) and ibm_infosvr_impexp_igc_relns_export is defined

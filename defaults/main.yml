@@ -23,6 +23,7 @@ ibm_infosvr_impexp_fetch_location: cache/
 ibm_infosvr_impexp_infosvr_install_location: "{% if ibm_infosvr_locations is defined %}{{ ibm_infosvr_locations.linux }}{% else %}/opt/IBM/InformationServer{% endif %}"
 ibm_infosvr_impexp_was_install_location: "{% if ibm_infosvr_locations is defined %}{{ ibm_infosvr_locations.was }}{% else %}/opt/IBM/WebSphere/AppServer{% endif %}"
 ibm_infosvr_impexp_projects_dir: "{{ ibm_infosvr_impexp_infosvr_install_location }}/Server/Projects"
+ibm_infosvr_impexp_omd_backup_dir: "{{ ibm_infosvr_impexp_infosvr_install_location }}/Server/DSOMD/backup"
 
 # Credentials (override in vault, etc as needed)
 ibm_infosvr_impexp_services_host: "{% if ibm_infosvr_hosts is defined %}{{ ibm_infosvr_hosts.domain }}{% else %}is-server.ibm.com{% endif %}"
