@@ -100,12 +100,16 @@ class OMDHandler(object):
             aFields.append(field.get("Name"))
         return aFields
 
+    def getOriginalHost(self):
+        return self.orgvalues['host']
+
     def replaceHostname(self, targethost):
         # NOTE: will only overwrite the host named in a parameter if it matches the original engine tier value
         eDeployment = self._getExecutable()
         eDeploymentHost = self._getHostElement(eDeployment)
         self.orgvalues['host'] = eDeploymentHost.get("Name")
         eDeploymentHost.set("Name", targethost)
+        self.result['replacements'] += 1
         for eParam in self.root.findall("./ActualParameters/ActualParameter"):
             eParamHost = self._getHostElement(eParam.find("./SoftwareResourceLocator"))
             sFormalParam = eParam.find("./SoftwareResourceLocator/LocatorComponent[@Class='FormalParameter']").get("Name")
@@ -121,14 +125,17 @@ class OMDHandler(object):
                 eParam.set("Value", orgHost + "__" + connString)
             if self.orgvalues['host'] == eParamHost.get("Name"):
                 eParamHost.set("Name", targethost)
+                self.result['replacements'] += 1
         eReadEvent = self._getReadEvent()
         eReadEventHost = self._getHostElement(eReadEvent.find("./DataResourceLocator"));
         if self.orgvalues['host'] == eReadEventHost.get("Name"):
             eReadEventHost.set("Name", targethost);
+            self.result['replacements'] += 1
         eWriteEvent = self._getWriteEvent()
         eWriteEventHost = self._getHostElement(eWriteEvent.find("./DataResourceLocator"));
         if self.orgvalues['host'] == eWriteEventHost.get("Name"):
             eWriteEventHost.set("Name", targethost);
+            self.result['replacements'] += 1
 
     def getUniqueRuntimeIdentity(self):
         evt_read = self._getReadEvent()
@@ -143,5 +150,5 @@ class OMDHandler(object):
         }
         return identity
 
-    def getCustomizedOMD(self):
-        return ET.tostring(self.root, encoding='UTF-8')
+    def writeCustomizedOMD(self, filename):
+        return self.tree.write(filename, encoding='UTF-8', xml_declaration=True)
