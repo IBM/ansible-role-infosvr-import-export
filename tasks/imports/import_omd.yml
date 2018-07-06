@@ -29,6 +29,7 @@
     paths: "{{ item.src }}"
     patterns: "*.flow"
     recurse: yes
+  become: no
   with_items: "{{ ibm_infosvr_impexp_omd_import }}"
   register: __ibm_infosvr_impexp_omd_flows
 
