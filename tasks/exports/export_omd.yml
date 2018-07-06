@@ -26,8 +26,8 @@
 - name: export_omd - check if backup is enabled
   lineinfile:
     path: "{{ ibm_infosvr_impexp_infosvr_install_location }}/Server/DSOMD/omdmonapp.config"
-    regexp: "^OMDXMLBackupEnabled"
-    line: "OMDXMLBackupEnabled=1"
+    regexp: "^OMDFlowBackupEnabled"
+    line: "OMDFlowBackupEnabled=1"
     state: present
   check_mode: yes
   register: __ibm_infosvr_impexp_omd_enabled
