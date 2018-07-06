@@ -21,9 +21,7 @@
     state: directory
     owner: "{{ ibm_infosvr_impexp_infosvr_dsadm_user }}"
     group: "{{ ibm_infosvr_impexp_infosvr_dsadm_group }}"
-    mode: 0755
-  become_user: root
-  become: yes
+    mode: 0775
 
 - name: export_omd - check if backup is enabled
   lineinfile:
@@ -42,29 +40,11 @@
   ignore_errors: yes
   when: (__ibm_infosvr_impexp_omd_enabled | changed) or (__ibm_infosvr_impexp_omd_enabled | failed)
 
-# TODO: determine whether we really need to backup both OMD (raw and enriched) or just one or the other?
-
-- name: export_omd - enable OMD backup
-  lineinfile:
-    path: "{{ ibm_infosvr_impexp_infosvr_install_location }}/Server/DSOMD/omdmonapp.config"
-    regexp: "^OMDXMLBackupEnabled"
-    line: "OMDXMLBackupEnabled=1"
-    state: present
-  when: (__ibm_infosvr_impexp_omd_enabled | changed) or (__ibm_infosvr_impexp_omd_enabled | failed)
-
 - name: export_omd - enable enriched OMD backup
   lineinfile:
     path: "{{ ibm_infosvr_impexp_infosvr_install_location }}/Server/DSOMD/omdmonapp.config"
     regexp: "^OMDFlowBackupEnabled"
     line: "OMDFlowBackupEnabled=1"
-    state: present
-  when: (__ibm_infosvr_impexp_omd_enabled | changed) or (__ibm_infosvr_impexp_omd_enabled | failed)
-
-- name: export_omd - set backup directory for OMD files
-  lineinfile:
-    path: "{{ ibm_infosvr_impexp_infosvr_install_location }}/Server/DSOMD/omdmonapp.config"
-    regexp: "^OMDXMLBackupDir"
-    line: "OMDXMLBackupDir={{ ibm_infosvr_impexp_omd_backup_dir }}"
     state: present
   when: (__ibm_infosvr_impexp_omd_enabled | changed) or (__ibm_infosvr_impexp_omd_enabled | failed)
 
