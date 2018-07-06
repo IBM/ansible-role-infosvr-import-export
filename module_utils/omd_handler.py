@@ -33,34 +33,34 @@ class OMDHandler(object):
         self.orgvalues = {}
 
     def _getRunStatus(self):
-        return self.root.find("./Run").get("StatusCode")
+        return self.root.get("StatusCode")
 
     def _getRunMessage(self):
-        return self.root.find("./Run").get("Message")
+        return self.root.get("Message")
 
     def _getRunCompletion(self):
-        return self.root.find("./Run").get("FinishedAt")
+        return self.root.get("FinishedAt")
 
     def _getProjectName(self):
-        return self.root.find("./Run/Design/SoftwareResourceLocator/LocatorComponent[@SubClass='Project']").get("Name")
+        return self.root.find("./Design/SoftwareResourceLocator/LocatorComponent[@SubClass='Project']").get("Name")
 
     def _getJobName(self):
-        return self.root.find("./Run/Design/SoftwareResourceLocator/LocatorComponent[@SubClass='Job']").get("Name")
+        return self.root.find("./Design/SoftwareResourceLocator/LocatorComponent[@SubClass='Job']").get("Name")
 
     def _getDesign(self):
-        return self.root.find("./Run/Design/SoftwareResourceLocator")
+        return self.root.find("./Design/SoftwareResourceLocator")
 
     def _getExecutable(self):
-        return self.root.find("./Run/Deployment/SoftwareResourceLocator")
+        return self.root.find("./Deployment/SoftwareResourceLocator")
 
     def _getHostElement(self, element):
         return element.find("./LocatorComponent[@Class='Computer']")
 
     def _getReadEvent(self):
-        return self.root.find("./Run/Events/Event[@Type='Read']")
+        return self.root.find("./Events/Event[@Type='Read']")
 
     def _getWriteEvent(self):
-        return self.root.find("./Run/Events/Event[@Type='Write']")
+        return self.root.find("./Events/Event[@Type='Write']")
 
     def _getRowCount(self, event):
         return event.get("RowCount")
@@ -70,7 +70,7 @@ class OMDHandler(object):
 
     def _getDataCollectionForEvent(self, event):
         refDC = event.find("./SoftwareResourceLocator").get("ReferenceDC")
-        return self.root.find("./Run/DataSchema/DataCollection[@Ident='" + refDC + "']")
+        return self.root.find("./DataSchema/DataCollection[@Ident='" + refDC + "']")
 
     def _getDataResourceHost(self, resource):
         return resource.find("./LocatorComponent[@Class='Computer']").get("Name")
@@ -106,7 +106,7 @@ class OMDHandler(object):
         eDeploymentHost = self._getHostElement(eDeployment)
         self.orgvalues['host'] = eDeploymentHost.get("Name")
         eDeploymentHost.set("Name", targethost)
-        for eParam in self.root.findall("./Run/ActualParameters/ActualParameter"):
+        for eParam in self.root.findall("./ActualParameters/ActualParameter"):
             eParamHost = self._getHostElement(eParam.find("./SoftwareResourceLocator"))
             sFormalParam = eParam.find("./SoftwareResourceLocator/LocatorComponent[@Class='FormalParameter']").get("Name")
             # If the parameter is for SourceConnectionString or TargetConnectionString,
