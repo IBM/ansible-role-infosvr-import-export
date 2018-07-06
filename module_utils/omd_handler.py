@@ -41,12 +41,6 @@ class OMDHandler(object):
     def _getRunCompletion(self):
         return self.root.get("FinishedAt")
 
-    def _getProjectName(self):
-        return self.root.find("./Design/SoftwareResourceLocator/LocatorComponent[@SubClass='Project']").get("Name")
-
-    def _getJobName(self):
-        return self.root.find("./Design/SoftwareResourceLocator/LocatorComponent[@SubClass='Job']").get("Name")
-
     def _getDesign(self):
         return self.root.find("./Design/SoftwareResourceLocator")
 
@@ -100,6 +94,12 @@ class OMDHandler(object):
             aFields.append(field.get("Name"))
         return aFields
 
+    def getProjectName(self):
+        return self.root.find("./Design/SoftwareResourceLocator/LocatorComponent[@SubClass='Project']").get("Name")
+
+    def getJobName(self):
+        return self.root.find("./Design/SoftwareResourceLocator/LocatorComponent[@SubClass='Job']").get("Name")
+
     def getOriginalHost(self):
         return self.orgvalues['host']
 
@@ -108,7 +108,7 @@ class OMDHandler(object):
         eDeployment = self._getExecutable()
         eDeploymentHost = self._getHostElement(eDeployment)
         self.orgvalues['host'] = eDeploymentHost.get("Name")
-        if self.orgvalues['host'] != targethost
+        if self.orgvalues['host'] != targethost:
             eDeploymentHost.set("Name", targethost)
             self.result['replacements'] += 1
         for eParam in self.root.findall("./ActualParameters/ActualParameter"):
@@ -129,22 +129,22 @@ class OMDHandler(object):
                 eParamHost.set("Name", targethost)
                 self.result['replacements'] += 1
         eReadEvent = self._getReadEvent()
-        eReadEventHost = self._getHostElement(eReadEvent.find("./DataResourceLocator"));
+        eReadEventHost = self._getHostElement(eReadEvent.find("./DataResourceLocator"))
         if self.orgvalues['host'] == eReadEventHost.get("Name"):
-            eReadEventHost.set("Name", targethost);
+            eReadEventHost.set("Name", targethost)
             self.result['replacements'] += 1
         eWriteEvent = self._getWriteEvent()
-        eWriteEventHost = self._getHostElement(eWriteEvent.find("./DataResourceLocator"));
+        eWriteEventHost = self._getHostElement(eWriteEvent.find("./DataResourceLocator"))
         if self.orgvalues['host'] == eWriteEventHost.get("Name"):
-            eWriteEventHost.set("Name", targethost);
+            eWriteEventHost.set("Name", targethost)
             self.result['replacements'] += 1
 
     def getUniqueRuntimeIdentity(self):
         evt_read = self._getReadEvent()
         evt_write = self._getWriteEvent()
         identity = {
-            "project": self._getProjectName(),
-            "job": self._getJobName(),
+            "project": self.getProjectName(),
+            "job": self.getJobName(),
             "source": self._getDataResourceIdentity(self._getDataResourceForEvent(evt_read), self.orgvalues['SourceConnectionString']),
             "source_cols": self._getDataCollectionColumns(self._getDataCollectionForEvent(evt_read)),
             "target": self._getDataResourceIdentity(self._getDataResourceForEvent(evt_write), self.orgvalues['TargetConnectionString']),

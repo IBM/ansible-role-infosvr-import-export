@@ -70,6 +70,14 @@ replacements:
   description: A numeric indication of the number of replacements that were made
   type: int
   returned: always
+dsproject:
+  description: The name of the DataStage project in which the job's lineage will be imported
+  type: str
+  returned: always
+dsjob:
+  description: The name of the DataStage job for which lineage will be imported
+  type: str
+  returned: always
 '''
 
 from ansible.module_utils.basic import AnsibleModule
@@ -96,7 +104,9 @@ def main():
     result = dict(
         changed=False,
         src_host="",
-        replacements=0
+        replacements=0,
+        dsproject="",
+        dsjob=""
     )
 
     # if the user is working with this module in only check mode we do not
@@ -112,6 +122,8 @@ def main():
     result['src_host'] = omd.getOriginalHost()
     if result['replacements'] > 0:
         result['changed'] = True
+    result['dsproject'] = omd.getProjectName()
+    result['dsjob'] = omd.getJobName()
     omd.writeCustomizedOMD(filename)
 
     module.exit_json(**result)
