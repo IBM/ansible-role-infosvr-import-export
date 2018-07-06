@@ -607,19 +607,17 @@ ibm_infosvr_impexp_igc_relns_export:
 **Imports**:
 
 ```
-ibm_infosvr_impexp_omd_mappings:
-  - { type: "<string>", property: "<string>", from: "<value>", to: "<value>" }
-  - ...
-
 ibm_infosvr_impexp_omd_import:
   - src: "<path>"
-    map: "<list>"
   - ...
 ```
 
-The required parameter for the import is the `src` file from which to load the operational metadata.
+The only required parameter for the import is the `src` directory from which to load the operational metadata flow files. (This should refer to a directory rather than an individual file.)
 
-Mappings are optional, but when specified take a slightly different form from mappings for other asset types. The `type` should match the REST API asset type string (see `GET /ibm/iis/igc-rest/v1/types` in your environment for choices) while the `property` should match the REST API asset property string (see `GET /ibm/iis/igc-rest/v1/types/<asset_type>?showEditProperties=true&showViewProperties=true&showCreateProperties=true` in your environment for choices). The `from` can be a Python regular expression against which all matches will be replaced by the `to`.
+As part of the import process, the following actions will be taken:
+
+- The original engine tier's host will be replaced by the target engine tier's host -- this is the only way to ensure the operational metadata can be loaded into the target environment. Note that the project and job that the operational metadata refers to should already exist as well in the target environment (ie. ensure you import the jobs through the ibm_infosvr_impexp_ds_import variable; the role will ensure those are loaded before trying to import this operational metadata).
+- Lineage will be enabled on any projects referred to by the operational metadata flows being imported -- if lineage is not enabled on the project, then the lineage that is loaded through the OMD import will not show up.
 
 **Exports**:
 
@@ -630,20 +628,16 @@ ibm_infosvr_impexp_omd_export:
   - ...
 ```
 
-The `dest` is required, and describes where the operational metadata should be stored, equivalent of `src` for the import.
+The `dest` is required, and describes where the operational metadata flow files should be stored, equivalent of `src` for the import. (The `dest` should refer to a directory rather than an individual file.)
 
 **Examples**:
 
 ```
-ibm_infosvr_impexp_omd_mappings:
-  - { type: "host", property: "name", from: "MY", to: "YOUR" }
-
 ibm_infosvr_impexp_omd_import:
-  - src: something.flow
-    map: "{{ ibm_infosvr_impexp_omd_mappings }}"
+  - src: cache/omd_exports/
 
 ibm_infosvr_impexp_omd_export:
-  - dest: cache/something.flow
+  - dest: cache/omd_exports/
     changes_in_last_hours: 48
 ```
 
