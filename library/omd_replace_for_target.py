@@ -110,6 +110,8 @@ def main():
     omd = OMDHandler(module, result, filename)
     omd.replaceHostname(module.params['host'])
     result['src_host'] = omd.getOriginalHost()
+    if result['replacements'] > 0:
+        result['changed'] = True
     omd.writeCustomizedOMD(filename)
 
     module.exit_json(**result)

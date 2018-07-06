@@ -108,8 +108,9 @@ class OMDHandler(object):
         eDeployment = self._getExecutable()
         eDeploymentHost = self._getHostElement(eDeployment)
         self.orgvalues['host'] = eDeploymentHost.get("Name")
-        eDeploymentHost.set("Name", targethost)
-        self.result['replacements'] += 1
+        if self.orgvalues['host'] != targethost
+            eDeploymentHost.set("Name", targethost)
+            self.result['replacements'] += 1
         for eParam in self.root.findall("./ActualParameters/ActualParameter"):
             eParamHost = self._getHostElement(eParam.find("./SoftwareResourceLocator"))
             sFormalParam = eParam.find("./SoftwareResourceLocator/LocatorComponent[@Class='FormalParameter']").get("Name")
@@ -123,6 +124,7 @@ class OMDHandler(object):
                 connString = eParam.get("Value")
                 self.orgvalues[sFormalParam] = connString
                 eParam.set("Value", orgHost + "__" + connString)
+                self.result['changed'] = True
             if self.orgvalues['host'] == eParamHost.get("Name"):
                 eParamHost.set("Name", targethost)
                 self.result['replacements'] += 1
