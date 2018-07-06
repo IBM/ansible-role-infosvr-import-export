@@ -120,7 +120,7 @@ def main():
             # If the completion time falls between the "from_time" and "to_time", add it to the file list
             omd = OMDHandler(module, result, omd_dir + os.sep + file)
             omd_epoch = time.mktime(time.strptime(omd._getRunCompletion(), "%Y-%m-%dT%H:%M:%S")) * 1000
-            if omd_epoch >= from_time and omd_epoch <= to_time:
+            if omd_epoch >= module.params['from_time'] and omd_epoch <= module.params['to_time']:
                 result['flow_count'] += 1
                 result['flow_files'].append(file)
 
