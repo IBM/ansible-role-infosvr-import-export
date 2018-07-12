@@ -89,8 +89,14 @@ def get_asset_extract_object(asset_type, rest_result):
         return _getExtensionMappingDocumentExtractObjects(rest_result)
     elif asset_type == 'application' or asset_type == 'file' or asset_type == 'stored_procedure_definition':
         return _getExternalAssetExtractObjects(rest_result)
+    elif asset_type == 'category' or asset_type == 'term' or asset_type == 'information_governance_policy' or asset_type == 'information_governance_rule' or asset_type == 'label':
+        return _getRidOnly(rest_result)
     else:
         return "UNIMPLEMENTED"
+
+
+def _getRidOnly(rest_result):
+    return rest_result['_id']
 
 
 def _getDsJobExtractObjects(rest_result):
