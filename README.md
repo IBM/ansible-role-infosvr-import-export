@@ -59,16 +59,16 @@ var_name:
 
 This section will document each variable using the middle style, simply for a balance between brevity and clarity.
 
-### Custom attributes for common metadata
+### Custom attribute definitions
 
 **Imports**:
 
 ```
-ibm_infosvr_impexp_cm_cadefs_mappings:
+ibm_infosvr_impexp_cadefs_mappings:
   - { type: "<string>", attr: "<string>", from: "<value>", to: "<value>" }
   - ...
 
-ibm_infosvr_impexp_cm_cadefs_import:
+ibm_infosvr_impexp_cadefs_import:
   - { src: "<path>", options: "<string>", map: "<list>", overwrite: <boolean> }
   - ...
 ```
@@ -78,23 +78,51 @@ Mappings are purely optional, and the only required parameter for the import is 
 **Exports**:
 
 ```
-ibm_infosvr_impexp_cm_cadefs_export:
-  - { dest: "<path>", area: "<string>", type: "<string>", attr: "<string>" }
+ibm_infosvr_impexp_cadefs_export:
+  - dest: "<path>"
+    changes_in_last_hours: <int>
+    area: "<string>"
+    type: "<string>"
+    attr: "<string>"
+    names:
+      - "<string>"
+      - ...
+  - ...
 ```
 
-The wildcard for `area`, `type` and `attr` is `"*"`.
+The wildcard for `area`, `type` and `attr` is `"*"`. Be aware that the area and type are defined by the internal model of IGC rather than its REST API types. Some examples:
+
+- For business terms: `type` = GlossaryExtensions, `area` = BusinessTerm, `attr` = GlossaryExtensions.BusinessTerm
+- For categories: `type` = GlossaryExtensions, `area` = BusinessCategory, `attr` = GlossaryExtensions.BusinessCategory
+- For database tables: `type` = ASCLModel, `area` = DataCollection, `attr` = ASCLModel.DatabaseTable
+- For an OpenIGC class "$MyBundle-ClassName": `type` = MwbExtensions, `area` = ExtensionDataSource, `attr` = MwbExtensions.Xt_MyBundle__ClassName
+
+If in doubt, do an export of all custom attributes (providing `"*"` for area, type and attr), unzip the produced ISX file and look for the custom attribute(s) of interest. The directory structure of the extracted ISX file defines the `area` and `type`.
+
+The (optional) array of `names` can be used to define which specific custom attributes of that type to extract, by their name.
 
 **Examples**:
 
 ```
-ibm_infosvr_impexp_cm_cadefs_mappings:
+ibm_infosvr_impexp_cadefs_mappings:
   - { type: "HostSystem", attr: "name", from: "MY_HOST", to: "YOUR_HOST" }
 
-ibm_infosvr_impexp_cm_cadefs_import:
-  - { src: "import.isx", options: "-allowDup", map: "{{ ibm_infosvr_impexp_cm_cadefs_mappings }}", overwrite: True }
+ibm_infosvr_impexp_cadefs_import:
+  - { src: "import.isx", options: "-allowDup", map: "{{ ibm_infosvr_impexp_cadefs_mappings }}", overwrite: True }
 
-ibm_infosvr_impexp_cm_cadefs_export:
-  - { dest: "cache/export.isx", area: "MwbExtensions", type: "ExtensionDataSource", attr: "*" }
+ibm_infosvr_impexp_cadefs_export:
+  - dest: "cache/cadefs_openigc.isx"
+    area: "MwbExtensions"
+    type: "ExtensionDataSource"
+    attr: "*"
+    names:
+      - A Custom Relationship
+      - Another Custom Relationship
+  - dest: "cache/cadefs_terms_in_last_48hrs.isx"
+    changes_in_last_hours: 48
+    area: "GlossaryExtensions"
+    type: "BusinessTerm"
+    attr: "*"
 ```
 
 ### Common metadata
@@ -508,7 +536,7 @@ Mappings are purely optional, and the only required parameters for the import ar
 
 ```
 ibm_infosvr_impexp_bg_export:
-  - { dest: "<path>", categories: "<string>" options: "<string>" }
+  - { dest: "<path>", categories: "<string>", options: "<string>" }
 ```
 
 The wildcard for `categories` is `"*"`, and to specify multiple categories include them as comma-separated in the `categories` string. The path separator for categories is `::`.

@@ -28,10 +28,10 @@
 
 # Security (-sec)
 
-- import_tasks: exports/export_cm_cadefs.yml
+- import_tasks: exports/export_cadefs.yml
   become_user: "{{ ibm_infosvr_impexp_infosvr_dsadm_user }}"
   become: yes
-  when: ('ibm-information-server-engine' in group_names) and ibm_infosvr_impexp_cm_cadefs_export is defined
+  when: ('ibm-information-server-engine' in group_names) and ibm_infosvr_impexp_cadefs_export is defined
 
 - import_tasks: exports/export_cm.yml
   become_user: "{{ ibm_infosvr_impexp_infosvr_dsadm_user }}"

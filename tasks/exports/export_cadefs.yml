@@ -1,0 +1,100 @@
+---
+###
+# Copyright 2018 IBM Corp. All Rights Reserved.
+# 
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+# 
+#      http://www.apache.org/licenses/LICENSE-2.0
+# 
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+###
+
+- name: export_cadefs - export custom attribute definitions
+  shell: >
+          source ~/.bashrc &&
+          . dsenv &&
+          {{ ibm_infosvr_impexp_infosvr_install_location }}/Clients/istools/cli/istool.sh
+          export
+          -u {{ ibm_infosvr_impexp_infosvr_admin_user }}
+          -p {{ ibm_infosvr_impexp_infosvr_admin_user_pwd }}
+          -dom {{ ibm_infosvr_impexp_services_host | lower }}:{{ ibm_infosvr_impexp_services_console_port }}
+          -ar /tmp/__export_cadefs_{{ item.dest | basename }}_full.zip
+          -up
+          -customattributes '/{{ item.area }}/{{ item.type }}/{{ item.attr }}.cd'
+  args:
+    executable: /bin/bash
+    chdir: "{{ ibm_infosvr_impexp_infosvr_install_location }}/Server/DSEngine"
+  with_items: "{{ ibm_infosvr_impexp_cadefs_export }}"
+
+- name: export_cadefs - create temporary unarchive location
+  file:
+    path: /tmp/__export_cadefs_{{ item.dest | basename }}_tmp
+    state: directory
+  with_items: "{{ ibm_infosvr_impexp_cadefs_export }}"
+
+- name: export_cadefs - unarchive ISX file
+  unarchive:
+    src: /tmp/__export_cadefs_{{ item.dest | basename }}_full.zip
+    dest: /tmp/__export_cadefs_{{ item.dest | basename }}_tmp
+    remote_src: yes
+  with_items: "{{ ibm_infosvr_impexp_cadefs_export }}"
+
+- name: export_cadefs - list unarchived XML files
+  find:
+    path: /tmp/__export_cadefs_{{ item.dest | basename }}_tmp
+    patterns: '*.cd'
+    recurse: yes
+  with_items: "{{ ibm_infosvr_impexp_cadefs_export }}"
+  register: __ibm_infosvr_impexp_ca_unarchived
+
+- name: export_cadefs - restrict exported custom attributes
+  customattr_get_changes:
+    src: "{{ item.1.path }}"
+    from_time: >
+              {% if item.0.item.changes_in_last_hours is defined %}
+              {{ (__ibm_infosvr_impexp_to_epoch | int) - ((item.0.item.changes_in_last_hours | int) * 3600 * 1000) }}
+              {% else %}
+              -1
+              {% endif %}
+    to_time: >
+              {{ __ibm_infosvr_impexp_to_epoch | int }}
+    names: "{{ item.0.item.names | default(omit) }}"
+  register: __ibm_infosvr_impexp_ca_extract
+  with_subelements:
+    - "{{ __ibm_infosvr_impexp_ca_unarchived.results }}"
+    - files
+  loop_control:
+    label: "{{ item.1.path }}"
+
+#- debug: var=__ibm_infosvr_impexp_ca_extract
+
+- name: export_cadefs - re-archive ISX file
+  archive:
+    dest: /tmp/__export_cadefs_{{ item.dest | basename }}.zip
+    path: /tmp/__export_cadefs_{{ item.dest | basename }}_tmp/
+    format: zip
+  with_items: "{{ ibm_infosvr_impexp_cadefs_export }}"
+
+- name: export_cadefs - remove temporary unarchive location
+  file:
+    path: /tmp/__export_cadefs_{{ item.dest | basename }}_tmp
+    state: absent
+  with_items: "{{ ibm_infosvr_impexp_cadefs_export }}"
+
+- name: export_cadefs - transfer files
+  fetch: src=/tmp/__export_cadefs_{{ item.dest | basename }}.zip dest={{ item.dest }} flat=yes
+  with_items: "{{ ibm_infosvr_impexp_cadefs_export }}"
+
+- name: export_cadefs - cleanup exported files
+  file: path=/tmp/__export_cadefs_{{ item.dest | basename }}_full.zip state=absent
+  with_items: "{{ ibm_infosvr_impexp_cadefs_export }}"
+
+- name: export_cadefs - cleanup restricted files
+  file: path=/tmp/__export_cadefs_{{ item.dest | basename }}.zip state=absent
+  with_items: "{{ ibm_infosvr_impexp_cadefs_export }}"
