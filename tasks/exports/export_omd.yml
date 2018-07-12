@@ -1,0 +1,98 @@
+---
+###
+# Copyright 2018 IBM Corp. All Rights Reserved.
+# 
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+# 
+#      http://www.apache.org/licenses/LICENSE-2.0
+# 
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+###
+
+- name: export_omd - ensure XML backup dir exists
+  file:
+    path: "{{ ibm_infosvr_impexp_omd_backup_dir }}"
+    state: directory
+    owner: "{{ ibm_infosvr_impexp_infosvr_dsadm_user }}"
+    group: "{{ ibm_infosvr_impexp_infosvr_dsadm_group }}"
+    mode: 0775
+
+- name: export_omd - check if backup is enabled
+  lineinfile:
+    path: "{{ ibm_infosvr_impexp_infosvr_install_location }}/Server/DSOMD/omdmonapp.config"
+    regexp: "^OMDFlowBackupEnabled"
+    line: "OMDFlowBackupEnabled=1"
+    state: present
+  check_mode: yes
+  register: __ibm_infosvr_impexp_omd_enabled
+
+- name: export_omd - shutdown OMDMonApp (if needed)
+  shell: ". `cat /.dshome`/dsenv && ./bin/DSOMDMonApp.sh -stop"
+  args:
+    executable: /bin/bash
+    chdir: "{{ ibm_infosvr_impexp_infosvr_install_location }}/Server/DSOMD"
+  ignore_errors: yes
+  when: (__ibm_infosvr_impexp_omd_enabled | changed) or (__ibm_infosvr_impexp_omd_enabled | failed)
+
+- name: export_omd - enable enriched OMD backup
+  lineinfile:
+    path: "{{ ibm_infosvr_impexp_infosvr_install_location }}/Server/DSOMD/omdmonapp.config"
+    regexp: "^OMDFlowBackupEnabled"
+    line: "OMDFlowBackupEnabled=1"
+    state: present
+  when: (__ibm_infosvr_impexp_omd_enabled | changed) or (__ibm_infosvr_impexp_omd_enabled | failed)
+
+- name: export_omd - set backup directory for enriched OMD files
+  lineinfile:
+    path: "{{ ibm_infosvr_impexp_infosvr_install_location }}/Server/DSOMD/omdmonapp.config"
+    regexp: "^OMDFlowBackupDir"
+    line: "OMDFlowBackupDir={{ ibm_infosvr_impexp_omd_backup_dir }}"
+    state: present
+  when: (__ibm_infosvr_impexp_omd_enabled | changed) or (__ibm_infosvr_impexp_omd_enabled | failed)
+
+- name: export_omd - startup OMDMonApp (if needed)
+  shell: ". `cat /.dshome`/dsenv && ./bin/DSOMDMonApp.sh -start"
+  args:
+    executable: /bin/bash
+    chdir: "{{ ibm_infosvr_impexp_infosvr_install_location }}/Server/DSOMD"
+  ignore_errors: yes
+  when: (__ibm_infosvr_impexp_omd_enabled | changed) or (__ibm_infosvr_impexp_omd_enabled | failed)
+
+- name: export_omd - get flows by criteria
+  omd_get_changes:
+    dir: "{{ ibm_infosvr_impexp_omd_backup_dir }}"
+    from_time: >
+              {% if item.changes_in_last_hours is defined %}
+              {{ (__ibm_infosvr_impexp_to_epoch | int) - ((item.changes_in_last_hours | int) * 3600 * 1000) }}
+              {% else %}
+              -1
+              {% endif %}
+    to_time: >
+              {{ __ibm_infosvr_impexp_to_epoch | int }}
+  register: __ibm_infosvr_impexp_omd_extract
+  with_items: "{{ ibm_infosvr_impexp_omd_export }}"
+
+- name: export_omd - transfer files
+  fetch:
+    src: "{{ ibm_infosvr_impexp_omd_backup_dir }}/{{ item.1 }}"
+    dest: "{{ item.0.item.dest }}/{{ item.1 }}"
+    flat: yes
+  with_subelements:
+    - "{{ __ibm_infosvr_impexp_omd_extract.results }}"
+    - "flow_files"
+  loop_control:
+    label: "{{ item.0.item.dest }}/{{ item.1 }}"
+
+#- name: export_omd - cleanup exported files
+#  file: path="{{ ibm_infosvr_impexp_omd_backup_dir }}/{{ item.1 }}" state=absent
+#  with_subelements:
+#    - "{{ __ibm_infosvr_impexp_omd_extract.results }}"
+#    - "flow_files"
+#  loop_control:
+#    label: "{{ item.0.item.dest }}"

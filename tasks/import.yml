@@ -107,3 +107,8 @@
   become_user: "{{ ibm_infosvr_impexp_infosvr_dsadm_user }}"
   become: yes
   when: ('ibm-information-server-engine' in group_names) and ibm_infosvr_impexp_igc_relns_import is defined
+
+- import_tasks: imports/import_omd.yml
+  become_user: "{{ ibm_infosvr_impexp_infosvr_dsadm_user }}"
+  become: yes
+  when: ('ibm-information-server-engine' in group_names) and ibm_infosvr_impexp_omd_import is defined

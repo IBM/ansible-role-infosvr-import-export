@@ -1,0 +1,115 @@
+---
+###
+# Copyright 2018 IBM Corp. All Rights Reserved.
+# 
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+# 
+#      http://www.apache.org/licenses/LICENSE-2.0
+# 
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+###
+
+- name: import_omd - ensure XML backup dir exists
+  file:
+    path: "{{ ibm_infosvr_impexp_omd_backup_dir }}"
+    state: directory
+    owner: "{{ ibm_infosvr_impexp_infosvr_dsadm_user }}"
+    group: "{{ ibm_infosvr_impexp_infosvr_dsadm_group }}"
+    mode: 0775
+
+- name: import_omd - list files to transfer
+  local_action:
+    module: find
+    paths: "{{ item.src }}"
+    patterns: "*.flow"
+    recurse: yes
+  become: no
+  with_items: "{{ ibm_infosvr_impexp_omd_import }}"
+  register: __ibm_infosvr_impexp_omd_flows
+
+- name: import_omd - transfer files
+  copy: src={{ item.1.path }} dest="{{ ibm_infosvr_impexp_omd_backup_dir }}/{{ item.1.path | basename }}"
+  with_subelements:
+    - "{{ __ibm_infosvr_impexp_omd_flows.results }}"
+    - files
+  loop_control:
+    label: "{{ item.1.path }}"
+
+- name: import_omd - replace required details for import
+  omd_replace_for_target:
+    file: "{{ ibm_infosvr_impexp_omd_backup_dir }}/{{ item.1.path | basename }}"
+    host: "{{ ibm_infosvr_impexp_engine_host }}"
+  with_subelements:
+    - "{{ __ibm_infosvr_impexp_omd_flows.results }}"
+    - files
+  loop_control:
+    label: "{{ ibm_infosvr_impexp_omd_backup_dir }}/{{ item.1.path | basename }}"
+  register: __ibm_infosvr_impexp_omd_replacements
+
+- name: import_omd - get project lineage details
+  uri:
+    url: "https://{{ ibm_infosvr_impexp_services_host }}:{{ ibm_infosvr_impexp_services_console_port }}/ibm/iis/igc-rest/v1/search/"
+    method: POST
+    user: "{{ ibm_infosvr_impexp_infosvr_admin_user }}"
+    password: "{{ ibm_infosvr_impexp_infosvr_admin_user_pwd }}"
+    body: '{"properties":["name","include_for_lineage"],"types":["transformation_project"],"where":{"conditions":[{"value":"{{ item.dsproject }}","property":"name","operator":"="}],"operator":"and"}}'
+    body_format: json
+    validate_certs: no
+    status_code: 200
+    headers:
+      Content-Type: "application/json"
+  changed_when: False
+  with_items: "{{ __ibm_infosvr_impexp_omd_replacements.results }}"
+  loop_control:
+    label: "{{ item.dsproject }}"
+  register: __ibm_infosvr_impexp_omd_dsproject
+
+- name: import_omd - enable lineage for any project where it is disabled
+  uri:
+    url: "https://{{ ibm_infosvr_impexp_services_host }}:{{ ibm_infosvr_impexp_services_console_port }}/ibm/iis/igc-rest/v1/assets/{{ item.json['items'][0]._id }}/include_for_lineage"
+    method: PUT
+    user: "{{ ibm_infosvr_impexp_infosvr_admin_user }}"
+    password: "{{ ibm_infosvr_impexp_infosvr_admin_user_pwd }}"
+    body: '"setToTrue"'
+    body_format: json
+    validate_certs: no
+    status_code: 200
+    headers:
+      Content-Type: "application/json"
+  when: item.json['items'][0].include_for_lineage == "setToFalse"
+  loop_control:
+    label: "{{ item.json['items'][0]._name }}"
+  with_items: "{{ __ibm_infosvr_impexp_omd_dsproject.results }}"
+
+- name: import_omd - load OMD into target
+  shell: >
+          source ~/.bashrc &&
+          cd `cat /.dshome` &&
+          . dsenv &&
+          {{ ibm_infosvr_impexp_infosvr_install_location }}/Clients/istools/cli/istool.sh
+          workbench importOMD
+          -u {{ ibm_infosvr_impexp_infosvr_admin_user }}
+          -p {{ ibm_infosvr_impexp_infosvr_admin_user_pwd }}
+          -dom {{ ibm_infosvr_impexp_services_host | lower }}:{{ ibm_infosvr_impexp_services_console_port }}
+          -f "{{ ibm_infosvr_impexp_omd_backup_dir }}/{{ item.1.path | basename }}"
+  args:
+    executable: /bin/bash
+  with_subelements:
+    - "{{ __ibm_infosvr_impexp_omd_flows.results }}"
+    - files
+  loop_control:
+    label: "{{ ibm_infosvr_impexp_omd_backup_dir }}/{{ item.1.path | basename }}"
+
+- name: import_omd - cleanup transferred files
+  file: path="{{ ibm_infosvr_impexp_omd_backup_dir }}/{{ item.1.path | basename }}" state=absent
+  with_subelements:
+    - "{{ __ibm_infosvr_impexp_omd_flows.results }}"
+    - files
+  loop_control:
+    label: "{{ ibm_infosvr_impexp_omd_backup_dir }}/{{ item.1.path | basename }}"
