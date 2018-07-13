@@ -532,14 +532,31 @@ ibm_infosvr_impexp_bg_import:
 
 Mappings are purely optional, and the only required parameters for the import are the `src` file from which to load them and the `merge` option, which must be one of `ignore`, `overwrite`, `mergeignore`, or `mergeoverwrite`.
 
+The order of importing is also important for glossary assets, since different asset types can be split across different XML files. You should always import in this order to ensure dependencies are met:
+
+1. `label`
+1. `category`
+1. `term`
+1. `policy`
+1. `rule`
+
 **Exports**:
 
 ```
 ibm_infosvr_impexp_bg_export:
-  - { dest: "<path>", categories: "<string>", options: "<string>" }
+  - dest: "<path>"
+    type: "<string>"
+    changes_in_last_hours: <int>
+    categories: "<string>"
+    options: "<string>"
+    conditions:
+      - { property: "<string>", operator: "<string>", value: "<value>" }
+      - ...
 ```
 
-The wildcard for `categories` is `"*"`, and to specify multiple categories include them as comma-separated in the `categories` string. The path separator for categories is `::`.
+The required parameters for an export are the `dest` file into which to capture and `type` of assets to export. `type` must be one of `category`, `term`, `information_governance_policy`, `information_governance_rule`, or `label`.
+
+Because of the way the export for these assets works, you may be able to improve the efficiency by using the optional `categories` limiter. This will not be considered in coordination with the `conditions`, so should be used only for optimisation purposes: to limit the amount of content exported, you can specify multiple categories as comma-separated in the `categories` string. The path separator for categories is `::`. (Leaving this option out will export all categories initially, and later restrict these based on the `type` and `conditions` specified by the other options.)
 
 **Examples**:
 
@@ -551,8 +568,19 @@ ibm_infosvr_impexp_bg_import:
   - { src: "import.isx", map: "{{ ibm_infosvr_impexp_bg_mappings }}", merge: "mergeoverwrite" }
 
 ibm_infosvr_impexp_bg_export:
-  - { dest: "cache/bg_all.xml", categories: "*", options: "-includeassignedassets -includestewardship -includeassetcollections -includelabeledassets -includetermhistory -allpoliciesrules -devglossary" }
-  - { dest: "cache/bg_some.xml", categories: "Samples::A,Inspiration::Others", options: "-includelabeledassets -includetermhistory" }
+  - dest: "cache/bg_all_terms.xml"
+    type: "term"
+    options: "-includeassignedassets -includestewardship -includeassetcollections -includelabeledassets -includetermhistory -allpoliciesrules -devglossary"
+  - dest: "cache/bg_all_rules.xml"
+    type: "information_governance_rule"
+    options: "-includeassignedassets -includestewardship"
+  - dest: "cache/bg_some.xml"
+    type: "term"
+    changes_in_last_hours: 48
+    categories: "Samples::A,Inspiration::Others"
+    options: "-includelabeledassets -includetermhistory"
+    conditions:
+      - { property: "label.name", operator: "=", value: "Public" }
 ```
 
 ### IGC metadata relationships
