@@ -62,7 +62,7 @@ class GlossaryHandler(object):
         return elem.xpath("./x:customAttributes/x:customAttributeValue", namespaces=ns)
 
     def isRelationship(self, elem):
-        return (elem.xpath("./x:customAttributeReferences", namespaces=ns) is not None)
+        return elem.xpath("boolean(./x:customAttributeReferences)", namespaces=ns)
 
     def getRid(self, elem):
         return elem.xpath("./@rid", namespaces=ns)[0]
