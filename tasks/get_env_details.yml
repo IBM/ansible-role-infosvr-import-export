@@ -23,12 +23,14 @@
 - name: ensure XML library is installed
   yum: name=python-lxml state=latest
   become: yes
+  when: not ('ibm-information-server-ug' in group_names)
 
 - name: retrieve Version.xml
   fetch:
     src: "{{ ibm_infosvr_impexp_infosvr_install_location }}/Version.xml"
     dest: "{{ ibm_infosvr_impexp_fetch_location }}/Version_{{ inventory_hostname }}.xml"
     flat: yes
+  when: not ('ibm-information-server-ug' in group_names)
 
 - name: retrieve Information Server version
   xml:
@@ -37,17 +39,19 @@
     namespaces:
       x: http://www.ibm.com/LocalInstallRegistry
     content: attribute
+  when: not ('ibm-information-server-ug' in group_names)
   register: __ibm_infosvr_impexp_version_xml
 
 - name: register version number for reference
   set_fact:
     __ibm_infosvr_impexp_version_full: '{{ __ibm_infosvr_impexp_version_xml.matches[0]["{http://www.ibm.com/LocalInstallRegistry}InstallType"].currentVersion }}'
     __ibm_infosvr_impexp_version: '{{ __ibm_infosvr_impexp_version_xml.matches[0]["{http://www.ibm.com/LocalInstallRegistry}InstallType"].currentVersion[:4] }}'
+  when: not ('ibm-information-server-ug' in group_names)
 
 - name: retrieve Information Server JDK version
   shell: >
           {{ ibm_infosvr_impexp_infosvr_install_location }}/jdk/bin/java -version
-  when: ('ibm-information-server-domain' in group_names)
+  when: ('ibm-information-server-engine' in group_names) or ('ibm-information-server-domain' in group_names)
   register: __ibm_infosvr_impexp_isjdk_version
   changed_when: False
 
@@ -84,6 +88,22 @@
 # TODO:
 # - retrieve database version
 
+- name: retrieve OS version (RHEL)
+  shell: >
+          cat /etc/redhat-release
+  register: __ibm_infosvr_impexp_os_details
+
+- name: retrieve kernel version
+  shell: >
+          uname -r
+  register: __ibm_infosvr_impexp_kernel
+
+- name: retrieve compiler version
+  shell: >
+          gcc --version
+  when: ('ibm-information-server-engine' in group_names)
+  register: __ibm_infosvr_impexp_compiler
+
 - name: retrieve WebSphere Application Server version
   shell: >
           {{ __ibm_infosvr_impexp_was_location }}/bin/versionInfo.sh
@@ -98,26 +118,64 @@
   register: __ibm_infosvr_impexp_wasjdk_version
   changed_when: False
 
-- name: record details
+- name: record details (repo)
   local_action:
     module: blockinfile
     path: "{{ ibm_infosvr_impexp_fetch_location }}/envdetails.txt"
     create: yes
-    marker: "####### {mark} ENVIRONMENT DETAILS #######"
+    marker: "= {mark} ENVIRONMENT DETAILS - REPOSITORY ======================================"
     block: |
-      ================================================================================
       Repository host: {{ groups['ibm-information-server-repo'] | default([]) | join(", ") }}
-      Domain host(s) : {{ groups['ibm-information-server-domain'] | default([]) | join(", ") }}
-      Engine host(s) : {{ groups['ibm-information-server-engine'] | default([]) | join(", ") }}
       InfoSvr version: {{ __ibm_infosvr_impexp_version_full }}
-      ================================================================================
-      InfoSvr JDK:
-      {{ __ibm_infosvr_impexp_isjdk_version.stderr }}
-      ================================================================================
+      OS version     : {{ __ibm_infosvr_impexp_os_details.stdout }}
+      Kernel version : {{ __ibm_infosvr_impexp_kernel.stdout }}
+  when: ('ibm-information-server-repo' in group_names)
+
+- name: record details (domain)
+  local_action:
+    module: blockinfile
+    path: "{{ ibm_infosvr_impexp_fetch_location }}/envdetails.txt"
+    create: yes
+    marker: "= {mark} ENVIRONMENT DETAILS - DOMAIN =========================================="
+    block: |
+      Domain host(s) : {{ groups['ibm-information-server-domain'] | default([]) | join(", ") }}
+      InfoSvr version: {{ __ibm_infosvr_impexp_version_full }}
+      OS version     : {{ __ibm_infosvr_impexp_os_details.stdout }}
+      Kernel version : {{ __ibm_infosvr_impexp_kernel.stdout }}
+      Database type  : {{ __ibm_infosvr_impexp_dbtype }}
+      ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
       WAS details:
       {{ __ibm_infosvr_impexp_was_version.stdout }}
-      ================================================================================
+      ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
       WAS JDK:
       {{ __ibm_infosvr_impexp_wasjdk_version.stderr }}
-      ================================================================================
   when: ('ibm-information-server-domain' in group_names)
+
+- name: record details (engine)
+  local_action:
+    module: blockinfile
+    path: "{{ ibm_infosvr_impexp_fetch_location }}/envdetails.txt"
+    create: yes
+    marker: "= {mark} ENVIRONMENT DETAILS - ENGINE =========================================="
+    block: |
+      Engine host(s) : {{ groups['ibm-information-server-engine'] | default([]) | join(", ") }}
+      InfoSvr version: {{ __ibm_infosvr_impexp_version_full }}
+      OS version     : {{ __ibm_infosvr_impexp_os_details.stdout }}
+      Kernel version : {{ __ibm_infosvr_impexp_kernel.stdout }}
+      Compiler       : {{ __ibm_infosvr_impexp_compiler.stdout }}
+      ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+      InfoSvr JDK:
+      {{ __ibm_infosvr_impexp_isjdk_version.stderr }}
+  when: ('ibm-information-server-domain' in group_names)
+
+- name: record details (ug)
+  local_action:
+    module: blockinfile
+    path: "{{ ibm_infosvr_impexp_fetch_location }}/envdetails.txt"
+    create: yes
+    marker: "= {mark} ENVIRONMENT DETAILS - UG =============================================="
+    block: |
+      UG host(s)     : {{ groups['ibm-information-server-ug'] | default([]) | join(", ") }}
+      OS version     : {{ __ibm_infosvr_impexp_os_details.stdout }}
+      Kernel version : {{ __ibm_infosvr_impexp_kernel.stdout }}
+  when: ('ibm-information-server-ug' in group_names)
