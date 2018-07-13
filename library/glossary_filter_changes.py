@@ -154,6 +154,11 @@ def main():
             glossary_xml.dropAsset(e_asset)
         else:
             result['asset_count'] += 1
+            # Remove any reference-based custom attributes (these should be
+            # handled by relationship-specific import / export)
+            for e_customattr in glossary_xml.getCustomAttributes(e_asset):
+                if glossary_xml.isRelationship(e_customattr):
+                    glossary_xml.dropAsset(e_customattr)
 
     if asset_type == 'term':
         for e_sg in glossary_xml.getSynonymGroups():
