@@ -23,14 +23,21 @@
 - name: ensure XML library is installed
   yum: name=python-lxml state=latest
   become: yes
-  when: not ('ibm-information-server-ug' in group_names)
+  when: not ('ibm-information-server-ug' in group_names) and not ('ibm-information-server-client' in group_names)
 
 - name: retrieve Version.xml
   fetch:
     src: "{{ ibm_infosvr_impexp_infosvr_install_location }}/Version.xml"
     dest: "{{ ibm_infosvr_impexp_fetch_location }}/Version_{{ inventory_hostname }}.xml"
     flat: yes
-  when: not ('ibm-information-server-ug' in group_names)
+  when: not ('ibm-information-server-ug' in group_names) and not ('ibm-information-server-client' in group_names)
+
+- name: retrieve Version.xml (clients)
+  fetch:
+    src: "{{ ibm_infosvr_impexp_infosvr_install_location_win }}\\Version.xml"
+    dest: "{{ ibm_infosvr_impexp_fetch_location }}/Version_{{ inventory_hostname }}.xml"
+    flat: yes
+  when: ('ibm-information-server-client' in group_names)
 
 - name: retrieve Information Server version
   xml:
@@ -39,14 +46,14 @@
     namespaces:
       x: http://www.ibm.com/LocalInstallRegistry
     content: attribute
-  when: not ('ibm-information-server-ug' in group_names)
+  when: not ('ibm-information-server-ug' in group_names) and not ('ibm-information-server-client' in group_names)
   register: __ibm_infosvr_impexp_version_xml
 
 - name: register version number for reference
   set_fact:
     __ibm_infosvr_impexp_version_full: '{{ __ibm_infosvr_impexp_version_xml.matches[0]["{http://www.ibm.com/LocalInstallRegistry}InstallType"].currentVersion }}'
     __ibm_infosvr_impexp_version: '{{ __ibm_infosvr_impexp_version_xml.matches[0]["{http://www.ibm.com/LocalInstallRegistry}InstallType"].currentVersion[:4] }}'
-  when: not ('ibm-information-server-ug' in group_names)
+  when: not ('ibm-information-server-ug' in group_names) and not ('ibm-information-server-client' in group_names)
 
 - name: retrieve Information Server JDK version
   shell: >
@@ -91,11 +98,13 @@
 - name: retrieve OS version (RHEL)
   shell: >
           cat /etc/redhat-release
+  when: not ('ibm-information-server-client' in group_names)
   register: __ibm_infosvr_impexp_os_details
 
 - name: retrieve kernel version
   shell: >
           uname -r
+  when: not ('ibm-information-server-client' in group_names)
   register: __ibm_infosvr_impexp_kernel
 
 - name: retrieve compiler version
@@ -166,7 +175,7 @@
       ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
       InfoSvr JDK:
       {{ __ibm_infosvr_impexp_isjdk_version.stderr }}
-  when: ('ibm-information-server-domain' in group_names)
+  when: ('ibm-information-server-engine' in group_names)
 
 - name: record details (ug)
   local_action:
