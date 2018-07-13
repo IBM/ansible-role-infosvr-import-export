@@ -47,7 +47,7 @@ class GlossaryHandler(object):
         return self.root.xpath("./x:synonymGroups/x:synonymGroup", namespaces=ns)
 
     def getSynonyms(self, elemSG):
-        return elemSG.xpath("./x:synonyms/x:termRef")
+        return elemSG.xpath("./x:synonyms/x:termRef", namespaces=ns)
 
     def getPolicies(self):
         return self.root.xpath("./x:policies/x:policy", namespaces=ns)
