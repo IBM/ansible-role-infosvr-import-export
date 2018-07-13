@@ -81,12 +81,7 @@ dsjob:
 '''
 
 from ansible.module_utils.basic import AnsibleModule
-from ansible.module_utils._text import to_bytes
 from ansible.module_utils.omd_handler import OMDHandler
-
-import os
-import os.path
-import time
 
 
 def main():

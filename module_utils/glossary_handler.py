@@ -27,6 +27,7 @@ ns = {
     'x': 'http://www.ibm.com/is/bg/importexport'
 }
 
+
 class GlossaryHandler(object):
     def __init__(self, module, result, glossaryfile):
         self.module = module

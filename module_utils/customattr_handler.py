@@ -32,6 +32,7 @@ ns = {
 # Note we exlude TZ offset as this isn't supported on Python 2 without a non-standard library
 t_format = "%Y-%m-%dT%H:%M:%S.%f"
 
+
 class CustomAttrHandler(object):
     def __init__(self, module, result, cafile):
         self.module = module
