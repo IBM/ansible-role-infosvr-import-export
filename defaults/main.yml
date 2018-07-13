@@ -21,6 +21,7 @@ ibm_infosvr_impexp_fetch_location: cache/
 
 # Locations
 ibm_infosvr_impexp_infosvr_install_location: "{% if ibm_infosvr_locations is defined %}{{ ibm_infosvr_locations.linux }}{% else %}/opt/IBM/InformationServer{% endif %}"
+ibm_infosvr_impexp_infosvr_install_location_win: "{% if ibm_infosvr_locations is defined %}{{ ibm_infosvr_locations.win }}{% else %}C:\IBM\install{% endif %}"
 ibm_infosvr_impexp_was_install_location: "{% if ibm_infosvr_locations is defined %}{{ ibm_infosvr_locations.was }}{% else %}/opt/IBM/WebSphere/AppServer{% endif %}"
 ibm_infosvr_impexp_projects_dir: "{{ ibm_infosvr_impexp_infosvr_install_location }}/Server/Projects"
 ibm_infosvr_impexp_omd_backup_dir: "{{ ibm_infosvr_impexp_infosvr_install_location }}/Server/DSOMD/backup"
