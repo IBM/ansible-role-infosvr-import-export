@@ -20,14 +20,14 @@ This module adds generic utility functions for interacting with Operational Meta
 from __future__ import (absolute_import, division, print_function)
 __metaclass__ = type
 
-import xml.etree.ElementTree as ET
+from lxml import etree
 
 
 class OMDHandler(object):
     def __init__(self, module, result, flowfile):
         self.module = module
         self.result = result
-        self.tree = ET.parse(flowfile)
+        self.tree = etree.parse(flowfile)
         self.root = self.tree.getroot()
         self.orgvalues = {}
 
