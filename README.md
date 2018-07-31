@@ -345,6 +345,8 @@ Conditions are purely optional, take the form of the IGC REST API's conditions (
 
 The `type` should be one of `dsjob`, `routine`, `shared_container`, `table_definition` or `parameter_set`, and any conditions specified should be within the context of that specified asset type.
 
+Note that because design-time lineage depends on the resolution of job parameters, `parameter_set`s should be imported before any other DataStage asset types to ensure that eg. `dsjob` import picks up the design time parameters for appropriate design-time lineage.
+
 **Examples**:
 
 ```
