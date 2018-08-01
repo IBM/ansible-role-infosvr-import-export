@@ -106,6 +106,11 @@ options:
     required: false
     type: int
     default: 100
+  cert:
+    description:
+      - The path to a certificate file to use for SSL verification against the server.
+    required: false
+    type: path
 
 requirements:
   - requests
@@ -172,6 +177,7 @@ def main():
         from_time=dict(type='int', required=True),
         to_time=dict(type='int', required=True),
         conditions=dict(type='list', required=False, default=[]),
+        cert=dict(type='path', required=False),
         batch=dict(type='int', required=False, default=100)
     )
 
@@ -199,7 +205,8 @@ def main():
         username=module.params['user'],
         password=module.params['password'],
         host=module.params['host'],
-        port=module.params['port']
+        port=module.params['port'],
+        cert=module.params['cert']
     )
 
     conditions = module.params['conditions']

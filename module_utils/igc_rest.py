@@ -27,7 +27,7 @@ import re
 
 
 class RestIGC(object):
-    def __init__(self, module, result, username, password, host, port):
+    def __init__(self, module, result, username, password, host, port, cert):
         self.module = module
         self.result = result
         self.username = username
@@ -35,6 +35,9 @@ class RestIGC(object):
         self.host = host
         self.port = port
         self.session = requests.Session()
+        # http://docs.python-requests.org/en/master/user/advanced/#ssl-cert-verification
+        if cert:
+            self.session.verify = cert
         self.baseURL = "https://" + host + ":" + port
         logging.getLogger("requests").setLevel(logging.ERROR)
         logging.getLogger("urllib3").setLevel(logging.ERROR)
@@ -47,7 +50,6 @@ class RestIGC(object):
         self.session.request(
             "GET",
             self.baseURL + "/ibm/iis/igc-rest/v1/logout",
-            verify=False,
             auth=(self.username, self.password)
         )
 
@@ -56,7 +58,6 @@ class RestIGC(object):
             r = self.session.request(
                 "GET",
                 paging['next'],
-                verify=False,
                 auth=(self.username, self.password)
             )
             if r.status_code == 200:
@@ -80,7 +81,6 @@ class RestIGC(object):
             "PUT",
             self.baseURL + "/ibm/iis/igc-rest/v1/assets/" + rid,
             json=value,
-            verify=False,
             auth=(self.username, self.password)
         )
         return r.status_code, r.json()
@@ -91,7 +91,6 @@ class RestIGC(object):
             "POST",
             self.baseURL + "/ibm/iis/igc-rest/v1/search",
             json=query,
-            verify=False,
             auth=(self.username, self.password)
         )
         if r.status_code == 200:
