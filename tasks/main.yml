@@ -15,6 +15,15 @@
 # limitations under the License.
 ###
 
+- name: install prerequisite packages
+  yum: state=latest name={{ item }}
+  with_items:
+    - python-requests
+  become: yes
+  tags:
+    - export
+    - import
+
 - import_tasks: export.yml
   tags:
     - export

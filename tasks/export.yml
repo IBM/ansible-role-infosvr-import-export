@@ -20,11 +20,14 @@
     __ibm_infosvr_impexp_timestamp: "{{ ansible_date_time.iso8601_basic }}"
     __ibm_infosvr_impexp_to_epoch: "{{ (ansible_date_time.epoch | int) * 1000 }}"
 
-- name: install prerequisite packages
-  yum: state=latest name={{ item }}
-  with_items:
-    - python-requests
-  become: yes
+- import_tasks: get_certificate.yml
+  when: >
+          ibm_infosvr_impexp_verify_selfsigned_ssl is defined
+          and ibm_infosvr_impexp_verify_selfsigned_ssl
+          and ('ibm-information-server-domain' in group_names)
+
+- import_tasks: load_certificate.yml
+  when: ibm_infosvr_impexp_verify_selfsigned_ssl is defined and ibm_infosvr_impexp_verify_selfsigned_ssl
 
 # Security (-sec)
 
@@ -96,3 +99,6 @@
   become_user: "{{ ibm_infosvr_impexp_infosvr_dsadm_user }}"
   become: yes
   when: ('ibm-information-server-engine' in group_names) and ibm_infosvr_impexp_omd_export is defined
+
+- import_tasks: remove_certificate.yml
+  when: ibm_infosvr_impexp_verify_selfsigned_ssl is defined and ibm_infosvr_impexp_verify_selfsigned_ssl
