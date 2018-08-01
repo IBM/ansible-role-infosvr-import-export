@@ -151,6 +151,11 @@ options:
     required: false
     type: int
     default: 100
+  cert:
+    description:
+      - The path to a certificate file to use for SSL verification against the server.
+    required: false
+    type: path
 
 requirements:
   - requests
@@ -221,6 +226,7 @@ def main():
         replace_type=dict(type='str', required=False, default=""),
         conditions=dict(type='list', required=False, default=[]),
         batch=dict(type='int', required=False, default=100),
+        cert=dict(type='path', required=False),
         unsafe_writes=dict(type='bool', required=False, default=False)
     )
 
@@ -250,7 +256,8 @@ def main():
         username=module.params['user'],
         password=module.params['password'],
         host=module.params['host'],
-        port=module.params['port']
+        port=module.params['port'],
+        cert=module.params['cert']
     )
 
     asset_type = module.params['asset_type']

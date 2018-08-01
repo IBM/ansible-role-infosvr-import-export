@@ -15,23 +15,7 @@
 # limitations under the License.
 ###
 
-- name: install prerequisite packages
-  yum: state=latest name={{ item }}
-  with_items:
-    - python-requests
-  become: yes
-  tags:
-    - export
-    - import
-
-- import_tasks: export.yml
-  tags:
-    - export
-
-- import_tasks: import.yml
-  tags:
-    - import
-
-- import_tasks: get_env_details.yml
-  tags:
-    - envdetails
+- name: remove Information Server SSL certificate
+  file:
+    path: "{{ __ibm_infosvr_impexp_ssl_cert_location }}"
+    state: absent

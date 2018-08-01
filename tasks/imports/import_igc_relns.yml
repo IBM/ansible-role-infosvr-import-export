@@ -24,6 +24,7 @@
     asset_type: "{{ item.type }}"
     relationship: "{{ item.relationship }}"
     dest: "{{ __ibm_infosvr_impexp_backup_dir.path }}/__load_igc_relns_{{ item.src | basename }}.backup"
+    cert: "{{ __ibm_infosvr_impexp_ssl_cert_location | default(omit) }}"
   become_user: "{{ __ibm_infosvr_impexp_backup_dir.owner }}"
   become: yes
   register: __ibm_infosvr_impexp_igc_relns_backup
@@ -50,6 +51,7 @@
     replace_type: "{{ item.replace_type | default(omit) }}"
     conditions: "{{ item.conditions | default(omit) }}"
     batch: "{{ item.batch | default(omit) }}"
+    cert: "{{ __ibm_infosvr_impexp_ssl_cert_location | default(omit) }}"
   register: __ibm_infosvr_impexp_igc_relns_load
   with_items: "{{ ibm_infosvr_impexp_igc_relns_import }}"
 
