@@ -1,0 +1,25 @@
+---
+###
+# Copyright 2018 IBM Corp. All Rights Reserved.
+# 
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+# 
+#      http://www.apache.org/licenses/LICENSE-2.0
+# 
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+###
+
+- name: push Information Server SSL certificate
+  copy:
+    src: "{{ ibm_infosvr_impexp_fetch_location }}/__ibm_infosvr_impexp_cert_root.crt"
+    dest: "/tmp/ibm_infosvr_impexp_cert_root.crt"
+
+- name: store SSL certificate location
+  set_fact:
+    __ibm_infosvr_impexp_ssl_cert_location: "/tmp/ibm_infosvr_impexp_cert_root.crt"

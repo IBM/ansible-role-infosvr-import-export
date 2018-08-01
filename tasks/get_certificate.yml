@@ -1,0 +1,62 @@
+---
+###
+# Copyright 2018 IBM Corp. All Rights Reserved.
+# 
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+# 
+#      http://www.apache.org/licenses/LICENSE-2.0
+# 
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+###
+
+- name: record Information Server SSL certificate chain
+  shell: >
+          openssl s_client
+          -connect {{ ibm_infosvr_impexp_services_host }}:{{ ibm_infosvr_impexp_services_console_port }}
+          -showcerts </dev/null 2>/dev/null
+          > /tmp/__ibm_infosvr_impexp_cert_chain
+  args:
+    creates: /tmp/__ibm_infosvr_impexp_cert_chain
+
+# Unbelievable that OpenSSL doesn't provide a more direct way of doing this...
+
+- name: get SSL certificate chain length
+  shell: >
+          wc -l /tmp/__ibm_infosvr_impexp_cert_chain
+          | cut -d' ' -f 1
+  register: __ibm_infosvr_impexp_cert_chain_length
+
+- name: get location of last certificate in chain
+  shell: >
+          grep -n 'BEGIN CERTIFICATE' /tmp/__ibm_infosvr_impexp_cert_chain
+          | tail -1
+          | cut -d':' -f 1
+  register: __ibm_infosvr_impexp_cert_chain_root
+
+- name: record root SSL certificate
+  shell: >
+          tail -$(({{ __ibm_infosvr_impexp_cert_chain_length.stdout }}-{{ __ibm_infosvr_impexp_cert_chain_root.stdout }}+1)) /tmp/__ibm_infosvr_impexp_cert_chain
+          | openssl x509 -outform PEM
+          > /tmp/__ibm_infosvr_impexp_cert_root.crt
+  args:
+    executable: /bin/bash
+
+- name: retrieve Information Server SSL certificate
+  fetch:
+    src: "/tmp/__ibm_infosvr_impexp_cert_root.crt"
+    dest: "{{ ibm_infosvr_impexp_fetch_location }}/__ibm_infosvr_impexp_cert_root.crt"
+    flat: yes
+
+- name: remove temporary SSL certificate files
+  file:
+    path: "{{ item }}"
+    state: absent
+  with_items:
+    - /tmp/__ibm_infosvr_impexp_cert_chain
+    - /tmp/__ibm_infosvr_impexp_cert_root.crt
