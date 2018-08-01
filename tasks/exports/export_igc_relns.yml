@@ -34,6 +34,7 @@
               {{ __ibm_infosvr_impexp_to_epoch | int }}
     limit: "{{ item.limit | default(omit) }}"
     conditions: "{{ item.conditions | default(omit) }}"
+    cert: "{{ __ibm_infosvr_impexp_ssl_cert_location | default(omit) }}"
   register: __ibm_infosvr_impexp_igc_relns_extract
   with_items: "{{ ibm_infosvr_impexp_igc_relns_export }}"
 
