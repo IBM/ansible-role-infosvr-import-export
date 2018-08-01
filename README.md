@@ -35,7 +35,9 @@ For example:
 
 ... will import the common metadata from a file `file2.isx` expected in your playbook's `/files/` directory, renaming any hostnames from `MY_HOST` to `YOUR_HOST`, and overwriting any existing assets with the same identities. It will then import the DataStage assets from `/some/directory/file1.isx` into the `dstage1` project, overwriting any existing assets with the same identities.
 
-Note that the order in which the variables are defined does not matter: the role will take care of exporting and importing objects in the appropriate order to ensure dependencies between objects are handled (ie. that common and business metadata are loaded before relationships, etc).
+Note that the order in which the variables are defined does not matter: the role will take care of exporting and importing objects in the appropriate order to ensure dependencies between objects are handled (ie. that common and business metadata are loaded before relationships, etc). However, the order of multiple objects defined within a given variable _may_ matter, depending on your own dependencies.
+
+By default, the role will do SSL verification of self-signed certificates by first retrieving the root certificate directly from the domain tier of the environment. This is controlled by the `ibm_infosvr_impexp_verify_selfsigned_ssl` variable of the role: if you want to only verify against properly signed and trusted SSL certificates, you can set this variable to `False` and any self-signed domain tier certificate will no longer be trusted.
 
 ## Possible variables and expected structures
 
