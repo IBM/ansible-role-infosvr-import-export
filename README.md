@@ -539,8 +539,8 @@ The order of importing is also important for glossary assets, since different as
 1. `label`
 1. `category`
 1. `term`
-1. `policy`
-1. `rule`
+1. `information_governance_policy`
+1. `information_governance_rule`
 
 **Exports**:
 
