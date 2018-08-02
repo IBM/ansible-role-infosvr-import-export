@@ -182,7 +182,7 @@ EXAMPLES = '''
     relationship: assigned_assets
     src: /tmp/namedTestOnly.json
     mappings:
-      - { type: "HostSystem", attr: "name", from: "LocalServer01", to: "CentralServer01" }
+      - { type: "host", property: "name", from: "LocalServer01", to: "CentralServer01" }
 '''
 
 RETURN = '''
