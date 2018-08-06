@@ -21,6 +21,8 @@
       - { property: "project", operator: "=", value: "{{ item.project }}" }
   with_items: "{{ ibm_infosvr_impexp_ia_export }}"
   register: __ibm_infosvr_impexp_ia_export
+  loop_control:
+    label: "{{ item.dest | basename }}"
 
 - name: export_ia - get changed assets
   igc_get_changed_assets:
@@ -37,12 +39,14 @@
               {% endif %}
     to_time: >
               {{ __ibm_infosvr_impexp_to_epoch | int }}
-    conditions: "{{ item.1.conditions | default([]) | union(item.0.__ibm_infosvr_impexp_ia_project_cond_item) }}"
+    conditions: "{{ item.1.conditions | default([]) | union(item.0.ansible_facts.__ibm_infosvr_impexp_ia_project_cond_item) }}"
     cert: "{{ __ibm_infosvr_impexp_ssl_cert_location | default(omit) }}"
   register: __ibm_infosvr_impexp_ia_export_changes
   with_subelements:
     - "{{ __ibm_infosvr_impexp_ia_export.results }}"
     - "item.objects"
+  loop_control:
+    label: "{{ item.0.item.dest | basename }} - {{ item.1.type }}"
 
 # IA REST API for project-level info will retrieve everything, so we should just do this
 # once per project...
