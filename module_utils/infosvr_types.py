@@ -37,7 +37,12 @@ asset_type_to_properties = {
     "extension_mapping_document": ["file_name", "parent_folder"] + common_properties,
     "application": common_properties,
     "file": common_properties,
-    "stored_procedure_definition": common_properties
+    "stored_procedure_definition": common_properties,
+    "data_rule_definition": ["project"] + common_properties,
+    "data_rule_set_definition": ["project"] + common_properties,
+    "data_rule": ["project"] + common_properties,
+    "data_rule_set": ["project"] + common_properties,
+    "metric": ["project"] + common_properties
 }
 
 xa_asset_type_to_extract_type = {
@@ -52,6 +57,14 @@ xa_asset_type_to_extract_type = {
     "method": "Method",
     "input_parameter": "InputParameter",
     "output_value": "OutputValue"
+}
+
+ia_asset_type_to_extract_type = {
+    "data_rule_definition": "DataRuleDefinitions/DataRuleDefinition",
+    "data_rule_set_definition": "DataRuleDefinitions/RuleSetDefinition",
+    "data_rule": "DataRuleDefinitions/DataRuleDefinition/ExecutableRules/ExecutableRule",
+    "data_rule_set": "DataRuleDefinitions/RuleSetDefinition/ExecutableRules/ExecutableRule",
+    "metric": "Metrics/Metric"
 }
 
 # Necessary to avoid trying to export default objects that are there as part of vanilla Information Server installation
@@ -91,6 +104,8 @@ def get_asset_extract_object(asset_type, rest_result):
         return _getExternalAssetExtractObjects(rest_result)
     elif asset_type == 'category' or asset_type == 'term' or asset_type == 'information_governance_policy' or asset_type == 'information_governance_rule' or asset_type == 'label':
         return _getRidOnly(rest_result)
+    elif asset_type == 'data_rule_definition' or asset_type == 'data_rule_set_definition' or asset_type == 'data_rule' or asset_type == 'data_rule_set' or asset_type == 'metric':
+        return _getInfoAnalyzerExtractObjects(rest_result)
     else:
         return "UNIMPLEMENTED"
 
@@ -220,4 +235,14 @@ def _getExternalAssetExtractObjects(rest_result):
     }
     if rest_result['_type'] in xa_asset_type_to_extract_type:
         extract['type'] = xa_asset_type_to_extract_type[rest_result['_type']]
+    return extract
+
+
+def _getInfoAnalyzerExtractObjects(rest_result):
+    extract = {
+        "project": rest_result['project'][0],
+        "name": rest_result['_name']
+    }
+    if rest_result['_type'] in ia_asset_type_to_extract_type:
+        extract['type'] = ia_asset_type_to_extract_type[rest_result['_type']]
     return extract
