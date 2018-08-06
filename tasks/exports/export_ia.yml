@@ -15,22 +15,50 @@
 # limitations under the License.
 ###
 
-- name: export_ia - export Information Analyzer assets
-  shell: >
-          source ~/.bashrc &&
-          . dsenv &&
-          {{ ibm_infosvr_impexp_infosvr_install_location }}/Clients/istools/cli/istool.sh
-          export
-          -u {{ ibm_infosvr_impexp_infosvr_admin_user }}
-          -p {{ ibm_infosvr_impexp_infosvr_admin_user_pwd }}
-          -dom {{ ibm_infosvr_impexp_services_host | lower }}:{{ ibm_infosvr_impexp_services_console_port }}
-          -ar /tmp/__export_ia_{{ item.dest | basename }}
-          -up
-          -ia '-projects "{{ item.projects }}"{% if item.options is defined %} {{ item.options }}{% endif %}'
-  args:
-    executable: /bin/bash
-    chdir: "{{ ibm_infosvr_impexp_infosvr_install_location }}/Server/DSEngine"
+- name: export_ia - get changed assets
+  igc_get_changed_assets:
+    host: "{{ ibm_infosvr_impexp_services_host }}"
+    port: "{{ ibm_infosvr_impexp_services_console_port }}"
+    user: "{{ ibm_infosvr_impexp_infosvr_admin_user }}"
+    password: "{{ ibm_infosvr_impexp_infosvr_admin_user_pwd }}"
+    asset_type: "{{ item.1.type }}"
+    from_time: >
+              {% if item.1.changes_in_last_hours is defined %}
+              {{ (__ibm_infosvr_impexp_to_epoch | int) - ((item.1.changes_in_last_hours | int) * 3600 * 1000) }}
+              {% else %}
+              -1
+              {% endif %}
+    to_time: >
+              {{ __ibm_infosvr_impexp_to_epoch | int }}
+    conditions: >
+              {% if item.1.conditions is defined %}
+              {{ item.1.conditions.append('{ property: "project", operator: "=", value="' + item.0.project + '" }') }}
+              {% else %}
+              [ { property: "project", operator: "=", value="{{ item.0.project }}" } ]
+              {% endif %}
+    cert: "{{ __ibm_infosvr_impexp_ssl_cert_location | default(omit) }}"
+  register: __ibm_infosvr_impexp_ia_export_changes
   with_items: "{{ ibm_infosvr_impexp_ia_export }}"
+  with_subelements:
+    - "{{ ibm_infosvr_impexp_ia_export }}"
+    - "objects"
+
+# IA REST API for project-level info will retrieve everything, so we should just do this
+# once per project...
+- name: export_ia - export Information Analyzer project
+  ia_extract_project:
+    host: "{{ ibm_infosvr_impexp_services_host | lower }}"
+    port: "{{ ibm_infosvr_impexp_services_console_port }}"
+    user: "{{ ibm_infosvr_impexp_infosvr_admin_user }}"
+    password: "{{ ibm_infosvr_impexp_infosvr_admin_user_pwd }}"
+    project: "{{ item.item.project }}"
+    dest: /tmp/__export_ia_{{ item.item.dest | basename }}
+    assets_to_keep: "{{ item.assets }}"
+    cert: "{{ __ibm_infosvr_impexp_ssl_cert_location | default(omit) }}"
+  register: __ibm_infosvr_impexp_ia_extract
+  with_items: "{{ __ibm_infosvr_impexp_ia_export_changes.results }}"
+  loop_control:
+    label: "{{ item.item.dest | basename }}"
 
 - name: export_ia - transfer files
   fetch: src=/tmp/__export_ia_{{ item.dest | basename }} dest={{ item.dest }} flat=yes
