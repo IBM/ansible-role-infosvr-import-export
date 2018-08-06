@@ -63,7 +63,7 @@
   register: __ibm_infosvr_impexp_ia_extract
   with_items: "{{ __ibm_infosvr_impexp_ia_export_changes.results }}"
   loop_control:
-    label: "{{ item.item[0].item.dest | basename }}"
+    label: "{{ item.item[0].item.dest | basename }} - {{ item.item[1].type }}"
 
 - name: export_ia - transfer files
   fetch: src=/tmp/__export_ia_{{ item.dest | basename }} dest={{ item.dest }} flat=yes
