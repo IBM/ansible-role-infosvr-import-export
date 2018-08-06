@@ -58,7 +58,7 @@
     password: "{{ ibm_infosvr_impexp_infosvr_admin_user_pwd }}"
     project: "{{ item.item[0].item.project }}"
     dest: /tmp/__export_ia_{{ item.item[0].item.dest | basename }}
-    assets_to_keep: "{{ item.assets }}"
+    assets_to_keep: "{{ item.item.assets }}"
     cert: "{{ __ibm_infosvr_impexp_ssl_cert_location | default(omit) }}"
   register: __ibm_infosvr_impexp_ia_extract
   with_items: "{{ __ibm_infosvr_impexp_ia_export_changes.results }}"
