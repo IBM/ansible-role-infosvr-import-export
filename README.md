@@ -421,10 +421,37 @@ Mappings are purely optional, and the only required parameter for the import is 
 
 ```
 ibm_infosvr_impexp_ia_export:
-  - { dest: "<path>", projects: "<string>" options: "<string>" }
+  - dest: "<path>"
+    project: "<string>"
+    objects:
+      - type: data_rule_definition
+        changes_in_last_hours: <int>
+        conditions:
+          - { property: "<string>", operator: "<string>", value: "<value>" }
+          - ...
+      - type: data_rule_set_definition
+        changes_in_last_hours: <int>
+        conditions:
+          - { property: "<string>", operator: "<string>", value: "<value>" }
+          - ...
+      - type: data_rule
+        changes_in_last_hours: <int>
+        conditions:
+          - { property: "<string>", operator: "<string>", value: "<value>" }
+          - ...
+      - type: data_rule_set
+        changes_in_last_hours: <int>
+        conditions:
+          - { property: "<string>", operator: "<string>", value: "<value>" }
+          - ...
+      - type: metric
+        changes_in_last_hours: <int>
+        conditions:
+          - { property: "<string>", operator: "<string>", value: "<value>" }
+          - ...
 ```
 
-The wildcard for `projects` is `"*"`, and to specify multiple projects include them as comma-separated in the `projects` string.
+Objects that can be conditionally exported include `data_rule_definition`, `data_rule_set_definition`, `data_rule`, `data_rule_set`, and `metric`.  For executable objects (`data_rule`, `data_rule_set` and `metric`), any execution of those rules within the conditions specified (ie. changes_in_last_hours) will also be included.  Other objects within the project (virtual tables, virtual columns, folders, etc) are all always exported.
 
 **Examples**:
 
@@ -436,7 +463,14 @@ ibm_infosvr_impexp_ia_import:
   - { src: "import.isx", options: "-nameconf 'rename' -renSuf 'bak'", map: "{{ ibm_infosvr_impexp_ia_mappings }}", overwrite: True }
 
 ibm_infosvr_impexp_ia_export:
-  - { dest: "cache/ia_all.isx", projects: "*", options: "-includeResultHistory -includeCommonMetadata -includeProjectRoles -includeReports -tablelevel" }
+  - dest: "cache/ia_fullproject.xml"
+    project: "UGDefaultWorkspace"
+    objects:
+      - type: data_rule_definition
+      - type: data_rule_set_definition
+      - type: data_rule
+      - type: data_rule_set
+      - type: metric
 ```
 
 ### Extended data sources
