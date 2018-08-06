@@ -42,7 +42,7 @@
   register: __ibm_infosvr_impexp_ia_export_changes
   with_subelements:
     - "{{ __ibm_infosvr_impexp_ia_export.results }}"
-    - "objects"
+    - "item.objects"
 
 # IA REST API for project-level info will retrieve everything, so we should just do this
 # once per project...
