@@ -256,6 +256,8 @@ def main():
             "property": "object_types.methods.output_values.modified_on",
             "operator": "between"
         })
+    # Handle extended data sources in special way (to catch any changes in their underlying
+    # granular assets as well) -- requires nested OR'd conditions to check for changes
     elif asset_type == 'stored_procedure_definition':
         reqJSON['where']['conditions'].append({"conditions": [], "operator": "or"})
         reqJSON['where']['conditions'][0]['conditions'].append({
@@ -286,6 +288,16 @@ def main():
             "min": module.params['from_time'],
             "max": module.params['to_time'],
             "property": "result_columns.modified_on",
+            "operator": "between"
+        })
+    # Handle IA data rules in special way (to catch any changes in underlying execution runs)
+    # -- requires nested OR'd condition to check for changes
+    elif asset_type == 'data_rule' or asset_type == 'data_rule_set' or asset_type == 'metric':
+        reqJSON['where']['conditions'].append({"conditions": [], "operator": "or"})
+        reqJSON['where']['conditions'][0]['conditions'].append({
+            "min": module.params['from_time'],
+            "max": module.params['to_time'],
+            "property": "execution_history.modified_on",
             "operator": "between"
         })
     else:
