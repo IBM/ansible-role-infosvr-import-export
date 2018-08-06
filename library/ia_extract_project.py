@@ -165,8 +165,18 @@ def main():
     if not xmlResults:
         module.fail_json(msg='Retrieval of IA project details failed', **result)
 
+    # Write temporary file with the full XML output to operate against
+    try:
+        tmpfd_full, tmpfile_full = tempfile.mkstemp()
+        f = os.fdopen(tmpfd_full, 'wb')
+        #json.dump(jsonResults, f) # TODO: ensure XML equivalent below actually works
+        f.write(xmlResults)
+        f.close()
+    except IOError:
+        module.fail_json(msg='Unable to create temporary file to output project details', **result)
+
     assets_to_keep = module.params['assets_to_keep']
-    ia_xml = IAHandler(module, result, xmlResults)
+    ia_xml = IAHandler(module, result, tmpfile_full)
 
     drd_to_keep = []
     drsd_to_keep = []
@@ -217,7 +227,10 @@ def main():
     # Close the IA REST API session
 #    iarest.closeSession()
 
-    # Write temporary file with the XML output,
+    # Remove the interim temporary file
+    os.unlink(tmpfile_full)
+
+    # Write a new temporary file with the revised XML output,
     # and then move to specified dest location
     try:
         tmpfd, tmpfile = tempfile.mkstemp()
