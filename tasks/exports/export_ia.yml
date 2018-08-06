@@ -38,7 +38,6 @@
               {% endif %}
     cert: "{{ __ibm_infosvr_impexp_ssl_cert_location | default(omit) }}"
   register: __ibm_infosvr_impexp_ia_export_changes
-  with_items: "{{ ibm_infosvr_impexp_ia_export }}"
   with_subelements:
     - "{{ ibm_infosvr_impexp_ia_export }}"
     - "objects"
