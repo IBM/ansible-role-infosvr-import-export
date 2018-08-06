@@ -32,13 +32,13 @@ t_format = "%Y-%m-%dT%H:%M:%S"
 
 
 class IAHandler(object):
-    def __init__(self, module, result, iafile):
+    def __init__(self, module, result, iaxml):
         self.module = module
         self.result = result
-        self.tree = etree.parse(iafile)
         for key in ns:
             etree.register_namespace(key, ns[key])
-        self.root = self.tree.getroot()
+        self.root = etree.fromstring(iaxml)
+        self.tree = self.root.getroottree()
 
     def getProjectName(self):
         return self.root.get("name")
