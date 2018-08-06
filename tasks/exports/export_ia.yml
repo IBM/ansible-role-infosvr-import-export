@@ -56,7 +56,7 @@
     port: "{{ ibm_infosvr_impexp_services_console_port }}"
     user: "{{ ibm_infosvr_impexp_infosvr_admin_user }}"
     password: "{{ ibm_infosvr_impexp_infosvr_admin_user_pwd }}"
-    project: "{{ item.item.project }}"
+    project: "{{ item.item[0].item.project }}"
     dest: /tmp/__export_ia_{{ item.item[0].item.dest | basename }}
     assets_to_keep: "{{ item.assets }}"
     cert: "{{ __ibm_infosvr_impexp_ssl_cert_location | default(omit) }}"
