@@ -304,6 +304,12 @@ def main():
             "property": "execution_history.modified_on",
             "operator": "between"
         })
+        reqJSON['where']['conditions'].append({
+            "min": module.params['from_time'],
+            "max": module.params['to_time'],
+            "property": "modified_on",
+            "operator": "between"
+        })
     else:
         reqJSON['where']['conditions'].append({
             "min": module.params['from_time'],
