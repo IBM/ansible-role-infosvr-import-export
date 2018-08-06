@@ -231,9 +231,15 @@ def _getExternalAssetExtractObjects(rest_result):
 
 
 def _getInfoAnalyzerExtractObjects(rest_result):
+    # Unfortunately it appears that the project can be a string or an array
+    # in different scenarios (though should only ever be a single value?)
+    projectName = rest_result['project'][0] if isinstance(rest_result['project'], list) else rest_result['project']
+    # data_rule_definition queries may return various sub-types of data rule definitions:
+    # published_data_rule_definition, non_published_data_rule_definition, etc
+    objtype = "data_rule_definition" if rest_result['_type'].endswith('data_rule_definition') else rest_result['_type']
     extract = {
-        "project": rest_result['project'][0],
+        "project": projectName,
         "name": rest_result['_name'],
-        "type": rest_result['_type']
+        "type": objtype
     }
     return extract
