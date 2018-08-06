@@ -295,6 +295,10 @@ def main():
     elif asset_type == 'data_rule' or asset_type == 'data_rule_set' or asset_type == 'metric':
         reqJSON['where']['conditions'].append({"conditions": [], "operator": "or"})
         reqJSON['where']['conditions'][0]['conditions'].append({
+            "property": "execution_history",
+            "operator": "isNull"
+        })
+        reqJSON['where']['conditions'][0]['conditions'].append({
             "min": module.params['from_time'],
             "max": module.params['to_time'],
             "property": "execution_history.modified_on",
