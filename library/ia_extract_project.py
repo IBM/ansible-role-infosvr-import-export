@@ -215,7 +215,7 @@ def main():
             result['asset_count'] += 1
 
     # Close the IA REST API session
-    iarest.closeSession()
+#    iarest.closeSession()
 
     # Write temporary file with the XML output,
     # and then move to specified dest location

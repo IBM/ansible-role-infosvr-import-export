@@ -44,7 +44,7 @@ class RestIA(object):
     common code for setting up interactivity with IA REST API
     '''
 
-    def closeSession(self):
+#    def closeSession(self):
 # TODO: does this exist for IA REST API?
 #        self.session.request(
 #            "GET",
