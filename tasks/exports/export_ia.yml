@@ -31,11 +31,7 @@
     to_time: >
               {{ __ibm_infosvr_impexp_to_epoch | int }}
     conditions: >
-              {% if item.1.conditions is defined %}
-              {{ item.1.conditions.append('{ property: "project", operator: "=", value="' + item.0.project + '" }') }}
-              {% else %}
-              [ { property: "project", operator: "=", value="{{ item.0.project }}" } ]
-              {% endif %}
+              {% if item.1.conditions is defined %}{{ item.1.conditions.append({property: "project", operator: "=", value="' + item.0.project + '"}) }}{% else %}[{property: "project", operator: "=", value="{{ item.0.project }}"}]{% endif %}
     cert: "{{ __ibm_infosvr_impexp_ssl_cert_location | default(omit) }}"
   register: __ibm_infosvr_impexp_ia_export_changes
   with_subelements:
