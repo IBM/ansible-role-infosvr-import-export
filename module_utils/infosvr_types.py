@@ -59,14 +59,6 @@ xa_asset_type_to_extract_type = {
     "output_value": "OutputValue"
 }
 
-ia_asset_type_to_extract_type = {
-    "data_rule_definition": "DataRuleDefinitions/DataRuleDefinition",
-    "data_rule_set_definition": "DataRuleDefinitions/RuleSetDefinition",
-    "data_rule": "DataRuleDefinitions/DataRuleDefinition/ExecutableRules/ExecutableRule",
-    "data_rule_set": "DataRuleDefinitions/RuleSetDefinition/ExecutableRules/ExecutableRule",
-    "metric": "Metrics/Metric"
-}
-
 # Necessary to avoid trying to export default objects that are there as part of vanilla Information Server installation
 asset_blacklists = {
     "table_definition": [
@@ -241,8 +233,7 @@ def _getExternalAssetExtractObjects(rest_result):
 def _getInfoAnalyzerExtractObjects(rest_result):
     extract = {
         "project": rest_result['project'][0],
-        "name": rest_result['_name']
+        "name": rest_result['_name'],
+        "type": rest_result['_type']
     }
-    if rest_result['_type'] in ia_asset_type_to_extract_type:
-        extract['type'] = ia_asset_type_to_extract_type[rest_result['_type']]
     return extract
