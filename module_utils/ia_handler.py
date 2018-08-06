@@ -32,10 +32,10 @@ t_format = "%Y-%m-%dT%H:%M:%S"
 
 
 class IAHandler(object):
-    def __init__(self, module, result, glossaryfile):
+    def __init__(self, module, result, iafile):
         self.module = module
         self.result = result
-        self.tree = etree.parse(glossaryfile)
+        self.tree = etree.parse(iafile)
         for key in ns:
             etree.register_namespace(key, ns[key])
         self.root = self.tree.getroot()
@@ -44,16 +44,16 @@ class IAHandler(object):
         return self.root.get("name")
 
     def getDataSources(self):
-        return self.root.xpath("./iaapi:DataSources/DataSource", namespaces=ns)
+        return self.root.xpath("./iaapi:DataSources/iaapi:DataSource", namespaces=ns)
 
     def getDataRuleDefinitionsSection(self):
         return self.root.xpath("./iaapi:DataRuleDefinitions", namespaces=ns)
 
     def getDataRuleDefinitions(self):
-        return self.root.xpath("./iaapi:DataRuleDefinitions/DataRuleDefinition", namespaces=ns)
+        return self.root.xpath("./iaapi:DataRuleDefinitions/iaapi:DataRuleDefinition", namespaces=ns)
 
     def getRuleSetDefinitions(self):
-        return self.root.xpath("./iaapi:DataRuleDefinitions/RuleSetDefinition", namespaces=ns)
+        return self.root.xpath("./iaapi:DataRuleDefinitions/iaapi:RuleSetDefinition", namespaces=ns)
 
     def getDataRules(self):
         return self.root.xpath(".//iaapi:ExecutableRule", namespaces=ns)
@@ -62,7 +62,18 @@ class IAHandler(object):
         return self.root.xpath("./iaapi:Metrics", namespaces=ns)
 
     def getMetrics(self):
-        return self.root.xpath("./iaapi:Metrics/Metric", namespaces=ns)
+        return self.root.xpath("./iaapi:Metrics/iaapi:Metric", namespaces=ns)
+
+    def getExecutables(self, e_definition):
+        return e_definition.xpath("./iaapi:ExecutableRules/iaapi:ExecutableRule", namespaces=ns)
+
+    def getName(self, e_asset):
+        return e_asset.get("name")
+
+    def dropAsset(self, e_asset):
+        parent = e_asset.getparent()
+        parent.remove(e_asset)
+        self.result['changed'] = True
 
     def dropSection(self, section):
         for to_delete in self.root.xpath("./iaapi:" + section, namespaces=ns):
