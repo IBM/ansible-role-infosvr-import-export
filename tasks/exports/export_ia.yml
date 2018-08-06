@@ -15,6 +15,13 @@
 # limitations under the License.
 ###
 
+- name: export_ia - setup project condition
+  set_fact:
+    __ibm_infosvr_impexp_ia_project_cond_item:
+      - { property: "project", operator: "=", value: "{{ item.project }}" }
+  with_items: "{{ ibm_infosvr_impexp_ia_export }}"
+  register: __ibm_infosvr_impexp_ia_export
+
 - name: export_ia - get changed assets
   igc_get_changed_assets:
     host: "{{ ibm_infosvr_impexp_services_host }}"
@@ -30,11 +37,11 @@
               {% endif %}
     to_time: >
               {{ __ibm_infosvr_impexp_to_epoch | int }}
-    conditions: "{{ item.1.conditions | default([]) | union([{property: \"project\", operator: \"=\", value: \"' + item.0.project + '\"}]) }}"
+    conditions: "{{ item.1.conditions | default([]) | union(item.0.__ibm_infosvr_impexp_ia_project_cond_item) }}"
     cert: "{{ __ibm_infosvr_impexp_ssl_cert_location | default(omit) }}"
   register: __ibm_infosvr_impexp_ia_export_changes
   with_subelements:
-    - "{{ ibm_infosvr_impexp_ia_export }}"
+    - "{{ __ibm_infosvr_impexp_ia_export.results }}"
     - "objects"
 
 # IA REST API for project-level info will retrieve everything, so we should just do this
