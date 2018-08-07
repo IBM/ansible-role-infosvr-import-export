@@ -44,28 +44,28 @@ class IAHandler(object):
         return self.root.get("name")
 
     def getDataSources(self):
-        return self.root.xpath("./iaapi:DataSources/iaapi:DataSource", namespaces=ns)
+        return self.root.xpath("./DataSources/DataSource", namespaces=ns)
 
     def getDataRuleDefinitionsSection(self):
-        return self.root.xpath("./iaapi:DataRuleDefinitions", namespaces=ns)
+        return self.root.xpath("./DataRuleDefinitions", namespaces=ns)
 
     def getDataRuleDefinitions(self):
-        return self.root.xpath("./iaapi:DataRuleDefinitions/iaapi:DataRuleDefinition", namespaces=ns)
+        return self.root.xpath("./DataRuleDefinitions/DataRuleDefinition", namespaces=ns)
 
     def getRuleSetDefinitions(self):
-        return self.root.xpath("./iaapi:DataRuleDefinitions/iaapi:RuleSetDefinition", namespaces=ns)
+        return self.root.xpath("./DataRuleDefinitions/RuleSetDefinition", namespaces=ns)
 
     def getDataRules(self):
-        return self.root.xpath(".//iaapi:ExecutableRule", namespaces=ns)
+        return self.root.xpath(".//ExecutableRule", namespaces=ns)
 
     def getMetricSection(self):
-        return self.root.xpath("./iaapi:Metrics", namespaces=ns)
+        return self.root.xpath("./Metrics", namespaces=ns)
 
     def getMetrics(self):
-        return self.root.xpath("./iaapi:Metrics/iaapi:Metric", namespaces=ns)
+        return self.root.xpath("./Metrics/Metric", namespaces=ns)
 
     def getExecutables(self, e_definition):
-        return e_definition.xpath("./iaapi:ExecutableRules/iaapi:ExecutableRule", namespaces=ns)
+        return e_definition.xpath("./ExecutableRules/ExecutableRule", namespaces=ns)
 
     def getName(self, e_asset):
         return e_asset.get("name")
@@ -76,7 +76,7 @@ class IAHandler(object):
         self.result['changed'] = True
 
     def dropSection(self, section):
-        for to_delete in self.root.xpath("./iaapi:" + section, namespaces=ns):
+        for to_delete in self.root.xpath("./" + section, namespaces=ns):
             parent = to_delete.getparent()
             parent.remove(to_delete)
             self.result['changed'] = True
