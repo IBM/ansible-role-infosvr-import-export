@@ -411,11 +411,11 @@ ibm_infosvr_impexp_ia_mappings:
   - ...
 
 ibm_infosvr_impexp_ia_import:
-  - { src: "<path>", options: "<string>", map: "<list>", overwrite: <boolean> }
+  - { src: "<path>", project: "<string>", map: "<list>" }
   - ...
 ```
 
-Mappings are purely optional, and the only required parameter for the import is the `src` file from which to load them.
+Mappings are purely optional, and the only required parameters for the import are the `src` file from which to load the project and the `project` name.
 
 **Exports**:
 
@@ -457,10 +457,14 @@ Objects that can be conditionally exported include `data_rule_definition`, `data
 
 ```
 ibm_infosvr_impexp_ia_mappings:
-  - { type: "HostSystem", attr: "name", from: "MY_HOST", to: "YOUR_HOST" }
+  - { type: "DataSource", attr: "host", from: "MY_HOST", to: "YOUR_HOST" }
+  - { type: "DataSource", attr: "name", from: "MYDB", to: "YOURDB" }
+  - { type: "Schema", attr: "name", from: "MY_SCH", to: "YOUR_SCH" }
 
 ibm_infosvr_impexp_ia_import:
-  - { src: "import.isx", options: "-nameconf 'rename' -renSuf 'bak'", map: "{{ ibm_infosvr_impexp_ia_mappings }}", overwrite: True }
+  - src: "/tmp/ia_fullproject.xml"
+    project: "UGDefaultWorkspace"
+    map: "{{ ibm_infosvr_impexp_ia_mappings }}"
 
 ibm_infosvr_impexp_ia_export:
   - dest: "cache/ia_fullproject.xml"
@@ -471,6 +475,21 @@ ibm_infosvr_impexp_ia_export:
       - type: data_rule
       - type: data_rule_set
       - type: metric
+
+ibm_infosvr_impexp_ia_export:
+  - dest: "cache/ia_project_delta.xml"
+    project: "UGDefaultWorkspace"
+    objects:
+      - type: data_rule_definition
+        changes_in_last_hours: 48
+      - type: data_rule_set_definition
+        changes_in_last_hours: 48
+      - type: data_rule
+        changes_in_last_hours: 48
+      - type: data_rule_set
+        changes_in_last_hours: 48
+      - type: metric
+        changes_in_last_hours: 48
 ```
 
 ### Extended data sources
