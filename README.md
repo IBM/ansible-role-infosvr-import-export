@@ -94,10 +94,10 @@ ibm_infosvr_impexp_cadefs_export:
 
 The wildcard for `area`, `type` and `attr` is `"*"`. Be aware that the area and type are defined by the internal model of IGC rather than its REST API types. Some examples:
 
-- For business terms: `type` = GlossaryExtensions, `area` = BusinessTerm, `attr` = GlossaryExtensions.BusinessTerm
-- For categories: `type` = GlossaryExtensions, `area` = BusinessCategory, `attr` = GlossaryExtensions.BusinessCategory
-- For database tables: `type` = ASCLModel, `area` = DataCollection, `attr` = ASCLModel.DatabaseTable
-- For an OpenIGC class "$MyBundle-ClassName": `type` = MwbExtensions, `area` = ExtensionDataSource, `attr` = MwbExtensions.Xt_MyBundle__ClassName
+- For business terms: `area` = GlossaryExtensions, `type` = BusinessTerm, `attr` = GlossaryExtensions.BusinessTerm
+- For categories: `area` = GlossaryExtensions, `type` = BusinessCategory, `attr` = GlossaryExtensions.BusinessCategory
+- For database tables: `area` = ASCLModel, `type` = DataCollection, `attr` = ASCLModel.DatabaseTable
+- For an OpenIGC class "$MyBundle-ClassName": `area` = MwbExtensions, `type` = ExtensionDataSource, `attr` = MwbExtensions.Xt_MyBundle__ClassName
 
 If in doubt, do an export of all custom attributes (providing `"*"` for area, type and attr), unzip the produced ISX file and look for the custom attribute(s) of interest. The directory structure of the extracted ISX file defines the `area` and `type`.
 
@@ -411,32 +411,85 @@ ibm_infosvr_impexp_ia_mappings:
   - ...
 
 ibm_infosvr_impexp_ia_import:
-  - { src: "<path>", options: "<string>", map: "<list>", overwrite: <boolean> }
+  - { src: "<path>", project: "<string>", map: "<list>" }
   - ...
 ```
 
-Mappings are purely optional, and the only required parameter for the import is the `src` file from which to load them.
+Mappings are purely optional, and the only required parameters for the import are the `src` file from which to load the project and the `project` name.
 
 **Exports**:
 
 ```
 ibm_infosvr_impexp_ia_export:
-  - { dest: "<path>", projects: "<string>" options: "<string>" }
+  - dest: "<path>"
+    project: "<string>"
+    objects:
+      - type: data_rule_definition
+        changes_in_last_hours: <int>
+        conditions:
+          - { property: "<string>", operator: "<string>", value: "<value>" }
+          - ...
+      - type: data_rule_set_definition
+        changes_in_last_hours: <int>
+        conditions:
+          - { property: "<string>", operator: "<string>", value: "<value>" }
+          - ...
+      - type: data_rule
+        changes_in_last_hours: <int>
+        conditions:
+          - { property: "<string>", operator: "<string>", value: "<value>" }
+          - ...
+      - type: data_rule_set
+        changes_in_last_hours: <int>
+        conditions:
+          - { property: "<string>", operator: "<string>", value: "<value>" }
+          - ...
+      - type: metric
+        changes_in_last_hours: <int>
+        conditions:
+          - { property: "<string>", operator: "<string>", value: "<value>" }
+          - ...
 ```
 
-The wildcard for `projects` is `"*"`, and to specify multiple projects include them as comma-separated in the `projects` string.
+Objects that can be conditionally exported include `data_rule_definition`, `data_rule_set_definition`, `data_rule`, `data_rule_set`, and `metric`.  For executable objects (`data_rule`, `data_rule_set` and `metric`), any execution of those rules within the conditions specified (ie. changes_in_last_hours) will also be included.  Other objects within the project (virtual tables, virtual columns, folders, etc) are all always exported.
 
 **Examples**:
 
 ```
 ibm_infosvr_impexp_ia_mappings:
-  - { type: "HostSystem", attr: "name", from: "MY_HOST", to: "YOUR_HOST" }
+  - { type: "DataSource", attr: "host", from: "MY_HOST", to: "YOUR_HOST" }
+  - { type: "DataSource", attr: "name", from: "MYDB", to: "YOURDB" }
+  - { type: "Schema", attr: "name", from: "MY_SCH", to: "YOUR_SCH" }
 
 ibm_infosvr_impexp_ia_import:
-  - { src: "import.isx", options: "-nameconf 'rename' -renSuf 'bak'", map: "{{ ibm_infosvr_impexp_ia_mappings }}", overwrite: True }
+  - src: "/tmp/ia_fullproject.xml"
+    project: "UGDefaultWorkspace"
+    map: "{{ ibm_infosvr_impexp_ia_mappings }}"
 
 ibm_infosvr_impexp_ia_export:
-  - { dest: "cache/ia_all.isx", projects: "*", options: "-includeResultHistory -includeCommonMetadata -includeProjectRoles -includeReports -tablelevel" }
+  - dest: "cache/ia_fullproject.xml"
+    project: "UGDefaultWorkspace"
+    objects:
+      - type: data_rule_definition
+      - type: data_rule_set_definition
+      - type: data_rule
+      - type: data_rule_set
+      - type: metric
+
+ibm_infosvr_impexp_ia_export:
+  - dest: "cache/ia_project_delta.xml"
+    project: "UGDefaultWorkspace"
+    objects:
+      - type: data_rule_definition
+        changes_in_last_hours: 48
+      - type: data_rule_set_definition
+        changes_in_last_hours: 48
+      - type: data_rule
+        changes_in_last_hours: 48
+      - type: data_rule_set
+        changes_in_last_hours: 48
+      - type: metric
+        changes_in_last_hours: 48
 ```
 
 ### Extended data sources

@@ -37,7 +37,12 @@ asset_type_to_properties = {
     "extension_mapping_document": ["file_name", "parent_folder"] + common_properties,
     "application": common_properties,
     "file": common_properties,
-    "stored_procedure_definition": common_properties
+    "stored_procedure_definition": common_properties,
+    "data_rule_definition": ["project"] + common_properties,
+    "data_rule_set_definition": ["project"] + common_properties,
+    "data_rule": ["project"] + common_properties,
+    "data_rule_set": ["project"] + common_properties,
+    "metric": ["project"] + common_properties
 }
 
 xa_asset_type_to_extract_type = {
@@ -91,6 +96,8 @@ def get_asset_extract_object(asset_type, rest_result):
         return _getExternalAssetExtractObjects(rest_result)
     elif asset_type == 'category' or asset_type == 'term' or asset_type == 'information_governance_policy' or asset_type == 'information_governance_rule' or asset_type == 'label':
         return _getRidOnly(rest_result)
+    elif asset_type == 'data_rule_definition' or asset_type == 'data_rule_set_definition' or asset_type == 'data_rule' or asset_type == 'data_rule_set' or asset_type == 'metric':
+        return _getInfoAnalyzerExtractObjects(rest_result)
     else:
         return "UNIMPLEMENTED"
 
@@ -220,4 +227,23 @@ def _getExternalAssetExtractObjects(rest_result):
     }
     if rest_result['_type'] in xa_asset_type_to_extract_type:
         extract['type'] = xa_asset_type_to_extract_type[rest_result['_type']]
+    return extract
+
+
+def _getInfoAnalyzerExtractObjects(rest_result):
+    # Unfortunately it appears that the project can be a string or an array
+    # in different scenarios (though should only ever be a single value?)
+    projectName = rest_result['project'][0] if isinstance(rest_result['project'], list) else rest_result['project']
+    # data_rule_definition queries may return various sub-types of data rule definitions:
+    # published_data_rule_definition, non_published_data_rule_definition, etc
+    objtype = rest_result['_type']
+    if objtype.endswith('data_rule_definition'):
+        objtype = "data_rule_definition"
+    elif objtype == 'inv_data_rule_set' or objtype == 'non_published_data_rule_set' or objtype == 'published_data_rule_set' or objtype == 'inv_data_rule_set_definition':
+        objtype = "data_rule_set_definition"
+    extract = {
+        "project": projectName,
+        "name": rest_result['_name'],
+        "type": objtype
+    }
     return extract

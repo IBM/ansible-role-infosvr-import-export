@@ -25,6 +25,7 @@
   set_fact:
     __ibm_infosvr_impexp_timestamp: "{{ ansible_date_time.iso8601_basic }}"
     __ibm_infosvr_impexp_to_epoch: "{{ (ansible_date_time.epoch | int) * 1000 }}"
+    cacheable: no
 
 - import_tasks: get_certificate.yml
   when: >
