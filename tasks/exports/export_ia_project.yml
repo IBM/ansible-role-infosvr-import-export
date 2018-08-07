@@ -35,7 +35,7 @@
   register: __ibm_infosvr_impexp_ia_export_changes
   with_items: "{{ project_item.objects }}"
   loop_control:
-    label: "{{ project_item.dest | basename }} - {{ item.type }}"
+    label: "{{ project_item.dest | basename }} - {{ project_item.project }} - {{ item.type }}"
 
 - name: export_ia_project - consolidate list of assets
   set_fact:
