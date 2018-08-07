@@ -187,15 +187,15 @@ def main():
     # Group the assets to keep by their asset type
     for asset in assets_to_keep:
         if asset['type'] == 'data_rule_definition':
-            drd_to_keep.append(asset.name)
+            drd_to_keep.append(asset['name'])
         elif asset['type'] == 'data_rule_set_definition':
-            drsd_to_keep.append(asset.name)
+            drsd_to_keep.append(asset['name'])
         elif asset['type'] == 'data_rule':
-            dr_to_keep.append(asset.name)
+            dr_to_keep.append(asset['name'])
         elif asset['type'] == 'data_rule_set':
-            drs_to_keep.append(asset.name)
+            drs_to_keep.append(asset['name'])
         elif asset['type'] == 'metric':
-            m_to_keep.append(asset.name)
+            m_to_keep.append(asset['name'])
 
     # Remove executables first, since they're nested in the definitions
     for e_exec in ia_xml.getDataRules():
