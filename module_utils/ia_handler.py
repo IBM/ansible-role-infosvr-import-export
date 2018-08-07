@@ -22,6 +22,7 @@ __metaclass__ = type
 
 from lxml import etree
 import time
+import re
 
 
 ns = {
@@ -135,9 +136,17 @@ class IAHandler(object):
                 # should only replace complete words (between '.'s or at beginning / end)
                 element.text = value.replace(from_value, to_value)
 
+    def _replaceQualifiedNameInAttr(self, elements, attr_name, from_value, to_value):
+        for element in elements:
+            value = element.get(attr_name)
+            if from_value in value:
+                # TODO: this is likely to be error-prone replacement (not specific enough)
+                # should only replace complete words (between '.'s or at beginning / end)
+                element.set(attr_name, value.replace(from_value, to_value))
+
     def _propagateMapping(self, data_type, attribute, from_value, to_value):
         # based on any @name changes to [Table, VirtualTable]:
-        if attribute == 'name' and (data_type == 'Table' or data_type == 'VirtualTable'):
+        #if attribute == 'name' and (data_type == 'Table' or data_type == 'VirtualTable'):
             # TODO -- not yet implemented
             # - @baseTable in DataSource/Schema/VirtualTable
             # - //ExecutableRule/BoundExpression
@@ -146,7 +155,7 @@ class IAHandler(object):
             # - @leftKey, @rightKey in //ExecutableRule/JoinConditions/JoinCondition
             # - @name in //RuleSetDefinition/Variables/Binding/Column
         # based on any @host, @name changes to any of [DataSource, Schema]
-        elif (attribute == 'name' or attribute == 'host') and (data_type == 'DataSource' or data_type == 'Schema'):
+        if (attribute == 'name' or attribute == 'host') and (data_type == 'DataSource' or data_type == 'Schema'):
             # - //ExecutableRule/BoundExpression
             self._replaceQualifiedName(self.root.xpath(".//ExecutableRule/BoundExpression"), from_value, to_value)
             # - @value in //ExecutableRule/OutputDefinition/OutputColumn
@@ -177,7 +186,7 @@ class IAHandler(object):
             rs_exec = self.root.xpath(".//RuleSetExecutionResult/RuleExecutionResult", namespaces=ns)
             self._replaceAttr(rs_exec, "ruleName", from_value, to_value)
         # based on any @name changes to //DataRuleDefinition, //RuleSetDefinition?
-        elif attribute == 'name' and (data_type == 'DataRuleDefinition' or data_type == 'RuleSetDefinition')
+        elif attribute == 'name' and (data_type == 'DataRuleDefinition' or data_type == 'RuleSetDefinition'):
             # - @ruleName in //RuleSetDefinition/RuleDefinitionReference
             rule_refs = self.root.xpath(".//RuleSetDefinition/RuleDefinitionReference")
             self._replaceAttr(rule_refs, "ruleName", from_value, to_value)
