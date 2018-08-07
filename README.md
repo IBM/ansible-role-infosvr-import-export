@@ -94,10 +94,10 @@ ibm_infosvr_impexp_cadefs_export:
 
 The wildcard for `area`, `type` and `attr` is `"*"`. Be aware that the area and type are defined by the internal model of IGC rather than its REST API types. Some examples:
 
-- For business terms: `type` = GlossaryExtensions, `area` = BusinessTerm, `attr` = GlossaryExtensions.BusinessTerm
-- For categories: `type` = GlossaryExtensions, `area` = BusinessCategory, `attr` = GlossaryExtensions.BusinessCategory
-- For database tables: `type` = ASCLModel, `area` = DataCollection, `attr` = ASCLModel.DatabaseTable
-- For an OpenIGC class "$MyBundle-ClassName": `type` = MwbExtensions, `area` = ExtensionDataSource, `attr` = MwbExtensions.Xt_MyBundle__ClassName
+- For business terms: `area` = GlossaryExtensions, `type` = BusinessTerm, `attr` = GlossaryExtensions.BusinessTerm
+- For categories: `area` = GlossaryExtensions, `type` = BusinessCategory, `attr` = GlossaryExtensions.BusinessCategory
+- For database tables: `area` = ASCLModel, `type` = DataCollection, `attr` = ASCLModel.DatabaseTable
+- For an OpenIGC class "$MyBundle-ClassName": `area` = MwbExtensions, `type` = ExtensionDataSource, `attr` = MwbExtensions.Xt_MyBundle__ClassName
 
 If in doubt, do an export of all custom attributes (providing `"*"` for area, type and attr), unzip the produced ISX file and look for the custom attribute(s) of interest. The directory structure of the extracted ISX file defines the `area` and `type`.
 
