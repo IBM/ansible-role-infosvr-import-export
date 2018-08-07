@@ -89,3 +89,6 @@ class IAHandler(object):
 
     def writeCustomizedXML(self, filename):
         return self.tree.write(filename, encoding='UTF-8', xml_declaration=True)
+
+    def getCustomizedXMLAsString(self):
+        return etree.tostring(self.root, encoding='UTF-8', xml_declaration=True)
