@@ -19,33 +19,21 @@
   copy: src={{ item.src }} dest=/tmp/__load_ia_{{ item.src | basename }}
   with_items: "{{ ibm_infosvr_impexp_ia_import }}"  
 
-- name: import_ia - transfer mappings
-  template: src=mapping.xml.j2 dest=/tmp/__load_ia_{{ item.src | basename }}_mapping.xml
-  when: item.map is defined
+- name: import_ia - load Information Analyzer project
+  ia_load_project:
+    host: "{{ ibm_infosvr_impexp_services_host | lower }}"
+    port: "{{ ibm_infosvr_impexp_services_console_port }}"
+    user: "{{ ibm_infosvr_impexp_infosvr_admin_user }}"
+    password: "{{ ibm_infosvr_impexp_infosvr_admin_user_pwd }}"
+    project: "{{ item.project }}"
+    src: /tmp/__load_ia_{{ item.src | basename }}
+    mappings: "{{ item.map | default(omit) }}"
+    cert: "{{ __ibm_infosvr_impexp_ssl_cert_location | default(omit) }}"
+  register: __ibm_infosvr_impexp_ia_load
   with_items: "{{ ibm_infosvr_impexp_ia_import }}"
 
-- name: import_ia - load Information Analyzer assets
-  shell: >
-          source ~/.bashrc &&
-          . dsenv &&
-          {{ ibm_infosvr_impexp_infosvr_install_location }}/Clients/istools/cli/istool.sh
-          import
-          -u {{ ibm_infosvr_impexp_infosvr_admin_user }}
-          -p {{ ibm_infosvr_impexp_infosvr_admin_user_pwd }}
-          -dom {{ ibm_infosvr_impexp_services_host | lower }}:{{ ibm_infosvr_impexp_services_console_port }}
-          -ar /tmp/__load_ia_{{ item.src | basename }}
-          {% if item.overwrite is defined and item.overwrite %}-replace{% endif %}
-          -ia '{% if item.map is defined %}-map /tmp/__load_ia_{{ item.src | basename }}_mapping.xml {% endif %}{{ item.options }}'
-  args:
-    executable: /bin/bash
-    chdir: "{{ ibm_infosvr_impexp_infosvr_install_location }}/Server/DSEngine"
-  with_items: "{{ ibm_infosvr_impexp_ia_import }}"
+#- debug: var=__ibm_infosvr_impexp_ia_load
 
 - name: import_ia - cleanup transferred files
   file: path=/tmp/__load_ia_{{ item.src | basename }} state=absent
-  with_items: "{{ ibm_infosvr_impexp_ia_import }}"
-
-- name: import_ia - cleanup transferred mappings
-  file: path=/tmp/__load_ia_{{ item.src | basename }}_mapping.xml state=absent
-  when: item.map is defined
   with_items: "{{ ibm_infosvr_impexp_ia_import }}"
