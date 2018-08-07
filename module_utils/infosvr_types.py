@@ -236,7 +236,11 @@ def _getInfoAnalyzerExtractObjects(rest_result):
     projectName = rest_result['project'][0] if isinstance(rest_result['project'], list) else rest_result['project']
     # data_rule_definition queries may return various sub-types of data rule definitions:
     # published_data_rule_definition, non_published_data_rule_definition, etc
-    objtype = "data_rule_definition" if rest_result['_type'].endswith('data_rule_definition') else rest_result['_type']
+    objtype = rest_result['_type']
+    if objtype.endswith('data_rule_definition'):
+        objtype = "data_rule_definition"
+    elif objtype == 'inv_data_rule_set' or objtype == 'non_published_data_rule_set' or objtype == 'published_data_rule_set' or objtype == 'inv_data_rule_set_definition':
+        objtype = "data_rule_set_definition"
     extract = {
         "project": projectName,
         "name": rest_result['_name'],
