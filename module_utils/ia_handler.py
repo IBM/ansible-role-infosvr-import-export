@@ -40,6 +40,12 @@ class IAHandler(object):
             etree.register_namespace(key, ns[key])
         self.root = self.tree.getroot()
 
+    def getProjectNamesFromList(self, listxml):
+        # Trim off the encoding header, since lxml's parser does not like them
+        trimmed_xml = "\n".join(listxml.split("\n")[1:])
+        root = etree.fromstring(trimmed_xml)
+        return root.xpath("./Project/@name")
+
     def getProjectName(self):
         return self.root.get("name")
 
