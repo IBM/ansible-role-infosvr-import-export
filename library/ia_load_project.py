@@ -192,7 +192,7 @@ def main():
 
     # Check if project already exists (to determine whether to CREATE or UPDATE)
     prjlistXML = iarest.getProjectList()
-    existing_projects = ia_xml.getProjectNamesFromList()
+    existing_projects = ia_xml.getProjectNamesFromList(prjlistXML)
     bUpdate = False
     if existing_projects:
         bUpdate = (project in existing_projects)
@@ -205,8 +205,10 @@ def main():
         module.fail_json(msg='Retrieval of modified project XML failed', **result)
     elif bUpdate:
         iarest.update(xmlToSend)
+        result['changed'] = True
     else:
         iarest.create(xmlToSend)
+        result['changed'] = True
 
     module.exit_json(**result)
 
