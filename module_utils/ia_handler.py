@@ -91,15 +91,6 @@ class IAHandler(object):
         self.root.set("name", new_name)
         self.result['replacements'] += 1
 
-    def _getMappedValue(self, from_type, from_property, from_value, mappings):
-        for mapping in mappings:
-            if from_type == mapping['type'] and from_property == mapping['property']:
-                # change name based on regex and 'to' provided in mapping
-                mapRE = re.compile(mappings['from'])
-                return mapRE.sub(mappings['to'], from_value)
-        # default case: return the originally-provided value
-        return from_value
-
     def _replaceFolder(self, elements, from_value, to_value):
         for element in elements:
             a_new_folders = []
