@@ -149,19 +149,21 @@ class RestIGC(object):
         for mapping in mappings:
             if from_type == mapping['type'] and from_property == mapping['property']:
                 # change name based on regex and 'to' provided in mapping
-                mapRE = re.compile(mappings['from'])
-                return mapRE.sub(mappings['to'], from_value)
+                mapRE = re.compile(mapping['from'])
+                return mapRE.sub(mapping['to'], from_value)
         # default case: return the originally-provided value
         return from_value
 
     def getMappedItem(self, restItem, mappings):
+        # Map the item itself (ie. renaming)
+        renamed = self._getMappedValue(restItem['_type'], "name", restItem['_name'], mappings)
         q = {
             "properties": ["name"],
             "types": [restItem['_type']],
             "pageSize": 2,
             "where": {
                 "conditions": [{
-                    "value": restItem['_name'],
+                    "value": renamed,
                     "operator": "=",
                     "property": "name"
                 }],
@@ -171,6 +173,7 @@ class RestIGC(object):
         ctx_path = ""
         folder_path = ""
         pre_host_path = ""
+        # Map the context (ie. containment hierarchy)
         for idx, ctx_entry in enumerate(reversed(restItem['_context'])):
             ctx_type = ctx_entry['_type']
             ctx_value = ctx_entry['_name']
