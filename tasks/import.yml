@@ -51,10 +51,10 @@
 
 # Security (-sec)
 
-- import_tasks: imports/import_cm_cadefs.yml
+- import_tasks: imports/import_cadefs.yml
   become_user: "{{ ibm_infosvr_impexp_infosvr_dsadm_user }}"
   become: yes
-  when: ('ibm-information-server-engine' in group_names) and ibm_infosvr_impexp_cm_cadefs_import is defined
+  when: ('ibm-information-server-engine' in group_names) and ibm_infosvr_impexp_cadefs_import is defined
 
 - import_tasks: imports/import_cm.yml
   become_user: "{{ ibm_infosvr_impexp_infosvr_dsadm_user }}"
