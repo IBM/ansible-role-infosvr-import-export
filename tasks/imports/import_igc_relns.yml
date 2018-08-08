@@ -36,6 +36,8 @@
 - name: import_igc_relns - transfer files
   copy: src={{ item.src }} dest=/tmp/__load_igc_relns_{{ item.src | basename }}
   with_items: "{{ ibm_infosvr_impexp_igc_relns_import }}"
+  loop_control:
+    label: "{{ item.src | basename }}"
 
 - name: import_igc_relns - load IGC metadata relationships
   igc_load_relationships:
@@ -54,9 +56,13 @@
     cert: "{{ __ibm_infosvr_impexp_ssl_cert_location | default(omit) }}"
   register: __ibm_infosvr_impexp_igc_relns_load
   with_items: "{{ ibm_infosvr_impexp_igc_relns_import }}"
+  loop_control:
+    label: "{{ item.src | basename }} - {{ item.type }} - {{ item.relationship }}"
 
 #- debug: var=__ibm_infosvr_impexp_igc_relns_load
 
 - name: import_igc_relns - cleanup transferred files
   file: path=/tmp/__load_igc_relns_{{ item.src | basename }} state=absent
   with_items: "{{ ibm_infosvr_impexp_igc_relns_import }}"
+  loop_control:
+    label: "{{ item.src | basename }}"

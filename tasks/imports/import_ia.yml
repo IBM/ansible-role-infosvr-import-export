@@ -17,7 +17,9 @@
 
 - name: import_ia - transfer files
   copy: src={{ item.src }} dest=/tmp/__load_ia_{{ item.src | basename }}
-  with_items: "{{ ibm_infosvr_impexp_ia_import }}"  
+  with_items: "{{ ibm_infosvr_impexp_ia_import }}"
+  loop_control:
+    label: "{{ item.src | basename }}"
 
 - name: import_ia - load Information Analyzer project
   ia_load_project:
@@ -31,9 +33,13 @@
     cert: "{{ __ibm_infosvr_impexp_ssl_cert_location | default(omit) }}"
   register: __ibm_infosvr_impexp_ia_load
   with_items: "{{ ibm_infosvr_impexp_ia_import }}"
+  loop_control:
+    label: "{{ item.src | basename }} - {{ item.project }}"
 
 #- debug: var=__ibm_infosvr_impexp_ia_load
 
 - name: import_ia - cleanup transferred files
   file: path=/tmp/__load_ia_{{ item.src | basename }} state=absent
   with_items: "{{ ibm_infosvr_impexp_ia_import }}"
+  loop_control:
+    label: "{{ item.src | basename }}"

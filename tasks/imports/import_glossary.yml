@@ -18,11 +18,15 @@
 - name: import_glossary - transfer files
   template: src={{ item.src }} dest=/tmp/__load_bg_{{ item.src | basename }}
   with_items: "{{ ibm_infosvr_impexp_bg_import }}"
+  loop_control:
+    label: "{{ item.src | basename }}"
 
 - name: import_glossary - transfer mappings
   template: src=mapping.xml.j2 dest=/tmp/__load_bg_{{ item.src | basename }}_mapping.xml
   when: item.map is defined
   with_items: "{{ ibm_infosvr_impexp_bg_import }}"
+  loop_control:
+    label: "{{ item.src | basename }}"
 
 - name: import_glossary - load Business Glossary content
   shell: >
@@ -41,12 +45,18 @@
     executable: /bin/bash
     chdir: "{{ ibm_infosvr_impexp_infosvr_install_location }}/Server/DSEngine"
   with_items: "{{ ibm_infosvr_impexp_bg_import }}"
+  loop_control:
+    label: "{{ item.src | basename }}"
 
 - name: import_glossary - cleanup transferred files
   file: path=/tmp/__load_bg_{{ item.src | basename }} state=absent
   with_items: "{{ ibm_infosvr_impexp_bg_import }}"
+  loop_control:
+    label: "{{ item.src | basename }}"
 
 - name: import_glossary - cleanup transferred mappings
   file: path=/tmp/__load_bg_{{ item.src | basename }}_mapping.xml state=absent
   when: item.map is defined
   with_items: "{{ ibm_infosvr_impexp_bg_import }}"
+  loop_control:
+    label: "{{ item.src | basename }}"
