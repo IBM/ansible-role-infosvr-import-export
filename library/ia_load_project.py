@@ -137,10 +137,8 @@ replacements:
 '''
 
 from ansible.module_utils.basic import AnsibleModule
-from ansible.module_utils._text import to_bytes, to_native
 from ansible.module_utils.ia_rest import RestIA
 from ansible.module_utils.ia_handler import IAHandler
-from lxml import etree
 
 
 def main():

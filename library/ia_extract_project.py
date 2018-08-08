@@ -97,7 +97,9 @@ EXAMPLES = '''
     dest: /tmp/UGDefaultWorkspace.xml
     assets_to_keep:
       - { project: "UGDefaultWorkspace", name: "RuleDefn1", type: "DataRuleDefinitions/DataRuleDefinition" }
-      - { project: "UGDefaultWorkspace", name: "DataRule1", type: "DataRuleDefinitions/DataRuleDefinition/ExecutableRules/ExecutableRule" }
+      - project: "UGDefaultWorkspace"
+        name: "DataRule1"
+        type: "DataRuleDefinitions/DataRuleDefinition/ExecutableRules/ExecutableRule"
 '''
 
 RETURN = '''
@@ -114,7 +116,6 @@ from ansible.module_utils.ia_handler import IAHandler
 import os
 import os.path
 import tempfile
-from lxml import etree
 
 
 def main():
@@ -169,7 +170,6 @@ def main():
     try:
         tmpfd_full, tmpfile_full = tempfile.mkstemp()
         f = os.fdopen(tmpfd_full, 'wb')
-        #json.dump(jsonResults, f) # TODO: ensure XML equivalent below actually works
         f.write(xmlResults)
         f.close()
     except IOError:
@@ -224,9 +224,6 @@ def main():
         else:
             result['asset_count'] += 1
 
-    # Close the IA REST API session
-#    iarest.closeSession()
-
     # Remove the interim temporary file
     os.unlink(tmpfile_full)
 
@@ -235,7 +232,6 @@ def main():
     try:
         tmpfd, tmpfile = tempfile.mkstemp()
         f = os.fdopen(tmpfd, 'wb')
-        #json.dump(jsonResults, f) # TODO: ensure XML equivalent below actually works
         ia_xml.writeCustomizedXML(tmpfile)
         f.close()
     except IOError:

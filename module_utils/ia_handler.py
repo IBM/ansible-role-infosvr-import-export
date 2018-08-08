@@ -21,7 +21,6 @@ from __future__ import (absolute_import, division, print_function)
 __metaclass__ = type
 
 from lxml import etree
-import time
 import re
 
 
@@ -146,7 +145,7 @@ class IAHandler(object):
 
     def _propagateMapping(self, data_type, attribute, from_value, to_value):
         # based on any @name changes to [Table, VirtualTable]:
-        #if attribute == 'name' and (data_type == 'Table' or data_type == 'VirtualTable'):
+        # if attribute == 'name' and (data_type == 'Table' or data_type == 'VirtualTable'):
             # TODO -- not yet implemented
             # - @baseTable in DataSource/Schema/VirtualTable
             # - //ExecutableRule/BoundExpression
@@ -173,7 +172,7 @@ class IAHandler(object):
             self._replaceQualifiedNameInAttr(rs_bindings, "name", from_value, to_value)
         # based on any @name changes to //Folder/...
         elif data_type == 'Folder' and attribute == 'name':
-            # - @folder in //DataRuleDefinition, //RuleSetDefinition, //ExecutableRule -- 
+            # - @folder in //DataRuleDefinition, //RuleSetDefinition, //ExecutableRule
             self._replaceFolder(self.root.xpath(".//DataRuleDefinition", namespaces=ns), from_value, to_value)
             self._replaceFolder(self.root.xpath(".//RuleSetDefinition", namespaces=ns), from_value, to_value)
             self._replaceFolder(self.root.xpath(".//ExecutableRule", namespaces=ns), from_value, to_value)

@@ -136,9 +136,6 @@ class RestIA(object):
             self.module.warn("Unable to retrieve data rule results for '" + name + "' in project '" + project + "'")
 
     def getMetrics(self, project):
-        payload = {
-            "projectName": project
-        }
         r = self._makeRequest("GET", "/ibm/iis/ia/api/metrics", params={"projectName": project})
         if r.status_code == 200:
             return r.text
