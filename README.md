@@ -39,7 +39,7 @@ Note that the order in which the variables are defined does not matter: the role
 
 By default, the role will do SSL verification of self-signed certificates by first retrieving the root certificate directly from the domain tier of the environment. This is controlled by the `ibm_infosvr_impexp_verify_selfsigned_ssl` variable of the role: if you want to only verify against properly signed and trusted SSL certificates, you can set this variable to `False` and any self-signed domain tier certificate will no longer be trusted.
 
-## Possible variables and expected structures
+# Possible variables and expected structures
 
 The following describes all of the object types currently covered by the this role, and the expected structures of the variables. You can generally write the variables using any form supported by Ansible, eg. these are all equivalent and simply up to your personal preference:
 
@@ -61,7 +61,7 @@ var_name:
 
 This section will document each variable using the middle style, simply for a balance between brevity and clarity.
 
-### Custom attribute definitions
+## Custom attribute definitions
 
 **Imports**:
 
@@ -127,7 +127,7 @@ ibm_infosvr_impexp_cadefs_export:
     attr: "*"
 ```
 
-### Common metadata
+## Common metadata
 
 **Note**: Common metadata export and import should really only be used when you need to load metadata into an environment where that environment will not have any of its own direct connectivity to the source of the metadata.  For example, to load metadata about a database when the instance into which you're loading the metadata has no connection of its own to the database in order to crawl it directly.  When such connectivity is possible, it will be more robust to directly index the metadata through IBM Metadata Asset Manager, which can be automated through the [IBM.infosvr-metadata-asset-manager](https://galaxy.ansible.com/IBM/infosvr-metadata-asset-manager) role.  IBM Metadata Asset Manager will ensure that accurate metadata is recorded, and can be periodically refreshed (re-imported) to be kept up-to-date, including staging potentially destructive changes for review.  The re-importing is handled automatically as part of the [IBM.infosvr-metadata-asset-manager](https://galaxy.ansible.com/IBM/infosvr-metadata-asset-manager) role, so can also be automated (and will warn if there is a potentially destructive change that has been stage and requires review before it can be published).
 
@@ -193,7 +193,7 @@ ibm_infosvr_impexp_cm_export:
   - { dest: "cache/cm_contract_libraries.isx", path: "/*.cl" }
 ```
 
-### Logical model metadata
+## Logical model metadata
 
 **Note**: As with common metadata, logical model metadata export and import should really only be used when you need to load metadata into an environment where that environment will not have access to the original model files or a metadata interchange server capable of loading them.  When possible, it will be more robust to directly load the metadata through IBM Metadata Asset Manager, which can be automated through the [IBM.infosvr-metadata-asset-manager](https://galaxy.ansible.com/IBM/infosvr-metadata-asset-manager) role.  IBM Metadata Asset Manager will ensure that accurate metadata is recorded, and can be periodically refreshed (re-imported) to be kept up-to-date, including staging potentially destructive changes for review.  The re-importing is handled automatically as part of the [IBM.infosvr-metadata-asset-manager](https://galaxy.ansible.com/IBM/infosvr-metadata-asset-manager) role, so can also be automated (and will warn if there is a potentially destructive change that has been stage and requires review before it can be published).
 
@@ -238,7 +238,7 @@ ibm_infosvr_impexp_lm_export:
   - { dest: "cache/ldm_subjectareas.isx", path: "/*/*/*.sa" }
 ```
 
-### Master data management model metadata
+## Master data management model metadata
 
 **Note**: As with common metadata, master data management model metadata export and import should really only be used when you need to load metadata into an environment where that environment will not have access to the original model files or a metadata interchange server capable of loading them.  When possible, it will be more robust to directly load the metadata through IBM Metadata Asset Manager, which can be automated through the [IBM.infosvr-metadata-asset-manager](https://galaxy.ansible.com/IBM/infosvr-metadata-asset-manager) role.  IBM Metadata Asset Manager will ensure that accurate metadata is recorded, and can be periodically refreshed (re-imported) to be kept up-to-date, including staging potentially destructive changes for review.  The re-importing is handled automatically as part of the [IBM.infosvr-metadata-asset-manager](https://galaxy.ansible.com/IBM/infosvr-metadata-asset-manager) role, so can also be automated (and will warn if there is a potentially destructive change that has been stage and requires review before it can be published).
 
@@ -278,7 +278,7 @@ ibm_infosvr_impexp_mdm_export:
   - { dest: "cache/mdm.isx", path: "/*/*.mdm" }
 ```
 
-### Data classes
+## Data classes
 
 **Imports**:
 
@@ -324,7 +324,7 @@ ibm_infosvr_impexp_dc_export:
       - { property: "name", operator: "like {0}%", value: "MY" }
 ```
 
-### DataStage assets
+## DataStage assets
 
 **Imports**:
 
@@ -369,7 +369,7 @@ ibm_infosvr_impexp_ds_export:
       - { property: "transformation_project.name", operator: "=", value: "dstage1" }
 ```
 
-### DataStage project variables
+## DataStage project variables
 
 **Imports**:
 
@@ -407,7 +407,7 @@ ibm_infosvr_impexp_ds_vars_export:
       - TMPDIR
 ```
 
-### Information Analyzer assets
+## Information Analyzer assets
 
 **Imports**:
 
@@ -498,7 +498,7 @@ ibm_infosvr_impexp_ia_export:
         changes_in_last_hours: 48
 ```
 
-### Extended data sources
+## Extended data sources
 
 **Imports**:
 
@@ -545,7 +545,7 @@ ibm_infosvr_impexp_xa_export:
     type: stored_procedure_definition
 ```
 
-### Extension mapping documents
+## Extension mapping documents
 
 **Imports**:
 
@@ -579,7 +579,7 @@ ibm_infosvr_impexp_xm_export:
     changes_in_last_hours: 48
 ```
 
-### Glossary assets
+## Glossary assets
 
 **Imports**:
 
@@ -646,7 +646,7 @@ ibm_infosvr_impexp_bg_export:
       - { property: "label.name", operator: "=", value: "Public" }
 ```
 
-### IGC metadata relationships
+## IGC metadata relationships
 
 **Imports**:
 
@@ -721,7 +721,7 @@ ibm_infosvr_impexp_igc_relns_export:
       - { property: "category_path._id", operator: "=", value: "6662c0f2.ee6a64fe.ko15n9ej3.cq2arq8.ld2q5u.2qonhvupr4m3b68ouj93c" }
 ```
 
-### Operational metadata (OMD)
+## Operational metadata (OMD)
 
 **Imports**:
 
