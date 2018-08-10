@@ -293,9 +293,9 @@ def main():
                 aMappedRelnRIDs,
                 relnprop,
                 module.params['mode'],
-                module.params['replace_type'],
-                module.params['conditions'],
-                module.params['batch']
+                replace_type=module.params['replace_type'],
+                conditions=module.params['conditions'],
+                batch=module.params['batch']
             )
             if update_rc != 200:
                 module.fail_json(rc=update_rc, msg='Update failed: %s' % json.dumps(update_msg), **result)
