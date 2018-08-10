@@ -232,11 +232,12 @@ class RestIGC(object):
             },
             "pageSize": batch
         }
+        replace_conditions = list(conditions)
         qReplace = {
             "properties": ["name"],
             "types": [replace_type],
             "where": {
-                "conditions": conditions,
+                "conditions": replace_conditions,
                 "operator": "and"
             },
             "pageSize": batch
@@ -247,24 +248,41 @@ class RestIGC(object):
             allRelationsForAsset = self.search(qAll)
             aReplacementRIDs = []
             aAllRelnRIDs = []
-            for item in allRelationsForAsset:
-                if replace_type == item['_type']:
-                    aReplacementRIDs.append(item['_id'])
-                aAllRelnRIDs.append(item['_id'])
-            qReplace['where']['conditions'].append({
-                "value": aReplacementRIDs,
-                "operator": "in",
-                "property": "_id"
-            })
-            allReplacementsForAsset = self.search(qReplace)
-            for item in allReplacementsForAsset:
+            if isinstance(allRelationsForAsset, list):
+                for item in allRelationsForAsset:
+                    if replace_type == item['_type']:
+                        aReplacementRIDs.append(item['_id'])
+                    aAllRelnRIDs.append(item['_id'])
+                qReplace['where']['conditions'].append({
+                    "value": aReplacementRIDs,
+                    "operator": "in",
+                    "property": "_id"
+                })
+                allReplacementsForAsset = self.search(qReplace)
+                if isinstance(allReplacementsForAsset, list):
+                    u = {}
+                    u[reln_property] = {
+                        "items": [],
+                        "mode": "replace"
+                    }
+                    aRidsToDrop = [x["_id"] for x in allReplacementsForAsset]
+                    u[reln_property]['items'] = set(aAllRelnRIDs) - set(aRidsToDrop)
+                    return self.update(from_asset['_id'], u)
+                else:
+                    # No relationships to replace, we should just add these
+                    u = {}
+                    u[reln_property] = {
+                        "items": to_asset_rids,
+                        "mode": 'append'
+                    }
+                    return self.update(from_asset['_id'], u)
+            else:
+                # No relationships at all, we should just add these
                 u = {}
                 u[reln_property] = {
-                    "items": [],
-                    "mode": "replace"
+                    "items": to_asset_rids,
+                    "mode": 'append'
                 }
-                aRidsToDrop = [x["_id"] for x in allReplacementsForAsset]
-                u[reln_property]['items'] = set(aAllRelnRIDs) - set(aRidsToDrop)
                 return self.update(from_asset['_id'], u)
         else:
             # If a simple append or replace all, just do the update directly
