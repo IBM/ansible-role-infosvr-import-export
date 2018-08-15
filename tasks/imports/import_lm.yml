@@ -34,7 +34,7 @@
           -p {{ ibm_infosvr_impexp_infosvr_admin_user_pwd }}
           -dom {{ ibm_infosvr_impexp_services_host | lower }}:{{ ibm_infosvr_impexp_services_console_port }}
           -ar /tmp/__load_lm_{{ item.src | basename }}
-          -r
+          {% if item.overwrite is defined and item.overwrite %}-replace{% endif %}
           -lm '{% if item.map is defined %}-map /tmp/__load_lm_{{ item.src | basename }}_mapping.xml {% endif %}{{ item.options | default("") }}'
   args:
     executable: /bin/bash
