@@ -63,7 +63,7 @@
     src: "/tmp/__export_bg_{{ item.item.dest | basename }}"
     type: "{{ item.item.type }}"
     assets_to_keep: "{{ item.assets }}"
-  when: item.type != 'label'
+  when: item.item.type != 'label'
   with_items: "{{ __ibm_infosvr_impexp_bg_export_changes.results }}"
   loop_control:
     label: "{{ item.item.dest | basename }}"
