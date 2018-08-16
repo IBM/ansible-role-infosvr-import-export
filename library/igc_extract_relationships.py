@@ -116,9 +116,10 @@ options:
     description:
       - A second IGC REST asset type (eg. C(database_column)) to which to limit the relationships that are retrieved.
       - (See "GET /ibm/iis/igc-rest/v1/types" in your environment for choices.)
+      - As a list, so could be eg. [ C(database_column), C(design_column), C(entity_attribute) ]
     required: false
-    type: str
-    default: ""
+    type: list
+    default: []
   batch:
     description:
       - The number of assets / relationships to retrieve per REST API call
@@ -166,7 +167,8 @@ EXAMPLES = '''
     password: isadmin
     asset_type: term
     relationship: assigned_assets
-    limit: database_table
+    limit:
+      - database_table
     dest: /tmp/dbTablesOnly.json
 '''
 
@@ -207,7 +209,7 @@ def main():
         from_time=dict(type='int', required=False, default=-1),
         to_time=dict(type='int', required=False),
         conditions=dict(type='list', required=False, default=[]),
-        limit=dict(type='str', required=False, default=""),
+        limit=dict(type='list', required=False, default=[]),
         batch=dict(type='int', required=False, default=100),
         cert=dict(type='path', required=False),
         unsafe_writes=dict(type='bool', required=False, default=False)
@@ -286,7 +288,7 @@ def main():
         item[relnprop] = igcrest.getAllPages(item[relnprop]['items'], item[relnprop]['paging'])
         for relation in item[relnprop]:
             # Limit included relationships to only those types of interest
-            if limit != "" and limit != relation['_type']:
+            if (len(limit) > 0) and not (relation['_type'] in limit):
                 relation.clear()
             else:
                 relnCtx = igcrest.getContextForItem(relation['_id'], relation['_type'])
