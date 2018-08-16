@@ -31,7 +31,7 @@ asset_type_to_properties = {
     "dsjob": ["type"] + common_properties,
     "routine": common_properties,
     "shared_container": ["type"] + common_properties,
-    "table_definition": ["data_store", "data_schema", "data_source_name"] + common_properties,
+    "table_definition": ["data_store", "data_schema", "data_source_name", "data_source_type"] + common_properties,
     "parameter_set": common_properties,
     "data_class": ["class_code"] + common_properties,
     "extension_mapping_document": ["file_name", "parent_folder"] + common_properties,
@@ -167,9 +167,9 @@ def _getDsSharedContainerExtractObjects(rest_result):
 def _getQualifiedNameForTableDefinition(rest_result):
     qualifiedName = rest_result['_name']
     if rest_result['data_source_name'] != '':
-        qualifiedName = rest_result['data_source_name'] + '\\\\' + qualifiedName
-    if rest_result['data_store'] != '':
-        qualifiedName = rest_result['data_store'] + '\\\\' + qualifiedName
+        qualifiedName = rest_result['data_source_name'].replace('/', '\\/') + '\\\\' + qualifiedName
+    if rest_result['data_source_type'] != '':
+        qualifiedName = rest_result['data_source_type'].replace('/', '\\/') + '\\\\' + qualifiedName
     if qualifiedName not in asset_blacklists['table_definition']:
         return qualifiedName + ".tbd"
     else:
