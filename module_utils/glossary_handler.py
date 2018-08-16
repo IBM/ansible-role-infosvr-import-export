@@ -78,7 +78,7 @@ class GlossaryHandler(object):
     def isRelationship(self, elem):
         return elem.xpath("boolean(./x:customAttributeReferences)", namespaces=ns)
 
-    def doesCustomAttrApplyToThisType(self, elem, typename):
+    def customAttrAppliesToThisType(self, elem, typename):
         applies_to_types = elem.xpath("./appliesTo/classType/@value", namespaces=ns)
         return (rest_to_type[typename] in applies_to_types)
 
