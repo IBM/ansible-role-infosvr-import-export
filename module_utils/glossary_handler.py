@@ -79,7 +79,7 @@ class GlossaryHandler(object):
         return elem.xpath("boolean(./x:customAttributeReferences)", namespaces=ns)
 
     def customAttrAppliesToThisType(self, elem, typename):
-        applies_to_types = elem.xpath("./appliesTo/classType/@value", namespaces=ns)
+        applies_to_types = elem.xpath("./x:appliesTo/x:classType/@value", namespaces=ns)
         return (rest_to_type[typename] in applies_to_types)
 
     def getRid(self, elem):
