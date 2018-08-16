@@ -109,7 +109,8 @@ def main():
 
     glossary_xml = GlossaryHandler(module, result, glossary_src)
 
-    glossary_xml.dropSection('customAttributesDefinitions')
+    # glossary_xml.dropSection('customAttributesDefinitions')
+    custom_attrs = glossary_xml.getCustomAttributeDefinitions()
 
     assets = []
 
@@ -148,6 +149,8 @@ def main():
         glossary_xml.dropSection('policies')
         glossary_xml.dropSection('rules')
 
+    keep_custom_attrs = []
+
     for e_asset in assets:
         rid = glossary_xml.getRid(e_asset)
         if rid not in assets_to_keep:
@@ -159,6 +162,15 @@ def main():
             for e_customattr in glossary_xml.getCustomAttributes(e_asset):
                 if glossary_xml.isRelationship(e_customattr):
                     glossary_xml.dropAsset(e_customattr)
+                else:
+                    ca_name = glossary_xml.getCustomAttrName(e_customattr)
+                    if not (ca_name in keep_custom_attrs):
+                        keep_custom_attrs.append(ca_name)
+
+    for e_customattr in custom_attrs:
+        e_ca_name = glossary_xml.getName(e_customattr)
+        if not (e_ca_name in keep_custom_attrs):
+            glossary_xml.dropAsset(e_customattr)
 
     if asset_type == 'term':
         for e_sg in glossary_xml.getSynonymGroups():
