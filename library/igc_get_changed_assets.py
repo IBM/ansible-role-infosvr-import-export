@@ -219,7 +219,8 @@ def main():
         "where": {
             "conditions": [],
             "operator": "and"
-        }
+        },
+        "pageSize": module.params['batch']
     }
 
     # Handle extended data sources in special way (to catch any changes in their underlying
