@@ -62,6 +62,12 @@ class GlossaryHandler(object):
     def getCustomAttributes(self, elem):
         return elem.xpath("./x:customAttributes/x:customAttributeValue", namespaces=ns)
 
+    def getCustomAttrName(self, elem):
+        return elem.xpath("./@customAttribute", namespaces=ns)[0]
+
+    def getName(self, elem):
+        return elem.xpath("./@name", namespaces=ns)[0]
+
     def isRelationship(self, elem):
         return elem.xpath("boolean(./x:customAttributeReferences)", namespaces=ns)
 
