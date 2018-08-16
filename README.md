@@ -686,6 +686,9 @@ ibm_infosvr_impexp_igc_relns_export:
     changes_in_last_hours: <int>
     type: "<string>"
     relationship: "<string>"
+    limit:
+      - "<string>"
+      - ...
     conditions:
       - { property: "<string>", operator: "<string>", value: "<value>" }
       - ...
@@ -695,6 +698,8 @@ ibm_infosvr_impexp_igc_relns_export:
 The `dest`, `type` and `relationship` are required, and follow the same meaning and options as described above for the import. (`dest` describes where the relationships should be stored, equivalent of `src` for the import.)
 
 Conditions are purely optional, take the form of the IGC REST API's conditions (see http://www.ibm.com/support/docview.wss?uid=swg27047054) and are currently always AND'd (all conditions must be met). The `changes_in_last_hours` is also optional; if used, specify the number of hours prior to the playbook running from which to identify (and extract) any changes.
+
+Finally, `limit` is also optional: when used it should provide a list of the related asset types to retain as relationships.
 
 **Examples**:
 
@@ -713,10 +718,12 @@ ibm_infosvr_impexp_igc_relns_import:
       - { property: "database_table_or_view.name", operator: "=", value: "MYTABLE" }
 
 ibm_infosvr_impexp_igc_relns_export:
-  - dest: cache/terms2assets_underSomeCategory_changed_in_last48hrs.json
+  - dest: cache/terms2assets_underSomeCategory_changed_in_last48hrs_only_dbcols.json
     type: term
     relationship: assigned_assets
     changes_in_last_hours: 48
+    limit:
+      - database_column
     conditions:
       - { property: "category_path._id", operator: "=", value: "6662c0f2.ee6a64fe.ko15n9ej3.cq2arq8.ld2q5u.2qonhvupr4m3b68ouj93c" }
 ```
