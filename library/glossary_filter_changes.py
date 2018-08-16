@@ -171,6 +171,8 @@ def main():
         e_ca_name = glossary_xml.getName(e_customattr)
         if not (e_ca_name in keep_custom_attrs):
             glossary_xml.dropAsset(e_customattr)
+        elif not (glossary_xml.customAttrAppliesToThisType(e_customattr, asset_type)):
+            glossary_xml.dropAsset(e_customattr)
 
     if asset_type == 'term':
         for e_sg in glossary_xml.getSynonymGroups():

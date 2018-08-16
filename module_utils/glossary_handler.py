@@ -26,6 +26,13 @@ from lxml import etree
 ns = {
     'x': 'http://www.ibm.com/is/bg/importexport'
 }
+rest_to_type = {
+    "term": "TERM",
+    "category": "CATEGORY",
+    "information_governance_policy": "POLICY",
+    "information_governance_rule": "RULE",
+    "label": "LABEL"
+}
 
 
 class GlossaryHandler(object):
@@ -70,6 +77,10 @@ class GlossaryHandler(object):
 
     def isRelationship(self, elem):
         return elem.xpath("boolean(./x:customAttributeReferences)", namespaces=ns)
+
+    def doesCustomAttrApplyToThisType(self, elem, typename):
+        applies_to_types = elem.xpath("./appliesTo/classType/@value", namespaces=ns)
+        return (rest_to_type[typename] in applies_to_types)
 
     def getRid(self, elem):
         return elem.xpath("./@rid", namespaces=ns)[0]
