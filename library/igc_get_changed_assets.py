@@ -311,7 +311,8 @@ def main():
             "property": "modified_on",
             "operator": "between"
         })
-    else:
+    # Skip delta detection on the assets named in this condition, as they have no 'modified_on' to query against
+    elif asset_type != 'label':
         reqJSON['where']['conditions'].append({
             "min": module.params['from_time'],
             "max": module.params['to_time'],

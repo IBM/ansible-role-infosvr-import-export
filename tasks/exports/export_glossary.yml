@@ -33,7 +33,6 @@
     conditions: "{{ item.conditions | default(omit) }}"
     cert: "{{ __ibm_infosvr_impexp_ssl_cert_location | default(omit) }}"
   register: __ibm_infosvr_impexp_bg_export_changes
-  when: item.type != 'label'
   with_items: "{{ ibm_infosvr_impexp_bg_export }}"
 
 # Should always export XML now, for change-based processing; below line would revert to 
@@ -63,7 +62,6 @@
     src: "/tmp/__export_bg_{{ item.item.dest | basename }}"
     type: "{{ item.item.type }}"
     assets_to_keep: "{{ item.assets }}"
-  when: item.item.type != 'label'
   with_items: "{{ __ibm_infosvr_impexp_bg_export_changes.results }}"
   loop_control:
     label: "{{ item.item.dest | basename }}"
