@@ -42,7 +42,8 @@ asset_type_to_properties = {
     "data_rule_set_definition": ["project"] + common_properties,
     "data_rule": ["project"] + common_properties,
     "data_rule_set": ["project"] + common_properties,
-    "metric": ["project"] + common_properties
+    "metric": ["project"] + common_properties,
+    "label": ["name"]
 }
 
 xa_asset_type_to_extract_type = {
