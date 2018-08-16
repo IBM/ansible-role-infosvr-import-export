@@ -62,10 +62,10 @@ xa_asset_type_to_extract_type = {
 # Necessary to avoid trying to export default objects that are there as part of vanilla Information Server installation
 asset_blacklists = {
     "table_definition": [
-        "Examples\\\\Folder",
-        "WebSphere MQ Connector\\\\MQMessage",
-        "Examples\\\\SOAPbody",
-        "Distributed Transaction\\\\TransactionStatus"
+        "Built-In\\\\Examples\\\\Folder",
+        "Real Time\\\\WebSphere MQ Connector\\\\MQMessage",
+        "Built-In\\\\Examples\\\\SOAPbody",
+        "Database\\\\Distributed Transaction\\\\TransactionStatus"
     ]
 }
 
