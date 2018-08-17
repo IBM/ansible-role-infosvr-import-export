@@ -284,10 +284,11 @@ def main():
             aRelns = asset[relnprop]
             aMappedRelnRIDs = []
             for reln in aRelns:
-                mappedReln = igcrest.getMappedItem(reln, mappings)
-                if mappedReln == "":
-                    module.fail_json(msg='Unable to find mapped relationship -- failing', **result)
-                aMappedRelnRIDs.append(mappedReln['_id'])
+                if '_type' in reln:
+                    mappedReln = igcrest.getMappedItem(reln, mappings)
+                    if mappedReln == "":
+                        module.fail_json(msg='Unable to find mapped relationship -- failing', **result)
+                    aMappedRelnRIDs.append(mappedReln['_id'])
             update_rc, update_msg = igcrest.addRelationshipsToAsset(
                 mappedItem,
                 aMappedRelnRIDs,
