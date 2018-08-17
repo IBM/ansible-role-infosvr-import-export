@@ -248,7 +248,7 @@ class RestIGC(object):
             allRelationsForAsset = self.search(qAll)
             aReplacementRIDs = []
             aAllRelnRIDs = []
-            if isinstance(allRelationsForAsset, list):
+            if isinstance(allRelationsForAsset, list) and len(allRelationsForAsset) > 0:
                 for item in allRelationsForAsset:
                     if replace_type == item['_type']:
                         aReplacementRIDs.append(item['_id'])
