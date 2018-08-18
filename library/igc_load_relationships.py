@@ -289,19 +289,20 @@ def main():
                     if mappedReln == "":
                         module.fail_json(msg='Unable to find mapped relationship -- failing', **result)
                     aMappedRelnRIDs.append(mappedReln['_id'])
-            update_rc, update_msg = igcrest.addRelationshipsToAsset(
-                mappedItem,
-                aMappedRelnRIDs,
-                relnprop,
-                module.params['mode'],
-                replace_type=module.params['replace_type'],
-                conditions=module.params['conditions'],
-                batch=module.params['batch']
-            )
-            if update_rc != 200:
-                module.fail_json(rc=update_rc, msg='Update failed: %s' % json.dumps(update_msg), **result)
-            else:
-                result['changed'] = True
+            if len(aMappedRelnRIDs) > 0:
+                update_rc, update_msg = igcrest.addRelationshipsToAsset(
+                    mappedItem,
+                    aMappedRelnRIDs,
+                    relnprop,
+                    module.params['mode'],
+                    replace_type=module.params['replace_type'],
+                    conditions=module.params['conditions'],
+                    batch=module.params['batch']
+                )
+                if update_rc != 200:
+                    module.fail_json(rc=update_rc, msg='Update failed: %s' % json.dumps(update_msg), **result)
+                else:
+                    result['changed'] = True
             result['asset_update_count'] += 1
             result['relationship_update_count'] += len(aMappedRelnRIDs)
 
