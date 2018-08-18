@@ -134,6 +134,9 @@ class RestIGC(object):
         # hierarchical data classes refer to 'parent_data_class' as search properties
         elif ctx_type == 'data_class':
             new_type = "parent_data_class"
+        # PDM assets refer to a 'design_table_or_view' rather than design_table specifically
+        elif ctx_type == 'design_table':
+            new_type = "design_table_or_view"
         # BI object relationships are insufficient for this kind of search, so drop these highest-level qualifiers
         # (TODO: at risk of returning multiple objects (warning elsewhere when that occurs)...)
         elif ctx_type == 'bi_root_folder' or ctx_type == 'bi_server':
@@ -146,13 +149,17 @@ class RestIGC(object):
         return new_type
 
     def _getMappedValue(self, from_type, from_property, from_value, mappings):
+        # default case: return the originally-provided value
+        mapped_value = from_value
         for mapping in mappings:
+            # Do not return straight away from a match, as there could be multiple
+            # mappings for a particular type (ensure we either have a match before returning,
+            # or have exhausted all possibilities)
             if from_type == mapping['type'] and from_property == mapping['property']:
                 # change name based on regex and 'to' provided in mapping
                 mapRE = re.compile(mapping['from'])
-                return mapRE.sub(mapping['to'], from_value)
-        # default case: return the originally-provided value
-        return from_value
+                mapped_value = mapRE.sub(mapping['to'], from_value)
+        return mapped_value
 
     def getMappedItem(self, restItem, mappings):
         # Map the item itself (ie. renaming)
@@ -188,7 +195,9 @@ class RestIGC(object):
                     ctx_path = ctx_type
                 else:
                     ctx_path = ctx_path + "." + ctx_type
-                if ctx_type != "":
+                # TODO: for now cannot include a physical_data_model relation as it refers to
+                # generic `datagroup` -- ideally find a way around this eventually
+                if ctx_type != "" and (ctx_path.find('design_table_or_view.physical_data_model') < 0):
                     q['where']['conditions'].append({
                         "value": ctx_value,
                         "operator": "=",
@@ -253,13 +262,15 @@ class RestIGC(object):
                     if replace_type == item['_type']:
                         aReplacementRIDs.append(item['_id'])
                     aAllRelnRIDs.append(item['_id'])
-                qReplace['where']['conditions'].append({
-                    "value": aReplacementRIDs,
-                    "operator": "in",
-                    "property": "_id"
-                })
-                allReplacementsForAsset = self.search(qReplace)
-                if isinstance(allReplacementsForAsset, list):
+                allReplacementsForAsset = []
+                if len(aReplacementRIDs) > 0:
+                    qReplace['where']['conditions'].append({
+                        "value": aReplacementRIDs,
+                        "operator": "in",
+                        "property": "_id"
+                    })
+                    allReplacementsForAsset = self.search(qReplace)
+                if isinstance(allReplacementsForAsset, list) and len(allReplacementsForAsset) > 0:
                     u = {}
                     u[reln_property] = {
                         "items": [],
@@ -268,7 +279,7 @@ class RestIGC(object):
                     aRidsToDrop = [x["_id"] for x in allReplacementsForAsset]
                     u[reln_property]['items'] = set(aAllRelnRIDs) - set(aRidsToDrop)
                     return self.update(from_asset['_id'], u)
-                else:
+                elif len(to_asset_rids) > 0:
                     # No relationships to replace, we should just add these
                     u = {}
                     u[reln_property] = {
@@ -276,7 +287,9 @@ class RestIGC(object):
                         "mode": 'append'
                     }
                     return self.update(from_asset['_id'], u)
-            else:
+                else:
+                    return 200, "No relationships to add"
+            elif len(to_asset_rids) > 0:
                 # No relationships at all, we should just add these
                 u = {}
                 u[reln_property] = {
@@ -284,11 +297,26 @@ class RestIGC(object):
                     "mode": 'append'
                 }
                 return self.update(from_asset['_id'], u)
-        else:
-            # If a simple append or replace all, just do the update directly
+            else:
+                return 200, "No relationships to add"
+        elif mode == 'REPLACE_ALL':
+            # If a simple replace all, just do the update directly
+            # (and even if empty, to remove any existing relationships)
+            u = {}
+            u[reln_property] = {
+                "items": to_asset_rids,
+                "mode": 'replace'
+            }
+            return self.update(from_asset['_id'], u)
+        elif len(to_asset_rids) > 0:
+            # If a simple append, just do the update directly (only if there)
+            # are actually any RIDs to append
             u = {}
             u[reln_property] = {
                 "items": to_asset_rids,
                 "mode": ('replace' if mode == 'REPLACE_ALL' else 'append')
             }
             return self.update(from_asset['_id'], u)
+        else:
+            # Otherwise it's an append, with no assets, so it is a NOOP
+            return 200, "No relationships to add"
