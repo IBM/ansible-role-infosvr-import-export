@@ -85,7 +85,7 @@ class RestIGC(object):
         )
         return r.status_code, r.json()
 
-    def search(self, query):
+    def search(self, query, get_all=True):
         self.result['queries'].append(query)
         r = self.session.request(
             "POST",
@@ -95,7 +95,10 @@ class RestIGC(object):
         )
         if r.status_code == 200:
             first_results = r.json()
-            return self.getAllPages(first_results['items'], first_results['paging'])
+            if get_all:
+                return self.getAllPages(first_results['items'], first_results['paging'])
+            else:
+                return first_results
         else:
             return ""
 

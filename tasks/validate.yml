@@ -1,0 +1,55 @@
+---
+###
+# Copyright 2018 IBM Corp. All Rights Reserved.
+# 
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+# 
+#      http://www.apache.org/licenses/LICENSE-2.0
+# 
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+###
+
+- import_tasks: get_certificate.yml
+  when: >
+          ibm_infosvr_impexp_verify_selfsigned_ssl is defined
+          and ibm_infosvr_impexp_verify_selfsigned_ssl
+          and ('ibm-information-server-domain' in group_names)
+
+- import_tasks: load_certificate.yml
+  when: ibm_infosvr_impexp_verify_selfsigned_ssl is defined and ibm_infosvr_impexp_verify_selfsigned_ssl
+
+- name: validate - check for conditions
+  igc_query:
+    host: "{{ ibm_infosvr_impexp_services_host | lower }}"
+    port: "{{ ibm_infosvr_impexp_services_console_port }}"
+    user: "{{ ibm_infosvr_impexp_infosvr_admin_user }}"
+    password: "{{ ibm_infosvr_impexp_infosvr_admin_user_pwd }}"
+    asset_type: "{{ item.number_of }}"
+    properties: [ 'name' ]
+    conditions: "{% if item.meeting_all_conditions is defined %}{{ item.meeting_all_conditions }}{% elif item.meeting_any_conditions is defined %}{{ item.meeting_any_conditions }}{% else %}[]{% endif %}"
+    condition_join: "{% if item.meeting_all_conditions is defined %}AND{% elif item.meeting_any_conditions is defined %}OR{% endif %}"
+    extract_all: False
+    batch: 2
+    cert: "{{ __ibm_infosvr_impexp_ssl_cert_location | default(omit) }}"
+  register: __ibm_infosvr_impexp_validation_query
+  with_items: "{{ ibm_infosvr_impexp_validate.that }}"
+  loop_control:
+    label: "{{ item.number_of }} ... = {{ item.is }}"
+
+- name: validate - assert conditions match expectation
+  assert:
+    that:
+      - "item.item.is == item.asset_count"
+    msg: "Asset count does not match expectation: {{ item.asset_count }} assets were found by {{ item.queries }}"
+  with_items: "{{ __ibm_infosvr_impexp_validation_query.results }}"
+  loop_control:
+    label: "{{ item.item.number_of }} ... = {{ item.item.is }}"
+
+- import_tasks: remove_certificate.yml
+  when: ibm_infosvr_impexp_verify_selfsigned_ssl is defined and ibm_infosvr_impexp_verify_selfsigned_ssl
