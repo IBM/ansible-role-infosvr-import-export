@@ -160,7 +160,6 @@ assets:
 
 from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.igc_rest import RestIGC
-from ansible.module_utils.infosvr_types import get_properties, get_asset_extract_object
 
 
 def main():
