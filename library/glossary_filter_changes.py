@@ -46,11 +46,6 @@ options:
       - Glossary XML file from which to identify changes
     required: true
     type: path
-  type:
-    description:
-      - The type of business metadata to keep in the extract
-    required: true
-    type: str
   assets_to_keep:
     description:
       - A list of assets to keep in the extract
@@ -62,7 +57,6 @@ EXAMPLES = '''
 - name: retain business terms changed over the last 48-hours
   glossary_filter_changes:
     src: "/somewhere/business_glossary.xml"
-    type: term
     assets_to_keep:
       - { rid: "6662c0f2.e1b1ec6c.kr1ln91jg.luh344a.s06cl0.6k98oeiknhrlo4o4vskpn" }
       - { rid: "6662c0f2.e1b1ec6c.kr1lcdf12.96sa892.mikeko.a3ksv27ro2a3ufb69h7o5" }
@@ -83,7 +77,6 @@ def main():
 
     module_args = dict(
         src=dict(type='path', required=True),
-        type=dict(type='str', required=True),
         assets_to_keep=dict(type='list', required=True)
     )
 
@@ -104,7 +97,6 @@ def main():
         return result
 
     glossary_src = module.params['src']
-    asset_type = module.params['type']
     assets_to_keep = module.params['assets_to_keep']
 
     glossary_xml = GlossaryHandler(module, result, glossary_src)
@@ -122,18 +114,18 @@ def main():
         e_ca_name = glossary_xml.getName(e_customattr)
         if not (e_ca_name in keep_custom_attrs):
             glossary_xml.dropAsset(e_customattr)
-        elif not (glossary_xml.customAttrAppliesToThisType(e_customattr, asset_type)):
-            glossary_xml.dropAsset(e_customattr)
+#        elif not (glossary_xml.customAttrAppliesToThisType(e_customattr, asset_type)):
+#            glossary_xml.dropAsset(e_customattr)
 
-    if asset_type == 'term':
-        for e_sg in glossary_xml.getSynonymGroups():
-            b_termRef = False
-            for e_s in glossary_xml.getSynonyms(e_sg):
-                refRid = glossary_xml.getRid(e_s)
-                if refRid in assets_to_keep:
-                    b_termRef = True
-            if not b_termRef:
-                glossary_xml.dropAsset(e_sg)
+#    if asset_type == 'term':
+    for e_sg in glossary_xml.getSynonymGroups():
+        b_termRef = False
+        for e_s in glossary_xml.getSynonyms(e_sg):
+            refRid = glossary_xml.getRid(e_s)
+            if refRid in assets_to_keep:
+                b_termRef = True
+        if not b_termRef:
+            glossary_xml.dropAsset(e_sg)
 
     categories = glossary_xml.getCategories()
     terms = glossary_xml.getTerms()
