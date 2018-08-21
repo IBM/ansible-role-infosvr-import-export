@@ -37,9 +37,9 @@
   loop_control:
     label: "{{ pack_item.dest | basename }} - {{ pack_item.type }}"
 
-#- name: export_glossary_pack - consolidate list of assets
-#  set_fact:
-#    __ibm_infosvr_impexp_bg_pack_assets: "{{ __ibm_infosvr_impexp_bg_export_changes | json_query('results[*].assets | []') }}"
+- name: export_glossary_pack - consolidate list of assets
+  set_fact:
+    __ibm_infosvr_impexp_bg_pack_assets: "{{ __ibm_infosvr_impexp_bg_export_changes | json_query('results[*].assets | []') }}"
 
 - name: export_glossary_pack - copy single export to filterable file
   copy:
@@ -50,8 +50,4 @@
 - name: export_glossary_pack - filter content from the export
   glossary_filter_changes:
     src: "/tmp/__export_bg_{{ pack_item.dest | basename }}"
-    type: "{{ item.item.type }}"
-    assets_to_keep: "{{ item.assets }}"
-  with_items: "{{ __ibm_infosvr_impexp_bg_export_changes.results }}"
-  loop_control:
-    label: "{{ pack_item.dest | basename }} - {{ item.item.type }}"
+    assets_to_keep: "{{ __ibm_infosvr_impexp_bg_pack_assets }}"
