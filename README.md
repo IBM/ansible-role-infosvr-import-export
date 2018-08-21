@@ -608,18 +608,20 @@ The order of importing is also important for glossary assets, since different as
 ```
 ibm_infosvr_impexp_bg_export:
   - dest: "<path>"
-    type: "<string>"
-    changes_in_last_hours: <int>
     categories: "<string>"
     options: "<string>"
-    conditions:
-      - { property: "<string>", operator: "<string>", value: "<value>" }
+    objects:
+      - type: "<string>"
+        changes_in_last_hours: <int>
+        conditions:
+          - { property: "<string>", operator: "<string>", value: "<value>" }
+          - ...
       - ...
 ```
 
-The required parameters for an export are the `dest` file into which to capture and `type` of assets to export. `type` must be one of `category`, `term`, `information_governance_policy`, `information_governance_rule`, or `label`.
+The required parameters for an export are the `dest` file into which to capture and `type` of assets to export (under `object`). `type` must be one of `category`, `term`, `information_governance_policy`, `information_governance_rule`, or `label`.
 
-Because of the way the export for these assets works, you may be able to improve the efficiency by using the optional `categories` limiter. This will not be considered in coordination with the `conditions`, so should be used only for optimisation purposes: to limit the amount of content exported, you can specify multiple categories as comma-separated in the `categories` string. The path separator for categories is `::`. (Leaving this option out will export all categories initially, and later restrict these based on the `type` and `conditions` specified by the other options.)
+Because of the way the export for these assets works, you may be able to improve the efficiency by using the optional `categories` limiter. This will not be considered in coordination with the `conditions`, so should be used only for optimisation purposes: to limit the amount of content exported, you can specify multiple categories as comma-separated in the `categories` string. The path separator for categories is `::`. (Leaving this option out will export all categories initially, and later restrict these based on the `type`s and `conditions` specified by the other options.)
 
 **Examples**:
 
@@ -632,18 +634,23 @@ ibm_infosvr_impexp_bg_import:
 
 ibm_infosvr_impexp_bg_export:
   - dest: "cache/bg_all_terms.xml"
-    type: "term"
     options: "-includeassignedassets -includestewardship -includeassetcollections -includelabeledassets -includetermhistory -allpoliciesrules -devglossary"
+    objects:
+      - type: "term"
   - dest: "cache/bg_all_rules.xml"
-    type: "information_governance_rule"
     options: "-includeassignedassets -includestewardship"
+    objects:
+      - type: "information_governance_rule"
   - dest: "cache/bg_some.xml"
-    type: "term"
-    changes_in_last_hours: 48
-    categories: "Samples::A,Inspiration::Others"
     options: "-includelabeledassets -includetermhistory"
-    conditions:
-      - { property: "label.name", operator: "=", value: "Public" }
+    categories: "Samples::A,Inspiration::Others"
+    objects:
+      - type: "term"
+        changes_in_last_hours: 48
+        conditions:
+          - { property: "label.name", operator: "=", value: "Public" }
+      - type: "information_governance_rule"
+        changes_in_last_hours: 48
 ```
 
 ## IGC metadata relationships

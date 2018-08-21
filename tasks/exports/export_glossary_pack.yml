@@ -1,0 +1,57 @@
+---
+###
+# Copyright 2018 IBM Corp. All Rights Reserved.
+# 
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+# 
+#      http://www.apache.org/licenses/LICENSE-2.0
+# 
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+###
+
+- name: export_glossary_pack - get changed assets
+  igc_get_changed_assets:
+    host: "{{ ibm_infosvr_impexp_services_host }}"
+    port: "{{ ibm_infosvr_impexp_services_console_port }}"
+    user: "{{ ibm_infosvr_impexp_infosvr_admin_user }}"
+    password: "{{ ibm_infosvr_impexp_infosvr_admin_user_pwd }}"
+    asset_type: "{{ item.type }}"
+    from_time: >
+              {% if item.changes_in_last_hours is defined %}
+              {{ (__ibm_infosvr_impexp_to_epoch | int) - ((item.changes_in_last_hours | int) * 3600 * 1000) }}
+              {% else %}
+              -1
+              {% endif %}
+    to_time: >
+              {{ __ibm_infosvr_impexp_to_epoch | int }}
+    conditions: "{{ item.conditions | default(omit) }}"
+    cert: "{{ __ibm_infosvr_impexp_ssl_cert_location | default(omit) }}"
+  register: __ibm_infosvr_impexp_bg_export_changes
+  with_items: "{{ pack_item.objects }}"
+  loop_control:
+    label: "{{ pack_item.dest | basename }} - {{ pack_item.type }}"
+
+#- name: export_glossary_pack - consolidate list of assets
+#  set_fact:
+#    __ibm_infosvr_impexp_bg_pack_assets: "{{ __ibm_infosvr_impexp_bg_export_changes | json_query('results[*].assets | []') }}"
+
+- name: export_glossary_pack - copy single export to filterable file
+  copy:
+    src: /tmp/__export_bg_everything.xml
+    dest: "/tmp/__export_bg_{{ pack_item.dest | basename }}"
+    remote_src: yes
+
+- name: export_glossary_pack - filter content from the export
+  glossary_filter_changes:
+    src: "/tmp/__export_bg_{{ pack_item.dest | basename }}"
+    type: "{{ item.item.type }}"
+    assets_to_keep: "{{ item.assets }}"
+  with_items: "{{ __ibm_infosvr_impexp_bg_export_changes.results }}"
+  loop_control:
+    label: "{{ pack_item.dest | basename }} - {{ item.item.type }}"
