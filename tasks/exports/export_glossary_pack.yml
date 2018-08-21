@@ -53,7 +53,7 @@
   register: __ibm_infosvr_impexp_bg_export_changes
   with_items: "{{ pack_item.objects }}"
   loop_control:
-    label: "{{ pack_item.dest | basename }} - {{ pack_item.type }}"
+    label: "{{ pack_item.dest | basename }} - {{ item.type }}"
 
 - name: export_glossary_pack - consolidate list of assets
   set_fact:
