@@ -109,64 +109,15 @@ def main():
 
     glossary_xml = GlossaryHandler(module, result, glossary_src)
 
-    # glossary_xml.dropSection('customAttributesDefinitions')
-    custom_attrs = glossary_xml.getCustomAttributeDefinitions()
-
-    assets = []
-
-    if asset_type == 'category':
-        assets = glossary_xml.getCategories()
-        glossary_xml.dropSection('terms')
-        glossary_xml.dropSection('synonymGroups')
-        glossary_xml.dropSection('policies')
-        glossary_xml.dropSection('rules')
-        glossary_xml.dropSection('labelDefinitions')
-    if asset_type == 'term':
-        assets = glossary_xml.getTerms()
-        glossary_xml.dropSection('categories')
-        glossary_xml.dropSection('policies')
-        glossary_xml.dropSection('rules')
-        glossary_xml.dropSection('labelDefinitions')
-    if asset_type == 'information_governance_policy':
-        assets = glossary_xml.getPolicies()
-        glossary_xml.dropSection('categories')
-        glossary_xml.dropSection('terms')
-        glossary_xml.dropSection('synonymGroups')
-        glossary_xml.dropSection('rules')
-        glossary_xml.dropSection('labelDefinitions')
-    if asset_type == 'information_governance_rule':
-        assets = glossary_xml.getRules()
-        glossary_xml.dropSection('categories')
-        glossary_xml.dropSection('terms')
-        glossary_xml.dropSection('synonymGroups')
-        glossary_xml.dropSection('policies')
-        glossary_xml.dropSection('labelDefinitions')
-    if asset_type == 'label':
-        assets = glossary_xml.getLabels()
-        glossary_xml.dropSection('categories')
-        glossary_xml.dropSection('terms')
-        glossary_xml.dropSection('synonymGroups')
-        glossary_xml.dropSection('policies')
-        glossary_xml.dropSection('rules')
-
     keep_custom_attrs = []
 
-    for e_asset in assets:
-        rid = glossary_xml.getRid(e_asset)
-        if rid not in assets_to_keep:
-            glossary_xml.dropAsset(e_asset)
-        else:
-            result['asset_count'] += 1
-            # Remove any reference-based custom attributes (these should be
-            # handled by relationship-specific import / export)
-            for e_customattr in glossary_xml.getCustomAttributes(e_asset):
-                if glossary_xml.isRelationship(e_customattr):
-                    glossary_xml.dropAsset(e_customattr)
-                else:
-                    ca_name = glossary_xml.getCustomAttrName(e_customattr)
-                    if not (ca_name in keep_custom_attrs):
-                        keep_custom_attrs.append(ca_name)
+    processAssets(glossary_xml, result, glossary_xml.getCategories(), assets_to_keep, keep_custom_attrs)
+    processAssets(glossary_xml, result, glossary_xml.getTerms(), assets_to_keep, keep_custom_attrs)
+    processAssets(glossary_xml, result, glossary_xml.getPolicies(), assets_to_keep, keep_custom_attrs)
+    processAssets(glossary_xml, result, glossary_xml.getRules(), assets_to_keep, keep_custom_attrs)
+    processAssets(glossary_xml, result, glossary_xml.getLabels(), assets_to_keep, keep_custom_attrs)
 
+    custom_attrs = glossary_xml.getCustomAttributeDefinitions()
     for e_customattr in custom_attrs:
         e_ca_name = glossary_xml.getName(e_customattr)
         if not (e_ca_name in keep_custom_attrs):
@@ -184,9 +135,45 @@ def main():
             if not b_termRef:
                 glossary_xml.dropAsset(e_sg)
 
+    categories = glossary_xml.getCategories()
+    terms = glossary_xml.getTerms()
+    policies = glossary_xml.getPolicies()
+    rules = glossary_xml.getRules()
+    labels = glossary_xml.getLabels()
+
+    if not categories:
+        glossary_xml.dropSection('categories')
+    if not terms:
+        glossary_xml.dropSection('terms')
+        glossary_xml.dropSection('synonymGroups')
+    if not policies:
+        glossary_xml.dropSection('policies')
+    if not rules:
+        glossary_xml.dropSection('rules')
+    if not labels:
+        glossary_xml.dropSection('labelDefinitions')
+
     glossary_xml.writeCustomizedXML(glossary_src)
 
     module.exit_json(**result)
+
+
+def processAssets(glossary_xml, result, assets, assets_to_keep, keep_custom_attrs):
+    for e_asset in assets:
+        rid = glossary_xml.getRid(e_asset)
+        if rid not in assets_to_keep:
+            glossary_xml.dropAsset(e_asset)
+        else:
+            result['asset_count'] += 1
+            # Remove any reference-based custom attributes (these should be
+            # handled by relationship-specific import / export)
+            for e_customattr in glossary_xml.getCustomAttributes(e_asset):
+                if glossary_xml.isRelationship(e_customattr):
+                    glossary_xml.dropAsset(e_customattr)
+                else:
+                    ca_name = glossary_xml.getCustomAttrName(e_customattr)
+                    if not (ca_name in keep_custom_attrs):
+                        keep_custom_attrs.append(ca_name)
 
 
 if __name__ == '__main__':
