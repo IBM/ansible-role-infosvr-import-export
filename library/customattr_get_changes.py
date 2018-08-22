@@ -56,6 +56,12 @@ options:
       - The time (UNIX epoch style, in milliseconds) up to which to consider changes
     required: true
     type: int
+  model_ver:
+    description:
+      - The ASCLCustomAttribute model version for the Information Server environment (release-specific)
+      - This is setup automatically by 'setup_mappings' of the role, and put into __ibm_infosvr_impexp_model_versions
+    required: true
+    type: str
   names:
     description:
       - A list of names of custom attributes to include
@@ -71,6 +77,7 @@ EXAMPLES = '''
               {{ ( (ansible_date_time.epoch | int) * 1000) - (48 * 3600 * 1000) ) | int }}
     to_time: >
               {{ ansible_date_time.epoch * 1000 | int }}
+    model_ver: __ibm_infosvr_impexp_model_versions???
   register: customattrs_changed_in_last_48hrs
 '''
 
@@ -95,6 +102,7 @@ def main():
         src=dict(type='path', required=True),
         from_time=dict(type='int', required=True),
         to_time=dict(type='int', required=True),
+        model_ver=dict(type='str', required=True),
         names=dict(type='list', required=False)
     )
 
@@ -119,8 +127,9 @@ def main():
     names_to_keep = module.params['names']
     from_time = module.params['from_time']
     to_time = module.params['to_time']
+    model_ver = module.params['model_ver']
 
-    ca_xml = CustomAttrHandler(module, result, ca_src)
+    ca_xml = CustomAttrHandler(module, result, ca_src, model_ver)
 
     for attr_defn in ca_xml.getCustomAttributeDefinitions():
         mod_time = ca_xml.getDefinitionModTime(attr_defn)

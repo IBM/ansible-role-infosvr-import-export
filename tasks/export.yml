@@ -40,6 +40,11 @@
 - import_tasks: load_certificate.yml
   when: ibm_infosvr_impexp_verify_selfsigned_ssl is defined and ibm_infosvr_impexp_verify_selfsigned_ssl
 
+- name: load mapping defaults
+  import_tasks: imports/setup_mappings.yml
+  become: yes
+  when: ('ibm-information-server-domain' in group_names)
+
 # Security (-sec)
 
 - import_tasks: exports/export_cadefs.yml

@@ -64,6 +64,8 @@
               {% endif %}
     to_time: >
               {{ __ibm_infosvr_impexp_to_epoch | int }}
+    model_ver: >
+              {{ __ibm_infosvr_impexp_model_versions | json_query("[?model == 'ASCLCustomAttribute'].version | [0]") }}
     names: "{{ item.0.item.names | default(omit) }}"
   register: __ibm_infosvr_impexp_ca_extract
   with_subelements:

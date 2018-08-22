@@ -26,7 +26,6 @@ import time
 
 ns = {
     'xmi': 'http://www.omg.org/XMI',
-    'ASCLCustomAttribute': 'http:///2.3/ASCLCustomAttribute.ecore',
     'XMetaImportExport': 'http:///com/ibm/xmeta/shared/model/3/XMetaImportExport.ecore'
 }
 # Note we exlude TZ offset as this isn't supported on Python 2 without a non-standard library
@@ -34,10 +33,11 @@ t_format = "%Y-%m-%dT%H:%M:%S.%f"
 
 
 class CustomAttrHandler(object):
-    def __init__(self, module, result, cafile):
+    def __init__(self, module, result, cafile, modelversion):
         self.module = module
         self.result = result
         self.tree = etree.parse(cafile)
+        ns['ASCLCustomAttribute'] = modelversion.strip()
         for key in ns:
             etree.register_namespace(key, ns[key])
         self.root = self.tree.getroot()
