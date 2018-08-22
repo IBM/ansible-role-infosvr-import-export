@@ -46,11 +46,6 @@ options:
       - Glossary XML file from which to identify changes
     required: true
     type: path
-  type:
-    description:
-      - The type of business metadata to keep in the extract
-    required: true
-    type: str
   assets_to_keep:
     description:
       - A list of assets to keep in the extract
@@ -62,7 +57,6 @@ EXAMPLES = '''
 - name: retain business terms changed over the last 48-hours
   glossary_filter_changes:
     src: "/somewhere/business_glossary.xml"
-    type: term
     assets_to_keep:
       - { rid: "6662c0f2.e1b1ec6c.kr1ln91jg.luh344a.s06cl0.6k98oeiknhrlo4o4vskpn" }
       - { rid: "6662c0f2.e1b1ec6c.kr1lcdf12.96sa892.mikeko.a3ksv27ro2a3ufb69h7o5" }
@@ -83,7 +77,6 @@ def main():
 
     module_args = dict(
         src=dict(type='path', required=True),
-        type=dict(type='str', required=True),
         assets_to_keep=dict(type='list', required=True)
     )
 
@@ -104,53 +97,60 @@ def main():
         return result
 
     glossary_src = module.params['src']
-    asset_type = module.params['type']
     assets_to_keep = module.params['assets_to_keep']
 
     glossary_xml = GlossaryHandler(module, result, glossary_src)
 
-    # glossary_xml.dropSection('customAttributesDefinitions')
-    custom_attrs = glossary_xml.getCustomAttributeDefinitions()
-
-    assets = []
-
-    if asset_type == 'category':
-        assets = glossary_xml.getCategories()
-        glossary_xml.dropSection('terms')
-        glossary_xml.dropSection('synonymGroups')
-        glossary_xml.dropSection('policies')
-        glossary_xml.dropSection('rules')
-        glossary_xml.dropSection('labelDefinitions')
-    if asset_type == 'term':
-        assets = glossary_xml.getTerms()
-        glossary_xml.dropSection('categories')
-        glossary_xml.dropSection('policies')
-        glossary_xml.dropSection('rules')
-        glossary_xml.dropSection('labelDefinitions')
-    if asset_type == 'information_governance_policy':
-        assets = glossary_xml.getPolicies()
-        glossary_xml.dropSection('categories')
-        glossary_xml.dropSection('terms')
-        glossary_xml.dropSection('synonymGroups')
-        glossary_xml.dropSection('rules')
-        glossary_xml.dropSection('labelDefinitions')
-    if asset_type == 'information_governance_rule':
-        assets = glossary_xml.getRules()
-        glossary_xml.dropSection('categories')
-        glossary_xml.dropSection('terms')
-        glossary_xml.dropSection('synonymGroups')
-        glossary_xml.dropSection('policies')
-        glossary_xml.dropSection('labelDefinitions')
-    if asset_type == 'label':
-        assets = glossary_xml.getLabels()
-        glossary_xml.dropSection('categories')
-        glossary_xml.dropSection('terms')
-        glossary_xml.dropSection('synonymGroups')
-        glossary_xml.dropSection('policies')
-        glossary_xml.dropSection('rules')
-
     keep_custom_attrs = []
 
+    processAssets(glossary_xml, result, glossary_xml.getCategories(), assets_to_keep, keep_custom_attrs)
+    processAssets(glossary_xml, result, glossary_xml.getTerms(), assets_to_keep, keep_custom_attrs)
+    processAssets(glossary_xml, result, glossary_xml.getPolicies(), assets_to_keep, keep_custom_attrs)
+    processAssets(glossary_xml, result, glossary_xml.getRules(), assets_to_keep, keep_custom_attrs)
+    processAssets(glossary_xml, result, glossary_xml.getLabels(), assets_to_keep, keep_custom_attrs)
+
+    custom_attrs = glossary_xml.getCustomAttributeDefinitions()
+    for e_customattr in custom_attrs:
+        e_ca_name = glossary_xml.getName(e_customattr)
+        if not (e_ca_name in keep_custom_attrs):
+            glossary_xml.dropAsset(e_customattr)
+#        elif not (glossary_xml.customAttrAppliesToThisType(e_customattr, asset_type)):
+#            glossary_xml.dropAsset(e_customattr)
+
+#    if asset_type == 'term':
+    for e_sg in glossary_xml.getSynonymGroups():
+        b_termRef = False
+        for e_s in glossary_xml.getSynonyms(e_sg):
+            refRid = glossary_xml.getRid(e_s)
+            if refRid in assets_to_keep:
+                b_termRef = True
+        if not b_termRef:
+            glossary_xml.dropAsset(e_sg)
+
+    categories = glossary_xml.getCategories()
+    terms = glossary_xml.getTerms()
+    policies = glossary_xml.getPolicies()
+    rules = glossary_xml.getRules()
+    labels = glossary_xml.getLabels()
+
+    if not categories:
+        glossary_xml.dropSection('categories')
+    if not terms:
+        glossary_xml.dropSection('terms')
+        glossary_xml.dropSection('synonymGroups')
+    if not policies:
+        glossary_xml.dropSection('policies')
+    if not rules:
+        glossary_xml.dropSection('rules')
+    if not labels:
+        glossary_xml.dropSection('labelDefinitions')
+
+    glossary_xml.writeCustomizedXML(glossary_src)
+
+    module.exit_json(**result)
+
+
+def processAssets(glossary_xml, result, assets, assets_to_keep, keep_custom_attrs):
     for e_asset in assets:
         rid = glossary_xml.getRid(e_asset)
         if rid not in assets_to_keep:
@@ -166,27 +166,6 @@ def main():
                     ca_name = glossary_xml.getCustomAttrName(e_customattr)
                     if not (ca_name in keep_custom_attrs):
                         keep_custom_attrs.append(ca_name)
-
-    for e_customattr in custom_attrs:
-        e_ca_name = glossary_xml.getName(e_customattr)
-        if not (e_ca_name in keep_custom_attrs):
-            glossary_xml.dropAsset(e_customattr)
-        elif not (glossary_xml.customAttrAppliesToThisType(e_customattr, asset_type)):
-            glossary_xml.dropAsset(e_customattr)
-
-    if asset_type == 'term':
-        for e_sg in glossary_xml.getSynonymGroups():
-            b_termRef = False
-            for e_s in glossary_xml.getSynonyms(e_sg):
-                refRid = glossary_xml.getRid(e_s)
-                if refRid in assets_to_keep:
-                    b_termRef = True
-            if not b_termRef:
-                glossary_xml.dropAsset(e_sg)
-
-    glossary_xml.writeCustomizedXML(glossary_src)
-
-    module.exit_json(**result)
 
 
 if __name__ == '__main__':
