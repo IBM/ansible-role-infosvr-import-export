@@ -63,7 +63,8 @@ class CustomAttrHandler(object):
     def getCustomAttributeDefinitions(self):
         # Only retrieve custom attribute directly defined for this asset type
         seedRid = self._getSeedObjectRids()[0]
-        root_class = self.root.xpath("./ASCLCustomAttribute:ClassDescriptor[@_xmeta_repos_object_id='" + seedRid + "']", namespaces=ns)[0]
+        search_path = "./ASCLCustomAttribute:ClassDescriptor[@_xmeta_repos_object_id='" + seedRid + "']"
+        root_class = self.root.xpath(search_path, namespaces=ns)[0]
         return root_class.xpath("./has_CustomAttribute")
 
     def _keepDefinitionSrcClassId(self, e_customattr):

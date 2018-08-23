@@ -112,7 +112,8 @@ class OMDHandler(object):
             self.result['replacements'] += 1
         for eParam in self.root.findall("./ActualParameters/ActualParameter"):
             eParamHost = self._getHostElement(eParam.find("./SoftwareResourceLocator"))
-            sFormalParam = eParam.find("./SoftwareResourceLocator/LocatorComponent[@Class='FormalParameter']").get("Name")
+            search_path = "./SoftwareResourceLocator/LocatorComponent[@Class='FormalParameter']"
+            sFormalParam = eParam.find(search_path).get("Name")
             # If the parameter is for SourceConnectionString or TargetConnectionString,
             # we'll pre-pend the parameter with the old hostname to create a unique
             # connection string (which we can then use in connection mapping for lineage purposes)
@@ -144,9 +145,11 @@ class OMDHandler(object):
         identity = {
             "project": self.getProjectName(),
             "job": self.getJobName(),
-            "source": self._getDataResourceIdentity(self._getDataResourceForEvent(evt_read), self.orgvalues['SourceConnectionString']),
+            "source": self._getDataResourceIdentity(self._getDataResourceForEvent(evt_read),
+                                                    self.orgvalues['SourceConnectionString']),
             "source_cols": self._getDataCollectionColumns(self._getDataCollectionForEvent(evt_read)),
-            "target": self._getDataResourceIdentity(self._getDataResourceForEvent(evt_write), self.orgvalues['TargetConnectionString']),
+            "target": self._getDataResourceIdentity(self._getDataResourceForEvent(evt_write),
+                                                    self.orgvalues['TargetConnectionString']),
             "target_cols": self._getDataCollectionColumns(self._getDataCollectionForEvent(evt_write))
         }
         return identity
