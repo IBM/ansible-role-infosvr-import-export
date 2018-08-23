@@ -159,9 +159,11 @@ class RestIGC(object):
             # mappings for a particular type (ensure we either have a match before returning,
             # or have exhausted all possibilities)
             if from_type == mapping['type'] and from_property == mapping['property']:
-                # change name based on regex and 'to' provided in mapping
                 mapRE = re.compile(mapping['from'])
-                mapped_value = mapRE.sub(mapping['to'], from_value)
+                if mapRE.search(from_value):
+                    # change name based on regex and 'to' provided in mapping, only
+                    # if there was a match (if no match, we might clobber a previous match)
+                    mapped_value = mapRE.sub(mapping['to'], from_value)
         return mapped_value
 
     def getMappedItem(self, restItem, mappings):
