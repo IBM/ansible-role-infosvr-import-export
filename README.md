@@ -20,7 +20,7 @@ Use `tasks_from` to define whether to run an `import` or an `export` -- or leave
 
 For example:
 
-```
+```yml
 - import_role:
     name: IBM.infosvr-import-export
     tasks_from: import
@@ -43,7 +43,7 @@ By default, the role will do SSL verification of self-signed certificates by fir
 
 The following describes all of the object types currently covered by the this role, and the expected structures of the variables. You can generally write the variables using any form supported by Ansible, eg. these are all equivalent and simply up to your personal preference:
 
-```
+```yml
 var_name: [ { a: "", b: "", c: "" }, { d: "", e: "", f: "" } ]
 
 var_name:
@@ -65,7 +65,7 @@ This section will document each variable using the middle style, simply for a ba
 
 **Imports**:
 
-```
+```yml
 ibm_infosvr_impexp_cadefs_mappings:
   - { type: "<string>", attr: "<string>", from: "<value>", to: "<value>" }
   - ...
@@ -79,7 +79,7 @@ Mappings are purely optional, and the only required parameter for the import is 
 
 **Exports**:
 
-```
+```yml
 ibm_infosvr_impexp_cadefs_export:
   - dest: "<path>"
     changes_in_last_hours: <int>
@@ -105,7 +105,7 @@ The (optional) array of `names` can be used to define which specific custom attr
 
 **Examples**:
 
-```
+```yml
 ibm_infosvr_impexp_cadefs_mappings:
   - { type: "HostSystem", attr: "name", from: "MY_HOST", to: "YOUR_HOST" }
 
@@ -133,7 +133,7 @@ ibm_infosvr_impexp_cadefs_export:
 
 **Imports**:
 
-```
+```yml
 ibm_infosvr_impexp_cm_mappings:
   - { type: "<string>", attr: "<string>", from: "<value>", to: "<value>" }
   - ...
@@ -147,7 +147,7 @@ Mappings are purely optional, and the only required parameter for the import is 
 
 **Exports**:
 
-```
+```yml
 ibm_infosvr_impexp_cm_export:
   - { dest: "<path>", path: "<string>" }
 ```
@@ -156,7 +156,7 @@ The wildcard for `path`, is `"*"`.
 
 **Examples**:
 
-```
+```yml
 ibm_infosvr_impexp_cm_mappings:
   - { type: "HostSystem", attr: "name", from: "MY_HOST", to: "YOUR_HOST" }
 
@@ -199,7 +199,7 @@ ibm_infosvr_impexp_cm_export:
 
 **Imports**:
 
-```
+```yml
 ibm_infosvr_impexp_lm_mappings:
   - { type: "<string>", attr: "<string>", from: "<value>", to: "<value>" }
   - ...
@@ -213,7 +213,7 @@ Mappings are purely optional, and the only required parameter for the import is 
 
 **Exports**:
 
-```
+```yml
 ibm_infosvr_impexp_lm_export:
   - { dest: "<path>", path: "<string>" }
 ```
@@ -222,7 +222,7 @@ The wildcard for `path`, is `"*"`.
 
 **Examples**:
 
-```
+```yml
 ibm_infosvr_impexp_lm_mappings:
   - { type: "HostSystem", attr: "name", from: "MY_HOST", to: "YOUR_HOST" }
 
@@ -244,7 +244,7 @@ ibm_infosvr_impexp_lm_export:
 
 **Imports**:
 
-```
+```yml
 ibm_infosvr_impexp_mdm_mappings:
   - { type: "<string>", attr: "<string>", from: "<value>", to: "<value>" }
   - ...
@@ -258,7 +258,7 @@ Mappings are purely optional, and the only required parameter for the import is 
 
 **Exports**:
 
-```
+```yml
 ibm_infosvr_impexp_mdm_export:
   - { dest: "<path>", path: "<string>" }
 ```
@@ -267,7 +267,7 @@ The wildcard for `path`, is `"*"`.
 
 **Examples**:
 
-```
+```yml
 ibm_infosvr_impexp_mdm_mappings:
   - { type: "HostSystem", attr: "name", from: "MY_HOST", to: "YOUR_HOST" }
 
@@ -282,7 +282,7 @@ ibm_infosvr_impexp_mdm_export:
 
 **Imports**:
 
-```
+```yml
 ibm_infosvr_impexp_dc_mappings:
   - { type: "<string>", attr: "<string>", from: "<value>", to: "<value>" }
   - ...
@@ -296,7 +296,7 @@ Mappings are purely optional, and the only required parameter for the import is 
 
 **Exports**:
 
-```
+```yml
 ibm_infosvr_impexp_dc_export:
   - dest: "<path>"
     changes_in_last_hours: <int>
@@ -310,7 +310,7 @@ Conditions are purely optional, take the form of the IGC REST API's conditions (
 
 **Examples**:
 
-```
+```yml
 ibm_infosvr_impexp_dc_mappings:
   - { type: "HostSystem", attr: "name", from: "MY_HOST", to: "YOUR_HOST" }
 
@@ -328,7 +328,7 @@ ibm_infosvr_impexp_dc_export:
 
 **Imports**:
 
-```
+```yml
 ibm_infosvr_impexp_ds_import:
   - { src: "<path>", project: "<string>", overwrite: <boolean> }
   - ...
@@ -338,7 +338,7 @@ The only required parameters for the import are the `src` file from which to and
 
 **Exports**:
 
-```
+```yml
 ibm_infosvr_impexp_ds_export:
   - dest: "<path>"
     changes_in_last_hours: <int>
@@ -357,7 +357,7 @@ Note that because design-time lineage depends on the resolution of job parameter
 
 **Examples**:
 
-```
+```yml
 ibm_infosvr_impexp_ds_import:
   - { src: "import.isx", project: "dstage1", overwrite: True }
 
@@ -373,7 +373,7 @@ ibm_infosvr_impexp_ds_export:
 
 **Imports**:
 
-```
+```yml
 ibm_infosvr_impexp_ds_vars_import:
   - { src: "<path>", project: "<string>" }
   - ...
@@ -383,7 +383,7 @@ The only required parameters for the import are the `src` file from which to and
 
 **Exports**:
 
-```
+```yml
 ibm_infosvr_impexp_ds_vars_export:
   - dest: "<path>"
     project: "<string>"
@@ -395,7 +395,7 @@ The only required parameters for the export are the `dest` file into which to ca
 
 **Examples**:
 
-```
+```yml
 ibm_infosvr_impexp_ds_vars_import:
   - { src: "ds_dstage1_vars.yml", project: "dstage1" }
 
@@ -411,7 +411,7 @@ ibm_infosvr_impexp_ds_vars_export:
 
 **Imports**:
 
-```
+```yml
 ibm_infosvr_impexp_ia_mappings:
   - { type: "<string>", attr: "<string>", from: "<value>", to: "<value>" }
   - ...
@@ -425,7 +425,7 @@ Mappings are purely optional, and the only required parameters for the import ar
 
 **Exports**:
 
-```
+```yml
 ibm_infosvr_impexp_ia_export:
   - dest: "<path>"
     project: "<string>"
@@ -461,7 +461,7 @@ Objects that can be conditionally exported include `data_rule_definition`, `data
 
 **Examples**:
 
-```
+```yml
 ibm_infosvr_impexp_ia_mappings:
   - { type: "DataSource", attr: "host", from: "MY_HOST", to: "YOUR_HOST" }
   - { type: "DataSource", attr: "name", from: "MYDB", to: "YOURDB" }
@@ -502,7 +502,7 @@ ibm_infosvr_impexp_ia_export:
 
 **Imports**:
 
-```
+```yml
 ibm_infosvr_impexp_xa_import:
   - { src: "<path>", overwrite: <boolean> }
   - ...
@@ -512,7 +512,7 @@ The only required parameter for the import is the `src` file from which to load 
 
 **Exports**:
 
-```
+```yml
 ibm_infosvr_impexp_xa_export:
   - dest: "<path>"
     changes_in_last_hours: <int>
@@ -529,7 +529,7 @@ The `type` is required, and must be one of `application`, `file`, or `stored_pro
 
 **Examples**:
 
-```
+```yml
 ibm_infosvr_impexp_xa_import:
   - { src: "import.csv", overwrite: True }
 
@@ -549,7 +549,7 @@ ibm_infosvr_impexp_xa_export:
 
 **Imports**:
 
-```
+```yml
 ibm_infosvr_impexp_xm_import:
   - { src: "<path>", folder: "root/<string>", overwrite: <boolean> }
   - ...
@@ -559,7 +559,7 @@ The only required parameter for the import is the `src` file from which to load 
 
 **Exports**:
 
-```
+```yml
 ibm_infosvr_impexp_xm_export:
   - dest: "<path>"
     changes_in_last_hours: <int>
@@ -570,7 +570,7 @@ The `changes_in_last_hours` is optional; if used, specify the number of hours pr
 
 **Examples**:
 
-```
+```yml
 ibm_infosvr_impexp_xm_import:
   - { src: "import.csv", folder: "root/Some/Folder", overwrite: True }
 
@@ -583,7 +583,7 @@ ibm_infosvr_impexp_xm_export:
 
 **Imports**:
 
-```
+```yml
 ibm_infosvr_impexp_bg_mappings:
   - { type: "<string>", attr: "<string>", from: "<value>", to: "<value>" }
   - ...
@@ -605,7 +605,7 @@ The order of importing is also important for glossary assets, since different as
 
 **Exports**:
 
-```
+```yml
 ibm_infosvr_impexp_bg_export:
   - dest: "<path>"
     categories: "<string>"
@@ -625,7 +625,7 @@ Because of the way the export for these assets works, you may be able to improve
 
 **Examples**:
 
-```
+```yml
 ibm_infosvr_impexp_bg_mappings:
   - { type: "HostSystem", attr: "name", from: "MY_HOST", to: "YOUR_HOST" }
 
@@ -657,7 +657,7 @@ ibm_infosvr_impexp_bg_export:
 
 **Imports**:
 
-```
+```yml
 ibm_infosvr_impexp_igc_relns_mappings:
   - { type: "<string>", property: "<string>", from: "<value>", to: "<value>" }
   - ...
@@ -687,7 +687,7 @@ The `mode` must be one of the following:
 
 **Exports**:
 
-```
+```yml
 ibm_infosvr_impexp_igc_relns_export:
   - dest: "<path>"
     changes_in_last_hours: <int>
@@ -710,7 +710,7 @@ Finally, `limit` is also optional: when used it should provide a list of the rel
 
 **Examples**:
 
-```
+```yml
 ibm_infosvr_impexp_igc_relns_mappings:
   - { type: "host", property: "name", from: "MY", to: "YOUR" }
 
@@ -739,7 +739,7 @@ ibm_infosvr_impexp_igc_relns_export:
 
 **Imports**:
 
-```
+```yml
 ibm_infosvr_impexp_omd_import:
   - src: "<path>"
   - ...
@@ -754,7 +754,7 @@ As part of the import process, the following actions will be taken:
 
 **Exports**:
 
-```
+```yml
 ibm_infosvr_impexp_omd_export:
   - dest: "<path>"
     changes_in_last_hours: <int>
@@ -765,7 +765,7 @@ The `dest` is required, and describes where the operational metadata flow files 
 
 **Examples**:
 
-```
+```yml
 ibm_infosvr_impexp_omd_import:
   - src: cache/omd_exports/
 
@@ -778,7 +778,7 @@ ibm_infosvr_impexp_omd_export:
 
 A simple validation framework is also provided to, for example, confirm the expected results of a load of metadata.  In essence the framework takes an arbitrary set of conditions and uses the IGC REST API to confirm that those conditions exist in the environment in question.
 
-```
+```yml
 ibm_infosvr_impexp_validate:
   that:
     - number_of: "<string>"
@@ -797,7 +797,7 @@ Each set of conditions applies to only a single asset type, but multiple asset t
 
 **Examples**:
 
-```
+```yml
 ibm_infosvr_impexp_validate:
   that:
     - number_of: category
