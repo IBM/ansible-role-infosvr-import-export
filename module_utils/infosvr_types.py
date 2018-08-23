@@ -93,21 +93,21 @@ def get_asset_extract_object(asset_type, rest_result):
         return _getDataClassExtractObjects(rest_result)
     elif asset_type == 'extension_mapping_document':
         return _getExtensionMappingDocumentExtractObjects(rest_result)
-    elif (asset_type == 'application'
-          or asset_type == 'file'
-          or asset_type == 'stored_procedure_definition'):
+    elif (asset_type == 'application' or
+          asset_type == 'file' or
+          asset_type == 'stored_procedure_definition'):
         return _getExternalAssetExtractObjects(rest_result)
-    elif (asset_type == 'category'
-          or asset_type == 'term'
-          or asset_type == 'information_governance_policy'
-          or asset_type == 'information_governance_rule'
-          or asset_type == 'label'):
+    elif (asset_type == 'category' or
+          asset_type == 'term' or
+          asset_type == 'information_governance_policy' or
+          asset_type == 'information_governance_rule' or
+          asset_type == 'label'):
         return _getRidOnly(rest_result)
-    elif (asset_type == 'data_rule_definition'
-          or asset_type == 'data_rule_set_definition'
-          or asset_type == 'data_rule'
-          or asset_type == 'data_rule_set'
-          or asset_type == 'metric'):
+    elif (asset_type == 'data_rule_definition' or
+          asset_type == 'data_rule_set_definition' or
+          asset_type == 'data_rule' or
+          asset_type == 'data_rule_set' or
+          asset_type == 'metric'):
         return _getInfoAnalyzerExtractObjects(rest_result)
     else:
         return "UNIMPLEMENTED"
