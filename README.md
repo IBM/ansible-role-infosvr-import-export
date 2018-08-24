@@ -735,6 +735,43 @@ ibm_infosvr_impexp_igc_relns_export:
       - { property: "category_path._id", operator: "=", value: "6662c0f2.ee6a64fe.ko15n9ej3.cq2arq8.ld2q5u.2qonhvupr4m3b68ouj93c" }
 ```
 
+## Workflow progression
+
+You can use the following variable and its settings to automate the progression (or regression) of items within the workflow.
+
+```yml
+ibm_infosvr_impexp_workflow_progress:
+  - type: "<string>"
+    from_state: "<string>"
+    action: "<string>"
+    comment: "<string>"
+    conditions:
+      - { property: "<string>", operator: "<string>", value: "<string>" }
+      - ...
+```
+
+The required inputs are:
+
+- `type` -- which must be one of: `category`, `term`, `information_governance_policy`, `information_governance_rule`
+- `action` -- which must be one of: `discard`, `return`, `request`, `approve`, `publish`
+
+The optional `from_state` can limit the objects that are progressed based on their current state in the workflow (one of `DRAFT`, `WAITING_APPROVAL`, `APPROVED`, or `ALL`). If not specified the default of `ALL` is used, and assets are progressed potentially multiple states in order to achieve the final state specified by `action`.
+
+The optional `comment` will be used as the workflow comment for each state change that is made.
+
+Finally, the optional `conditions` specify which items within the workflow should be acted upon.  This can be expressed as a matter of one or more conditions that are relative to the `type` specified. Note that if you specify a RID in any of these, it needs to be a development-glossary-specific RID.
+
+**Examples**:
+
+```yml
+ibm_infosvr_impexp_workflow_progress:
+  - type: term
+    action: publish
+    comment: "Auto-publication by an import process"
+    conditions:
+      - { property: "label.name", operator: "=", value: "Public" }
+```
+
 ## Operational metadata (OMD)
 
 **Imports**:
