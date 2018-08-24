@@ -102,6 +102,22 @@ class RestIGC(object):
         else:
             return ""
 
+    def takeWorkflowAction(self, rids, action, comment=''):
+        payload = {
+            "ids": rids,
+            "comment": comment
+        }
+        r = self.session.request(
+            "POST",
+            self.baseURL + "/ibm/iis/igc-rest/v1/workflow/" + action.lower(),
+            json=payload,
+            auth=(self.username, self.password)
+        )
+        if r.status_code == 200:
+            return r.json()
+        else:
+            return ""
+
     def getContextForItem(self, rid, asset_type):
         q = {
             "properties": ["name"],
