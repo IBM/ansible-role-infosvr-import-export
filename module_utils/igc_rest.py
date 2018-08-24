@@ -113,10 +113,7 @@ class RestIGC(object):
             json=payload,
             auth=(self.username, self.password)
         )
-        if r.status_code == 200:
-            return r.json()
-        else:
-            return ""
+        return (r.status_code == 200)
 
     def getContextForItem(self, rid, asset_type):
         q = {
