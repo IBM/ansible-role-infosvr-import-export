@@ -59,7 +59,8 @@
   loop_control:
     label: "{{ item.src | basename }} - {{ item.type }} - {{ item.relationship }}"
 
-#- debug: var=__ibm_infosvr_impexp_igc_relns_load
+- debug: var=__ibm_infosvr_impexp_igc_relns_load
+  tags: [ 'never', 'debug' ]
 
 - name: import_igc_relns - cleanup transferred files
   file: path=/tmp/__load_igc_relns_{{ item.src | basename }} state=absent

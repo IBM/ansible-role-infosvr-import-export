@@ -51,11 +51,8 @@
     executable: /bin/bash
     chdir: "{{ ibm_infosvr_impexp_infosvr_install_location }}/Server/DSEngine"
   with_items: "{{ __ibm_infosvr_impexp_ds_export_changes.results }}"
-#    - "{{ __ibm_infosvr_impexp_ds_export_changes.results }}"
-#    - "assets"
   loop_control:
     label: "{{ item.item.dest | basename }}"
-#    label: "{{ item.item.dest | basename }} - {{ ibm_infosvr_impexp_services_host | upper }}/{{ item.1.project }}/{{ item.1.folder }}/{{ item.1.jobs }}"
 
 - name: export_datastage - transfer files
   fetch: src=/tmp/__export_ds_{{ item.dest | basename }} dest={{ item.dest }} flat=yes

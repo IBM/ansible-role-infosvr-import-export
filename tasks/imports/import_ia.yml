@@ -36,7 +36,8 @@
   loop_control:
     label: "{{ item.src | basename }} - {{ item.project }}"
 
-#- debug: var=__ibm_infosvr_impexp_ia_load
+- debug: var=__ibm_infosvr_impexp_ia_load
+  tags: [ 'never', 'debug' ]
 
 - name: import_ia - cleanup transferred files
   file: path=/tmp/__load_ia_{{ item.src | basename }} state=absent

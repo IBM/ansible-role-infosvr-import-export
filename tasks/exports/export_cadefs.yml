@@ -74,7 +74,8 @@
   loop_control:
     label: "{{ item.1.path }}"
 
-#- debug: var=__ibm_infosvr_impexp_ca_extract
+- debug: var=__ibm_infosvr_impexp_ca_extract
+  tags: [ 'never', 'debug' ]
 
 - name: export_cadefs - re-archive ISX file
   archive:

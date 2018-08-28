@@ -38,7 +38,8 @@
   register: __ibm_infosvr_impexp_igc_relns_extract
   with_items: "{{ ibm_infosvr_impexp_igc_relns_export }}"
 
-#- debug: var=__ibm_infosvr_impexp_igc_relns_extract
+- debug: var=__ibm_infosvr_impexp_igc_relns_extract
+  tags: [ 'never', 'debug' ]
 
 - name: export_igc_relns - transfer files
   fetch: src=/tmp/__export_igc_relns_{{ item.item.dest | basename }} dest={{ item.item.dest }} flat=yes
