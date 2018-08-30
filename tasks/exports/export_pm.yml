@@ -47,17 +47,15 @@
           -u {{ ibm_infosvr_impexp_infosvr_admin_user }}
           -p {{ ibm_infosvr_impexp_infosvr_admin_user_pwd }}
           -dom {{ ibm_infosvr_impexp_services_host | lower }}:{{ ibm_infosvr_impexp_services_console_port }}
-          -ar /tmp/__export_pm_{{ item.0.item.dest | basename }}
+          -ar /tmp/__export_pm_{{ item.item.dest | basename }}
           -up
-          -cm '"/{{ item.1.namespace }}/{{ item.1.name }}.pm"'
+          -cm '{% for asset in item.assets %}"/{{ asset.namespace }}/{{ asset.name }}.pm"{% endfor %}'
   args:
     executable: /bin/bash
     chdir: "{{ ibm_infosvr_impexp_infosvr_install_location }}/Server/DSEngine"
-  with_subelements:
-    - "{{ __ibm_infosvr_impexp_pm_export_changes.results }}"
-    - "assets"
+  with_items: "{{ __ibm_infosvr_impexp_pm_export_changes.results }}"
   loop_control:
-    label: "{{ item.0.item.dest | basename }} - {{ item.1.namespace }}/{{ item.1.name }}"
+    label: "{{ item.item.dest | basename }}"
 
 - name: export_pm - transfer files
   fetch: src=/tmp/__export_pm_{{ item.dest | basename }} dest={{ item.dest }} flat=yes
