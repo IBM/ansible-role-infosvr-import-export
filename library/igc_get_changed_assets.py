@@ -257,7 +257,7 @@ def main():
             "property": "object_types.methods.output_values.modified_on",
             "operator": "between"
         })
-    # Handle extended data sources in special way (to catch any changes in their underlying
+    # Handle stored procedures in special way (to catch any changes in their underlying
     # granular assets as well) -- requires nested OR'd conditions to check for changes
     elif asset_type == 'stored_procedure_definition':
         reqJSON['where']['conditions'].append({"conditions": [], "operator": "or"})
@@ -309,6 +309,34 @@ def main():
             "min": module.params['from_time'],
             "max": module.params['to_time'],
             "property": "modified_on",
+            "operator": "between"
+        })
+    # Handle LDM objects in special way (to catch any changes in underlying objects)
+    # -- requires nested OR'd condition to check for changes
+    elif asset_type == 'logical_data_model':
+        reqJSON['where']['conditions'].append({"conditions": [], "operator": "or"})
+        reqJSON['where']['conditions'].append({
+            "min": module.params['from_time'],
+            "max": module.params['to_time'],
+            "property": "modified_on",
+            "operator": "between"
+        })
+        reqJSON['where']['conditions'][0]['conditions'].append({
+            "min": module.params['from_time'],
+            "max": module.params['to_time'],
+            "property": "subject_areas.modified_on",
+            "operator": "between"
+        })
+        reqJSON['where']['conditions'][0]['conditions'].append({
+            "min": module.params['from_time'],
+            "max": module.params['to_time'],
+            "property": "logical_entities.modified_on",
+            "operator": "between"
+        })
+        reqJSON['where']['conditions'][0]['conditions'].append({
+            "min": module.params['from_time'],
+            "max": module.params['to_time'],
+            "property": "logical_domains.modified_on",
             "operator": "between"
         })
     # Skip delta detection on the assets named in this condition, as they have no 'modified_on' to query against

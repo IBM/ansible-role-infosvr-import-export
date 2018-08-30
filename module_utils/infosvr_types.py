@@ -20,6 +20,8 @@ This module adds generic utility functions for translating between Information S
 from __future__ import (absolute_import, division, print_function)
 __metaclass__ = type
 
+import re
+
 common_properties = ["modified_on"]
 
 # TODO: known missing asset types:
@@ -43,7 +45,8 @@ asset_type_to_properties = {
     "data_rule": ["project"] + common_properties,
     "data_rule_set": ["project"] + common_properties,
     "metric": ["project"] + common_properties,
-    "label": ["name"]
+    "label": ["name"],
+    "logical_data_model": ["namespace"] + common_properties
 }
 
 xa_asset_type_to_extract_type = {
@@ -109,12 +112,25 @@ def get_asset_extract_object(asset_type, rest_result):
           asset_type == 'data_rule_set' or
           asset_type == 'metric'):
         return _getInfoAnalyzerExtractObjects(rest_result)
+    elif asset_type == 'logical_data_model':
+        return _getLogicalDataModelExtractObjects(rest_result)
     else:
         return "UNIMPLEMENTED"
 
 
 def _getRidOnly(rest_result):
     return rest_result['_id']
+
+
+def _getContextPath(rest_result, delim='/'):
+    path = ""
+    for item in rest_result['_context']:
+        path = path + delim + item['_name']
+    return path[1:]
+
+
+def _escapeName(name):
+    return re.sub(pattern='/', repl='_', name)
 
 
 def _getDsJobExtractObjects(rest_result):
@@ -259,5 +275,17 @@ def _getInfoAnalyzerExtractObjects(rest_result):
         "project": projectName,
         "name": rest_result['_name'],
         "type": objtype
+    }
+    return extract
+
+
+def _getLogicalDataModelExtractObjects(rest_result):
+    namespace = rest_result['namespace']
+    name = _escapeName(rest_result['_name'])
+    if len(rest_result['_context']) > 0:
+        name = _escapeName(rest_result['_context'][0]['_name'])
+    extract = {
+        "namespace": namespace,
+        "name": name
     }
     return extract

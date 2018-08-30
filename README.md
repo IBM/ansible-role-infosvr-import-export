@@ -215,10 +215,15 @@ Mappings are purely optional, and the only required parameter for the import is 
 
 ```yml
 ibm_infosvr_impexp_lm_export:
-  - { dest: "<path>", path: "<string>" }
+  - dest: "<path>"
+    changes_in_last_hours: <int>
+    conditions:
+      - { property: "<string>", operator: "<string>", value: "<value>" }
+      - ...
+  - ...
 ```
 
-The wildcard for `path`, is `"*"`.
+Conditions are purely optional, take the form of the IGC REST API's conditions (see http://www.ibm.com/support/docview.wss?uid=swg27047054) and are currently always AND'd (all conditions must be met). The conditions should be relative to the top-level logical_data_model object(s) you wish to include. The `changes_in_last_hours` is also optional; if used, specify the number of hours prior to the playbook running from which to identify (and extract) any changes. (Changes to sub-objects of the logical model -- its contained logical models, subject areas, logical entities and logical domains -- will automatically be checked for changes as well.)
 
 **Examples**:
 
@@ -230,12 +235,11 @@ ibm_infosvr_impexp_lm_import:
   - { src: "import.isx", options: "-allowDup", map: "{{ ibm_infosvr_impexp_lm_mappings }}", overwrite: True }
 
 ibm_infosvr_impexp_lm_export:
-  - { dest: "cache/ldms.isx", path: "/*/*.lm" }
-  - { dest: "cache/ldm_entities.isx", path: "/*/*/*.ent" }
-  - { dest: "cache/ldm_relationships.isx", path: "/*/*/*/*/*.rel" }
-  - { dest: "cache/ldm_generalizations.isx", path: "/*/*/*/*/*/*.gen" }
-  - { dest: "cache/ldm_domains.isx", path: "/*/*/*/*.dom" }
-  - { dest: "cache/ldm_subjectareas.isx", path: "/*/*/*.sa" }
+  - dest: cache/ldm_sample_changed_in_last_2_days.isx
+    changes_in_last_hours: 48
+    conditions:
+      - { property: "name", operator: "=", value: "Sample" }
+      - { property: "namespace", operator: "=", value: "SampleNamespace" }
 ```
 
 ## Master data management model metadata
