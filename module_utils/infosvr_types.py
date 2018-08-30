@@ -318,17 +318,14 @@ def _getDataFileExtractObjects(rest_result):
     path = _getContextPath(rest_result)
     host = path
     folder = path
-    foldname = ""
     if path.find('/') > 0:
         host = path[0:path.find('/')]
         folder = path[(path.find('/') + 1):]
         if folder.startswith('//'):
             folder = folder[1:]
-        foldname = path[(path.rfind('/') + 1):]
     extract = {
         "host": host,
         "folder": _escapeFilePath(folder),
-        "foldname": foldname,
         "name": rest_result['_name']
     }
     return extract
