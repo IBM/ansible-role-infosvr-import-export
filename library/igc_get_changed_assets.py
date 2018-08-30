@@ -324,6 +324,12 @@ def main():
         reqJSON['where']['conditions'][0]['conditions'].append({
             "min": module.params['from_time'],
             "max": module.params['to_time'],
+            "property": "contains_logical_data_models.modified_on",
+            "operator": "between"
+        })
+        reqJSON['where']['conditions'][0]['conditions'].append({
+            "min": module.params['from_time'],
+            "max": module.params['to_time'],
             "property": "subject_areas.modified_on",
             "operator": "between"
         })
