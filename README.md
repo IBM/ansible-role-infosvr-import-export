@@ -5,8 +5,16 @@ Ansible role for automating the import and export of content and structures with
 ## Requirements
 
 - Ansible v2.4.x
-- Root-become-able network access to an IBM Information Server environment
+- `dsadm`-become-able network access to an IBM Information Server environment
 - Inventory group names setup the same as `IBM.infosvr` role
+
+The role optionally uses privilege escalation to root to automate very few setup tasks. If your environment does not allow this privilege escalation, please ensure these pre-requisites are already fulfilled manually in your environment and change the `defaults/main.yml` variable `ibm_infosvr_impexp_priv_escalate` to `False` (this will skip any attempts at privilege escalation to root).
+
+In case you set the escalation to false, ensure that the following are done in your target environment prior to running the role:
+
+- Installation of the `python-requests` library (eg. via `yum`)
+- Installation of the `python-lxml` library (eg. via `yum`)
+- The `{IS_HOME}/ASBServer/logs` directory of the domain tier must be write-able by the user running the role
 
 ## Role Variables
 

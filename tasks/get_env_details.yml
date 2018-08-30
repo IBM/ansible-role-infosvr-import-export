@@ -28,7 +28,10 @@
 - name: ensure XML library is installed
   yum: name=python-lxml state=latest
   become: yes
-  when: not ('ibm-information-server-ug' in group_names) and not ('ibm-information-server-clients' in group_names)
+  when: >
+        ibm_infosvr_impexp_priv_escalate
+        and not ('ibm-information-server-ug' in group_names)
+        and not ('ibm-information-server-clients' in group_names)
 
 - name: retrieve Version.xml
   fetch:

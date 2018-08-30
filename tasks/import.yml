@@ -20,6 +20,7 @@
   with_items:
     - python-requests
   become: yes
+  when: ibm_infosvr_impexp_priv_escalate
 
 - name: get nanosecond epoch
   command: date -u +%s%N
@@ -40,18 +41,14 @@
 - import_tasks: load_certificate.yml
   when: ibm_infosvr_impexp_verify_selfsigned_ssl is defined and ibm_infosvr_impexp_verify_selfsigned_ssl
 
-- name: load mapping defaults
+- name: load mapping defaults (escalated)
   import_tasks: imports/setup_mappings.yml
   become: yes
-  when: ('ibm-information-server-domain' in group_names)
+  when: ibm_infosvr_impexp_priv_escalate and ('ibm-information-server-domain' in group_names)
 
-- name: ensure common backup location exists
-  file:
-    path: "{{ ibm_infosvr_impexp_backup_first }}/{{ __ibm_infosvr_impexp_timestamp }}"
-    state: directory
-  become: yes
-  register: __ibm_infosvr_impexp_backup_dir
-  when: ibm_infosvr_impexp_backup_first is defined
+- name: load mapping defaults (un-escalated)
+  import_tasks: imports/setup_mappings.yml
+  when: ('ibm-information-server-domain' in group_names) and not ibm_infosvr_impexp_priv_escalate
 
 # Security (-sec)
 
