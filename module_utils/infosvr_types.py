@@ -321,7 +321,9 @@ def _getDataFileExtractObjects(rest_result):
     foldname = ""
     if path.find('/') > 0:
         host = path[0:path.find('/')]
-        folder = path[path.find('/'):]
+        folder = path[(path.find('/') + 1):]
+        if folder.startswith('//'):
+            folder = folder[1:]
         foldname = path[(path.rfind('/') + 1):]
     extract = {
         "host": host,
