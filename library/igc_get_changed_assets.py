@@ -385,6 +385,92 @@ def main():
             "property": "physical_domains.modified_on",
             "operator": "between"
         })
+    # Handle Database objects in special way (to catch any changes in underlying objects)
+    # -- requires nested OR'd condition to check for changes
+    elif asset_type == 'database':
+        reqJSON['where']['conditions'].append({"conditions": [], "operator": "or"})
+        reqJSON['where']['conditions'].append({
+            "min": module.params['from_time'],
+            "max": module.params['to_time'],
+            "property": "modified_on",
+            "operator": "between"
+        })
+        reqJSON['where']['conditions'][0]['conditions'].append({
+            "min": module.params['from_time'],
+            "max": module.params['to_time'],
+            "property": "database_schemas.modified_on",
+            "operator": "between"
+        })
+        reqJSON['where']['conditions'][0]['conditions'].append({
+            "min": module.params['from_time'],
+            "max": module.params['to_time'],
+            "property": "database_schemas.stored_procedures.modified_on",
+            "operator": "between"
+        })
+        reqJSON['where']['conditions'][0]['conditions'].append({
+            "min": module.params['from_time'],
+            "max": module.params['to_time'],
+            "property": "database_schemas.views.modified_on",
+            "operator": "between"
+        })
+        reqJSON['where']['conditions'][0]['conditions'].append({
+            "min": module.params['from_time'],
+            "max": module.params['to_time'],
+            "property": "database_schemas.database_tables.modified_on",
+            "operator": "between"
+        })
+        reqJSON['where']['conditions'][0]['conditions'].append({
+            "min": module.params['from_time'],
+            "max": module.params['to_time'],
+            "property": "database_schemas.database_tables.database_columns.modified_on",
+            "operator": "between"
+        })
+        reqJSON['where']['conditions'][0]['conditions'].append({
+            "min": module.params['from_time'],
+            "max": module.params['to_time'],
+            "property": "database_schemas.views.database_columns.modified_on",
+            "operator": "between"
+        })
+    # Handle Schema objects in special way (to catch any changes in underlying objects)
+    # -- requires nested OR'd condition to check for changes
+    elif asset_type == 'database_schema':
+        reqJSON['where']['conditions'].append({"conditions": [], "operator": "or"})
+        reqJSON['where']['conditions'].append({
+            "min": module.params['from_time'],
+            "max": module.params['to_time'],
+            "property": "modified_on",
+            "operator": "between"
+        })
+        reqJSON['where']['conditions'][0]['conditions'].append({
+            "min": module.params['from_time'],
+            "max": module.params['to_time'],
+            "property": "stored_procedures.modified_on",
+            "operator": "between"
+        })
+        reqJSON['where']['conditions'][0]['conditions'].append({
+            "min": module.params['from_time'],
+            "max": module.params['to_time'],
+            "property": "views.modified_on",
+            "operator": "between"
+        })
+        reqJSON['where']['conditions'][0]['conditions'].append({
+            "min": module.params['from_time'],
+            "max": module.params['to_time'],
+            "property": "database_tables.modified_on",
+            "operator": "between"
+        })
+        reqJSON['where']['conditions'][0]['conditions'].append({
+            "min": module.params['from_time'],
+            "max": module.params['to_time'],
+            "property": "database_tables.database_columns.modified_on",
+            "operator": "between"
+        })
+        reqJSON['where']['conditions'][0]['conditions'].append({
+            "min": module.params['from_time'],
+            "max": module.params['to_time'],
+            "property": "views.database_columns.modified_on",
+            "operator": "between"
+        })
     # Skip delta detection on the assets named in this condition, as they have no 'modified_on' to query against
     elif asset_type != 'label':
         reqJSON['where']['conditions'].append({

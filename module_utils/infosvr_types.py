@@ -47,7 +47,9 @@ asset_type_to_properties = {
     "metric": ["project"] + common_properties,
     "label": ["name"],
     "logical_data_model": ["namespace"] + common_properties,
-    "physical_data_model": ["namespace"] + common_properties
+    "physical_data_model": ["namespace"] + common_properties,
+    "database": common_properties,
+    "database_schema": common_properties
 }
 
 xa_asset_type_to_extract_type = {
@@ -116,6 +118,9 @@ def get_asset_extract_object(asset_type, rest_result):
     elif (asset_type == 'logical_data_model' or
           asset_type == 'physical_data_model'):
         return _getDataModelExtractObjects(rest_result)
+    elif (asset_type == 'database' or
+          asset_type == 'database_schema'):
+        return _getDatabaseExtractObjects(rest_result)
     else:
         return "UNIMPLEMENTED"
 
@@ -289,5 +294,14 @@ def _getDataModelExtractObjects(rest_result):
     extract = {
         "namespace": namespace,
         "name": name
+    }
+    return extract
+
+
+def _getDatabaseExtractObjects(rest_result):
+    extract = {
+        "path": _getContextPath(rest_result),
+        "name": _escapeName(rest_result['_name']),
+        "type": rest_result['_type']
     }
     return extract

@@ -172,12 +172,6 @@ ibm_infosvr_impexp_cm_import:
   - { src: "import.isx", options: "-allowDup", map: "{{ ibm_infosvr_impexp_cm_mappings }}", overwrite: True }
 
 ibm_infosvr_impexp_cm_export:
-  - { dest: "cache/cm_hosts.isx", path: "/*.hst" }
-  - { dest: "cache/cm_databases.isx", path: "/*/*.db" }
-  - { dest: "cache/cm_schemas.isx", path: "/*/*/*.sch" }
-  - { dest: "cache/cm_tables.isx", path: "/*/*/*/*.tbl" }
-  - { dest: "cache/cm_procedures.isx", path: "/*/*/*/*.sp" }
-  - { dest: "cache/cm_columns.isx", path: "/*/*/*/*/*.sdd" }
   - { dest: "cache/cm_file_folders.isx", path: "/*/*/*.fdr" }
   - { dest: "cache/cm_files.isx", path: "/*/*/*.fl" }
   - { dest: "cache/cm_file_structures.isx", path: "/*/*/*/*.dcl" }
@@ -333,6 +327,58 @@ ibm_infosvr_impexp_mdm_import:
 
 ibm_infosvr_impexp_mdm_export:
   - { dest: "cache/mdm.isx", path: "/*/*.mdm" }
+```
+
+## Database metadata
+
+**Note**: As with common metadata, database metadata export and import should really only be used when you need to load metadata into an environment where that environment will not have access to the source database itself.  When possible, it will be more robust to directly load the metadata through IBM Metadata Asset Manager, which can be automated through the [IBM.infosvr-metadata-asset-manager](https://galaxy.ansible.com/IBM/infosvr-metadata-asset-manager) role.  IBM Metadata Asset Manager will ensure that accurate metadata is recorded, and can be periodically refreshed (re-imported) to be kept up-to-date, including staging potentially destructive changes for review.  The re-importing is handled automatically as part of the [IBM.infosvr-metadata-asset-manager](https://galaxy.ansible.com/IBM/infosvr-metadata-asset-manager) role, so can also be automated (and will warn if there is a potentially destructive change that has been stage and requires review before it can be published).
+
+**Imports**:
+
+```yml
+ibm_infosvr_impexp_db_mappings:
+  - { type: "<string>", attr: "<string>", from: "<value>", to: "<value>" }
+  - ...
+
+ibm_infosvr_impexp_db_import:
+  - { src: "<path>", options: "<string>", map: "<list>", overwrite: <boolean> }
+  - ...
+```
+
+Mappings are purely optional, and the only required parameter for the import is the `src` file from which to load them.
+
+**Exports**:
+
+```yml
+ibm_infosvr_impexp_db_export:
+  - dest: "<path>"
+    type: "<string>"
+    changes_in_last_hours: <int>
+    conditions:
+      - { property: "<string>", operator: "<string>", value: "<value>" }
+      - ...
+  - ...
+```
+
+Only the `dest` and `type` are required, and the `type` must be one of: `database` or `database_schema`.
+
+Conditions are purely optional, take the form of the IGC REST API's conditions (see http://www.ibm.com/support/docview.wss?uid=swg27047054) and are currently always AND'd (all conditions must be met). The conditions should be relative to the top-level object `type` specified. The `changes_in_last_hours` is also optional; if used, specify the number of hours prior to the playbook running from which to identify (and extract) any changes. (Changes to sub-objects of the specified `type` -- its contained tables, views, stored procedures, and columns -- will automatically be checked for changes as well.)
+
+**Examples**:
+
+```yml
+ibm_infosvr_impexp_db_mappings:
+  - { type: "HostSystem", attr: "name", from: "MY_HOST", to: "YOUR_HOST" }
+
+ibm_infosvr_impexp_db_import:
+  - { src: "import.isx", options: "-allowDup", map: "{{ ibm_infosvr_impexp_db_mappings }}", overwrite: True }
+
+ibm_infosvr_impexp_db_export:
+  - dest: cache/db_schemas_changed_in_last_2_days.isx
+    type: database_schema
+    changes_in_last_hours: 48
+    conditions:
+      - { property: "database.host.name", operator: "=", value: "MYHOST.SOMEWHERE.COM" }
 ```
 
 ## Data classes
