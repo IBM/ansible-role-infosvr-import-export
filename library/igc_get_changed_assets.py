@@ -471,6 +471,28 @@ def main():
             "property": "views.database_columns.modified_on",
             "operator": "between"
         })
+    # Handle data file objects in special way (to catch any changes in underlying objects)
+    # -- requires nested OR'd condition to check for changes
+    elif asset_type == 'data_file':
+        reqJSON['where']['conditions'].append({"conditions": [], "operator": "or"})
+        reqJSON['where']['conditions'].append({
+            "min": module.params['from_time'],
+            "max": module.params['to_time'],
+            "property": "modified_on",
+            "operator": "between"
+        })
+        reqJSON['where']['conditions'][0]['conditions'].append({
+            "min": module.params['from_time'],
+            "max": module.params['to_time'],
+            "property": "data_file_records.modified_on",
+            "operator": "between"
+        })
+        reqJSON['where']['conditions'][0]['conditions'].append({
+            "min": module.params['from_time'],
+            "max": module.params['to_time'],
+            "property": "data_file_records.data_file_fields.modified_on",
+            "operator": "between"
+        })
     # Skip delta detection on the assets named in this condition, as they have no 'modified_on' to query against
     elif asset_type != 'label':
         reqJSON['where']['conditions'].append({

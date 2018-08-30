@@ -49,7 +49,8 @@ asset_type_to_properties = {
     "logical_data_model": ["namespace"] + common_properties,
     "physical_data_model": ["namespace"] + common_properties,
     "database": common_properties,
-    "database_schema": common_properties
+    "database_schema": common_properties,
+    "data_file": common_properties
 }
 
 xa_asset_type_to_extract_type = {
@@ -121,6 +122,8 @@ def get_asset_extract_object(asset_type, rest_result):
     elif (asset_type == 'database' or
           asset_type == 'database_schema'):
         return _getDatabaseExtractObjects(rest_result)
+    elif asset_type == 'data_file':
+        return _getDataFileExtractObjects(rest_result)
     else:
         return "UNIMPLEMENTED"
 
@@ -134,10 +137,6 @@ def _getContextPath(rest_result, delim='/'):
     for item in rest_result['_context']:
         path = path + delim + item['_name']
     return path[1:]
-
-
-def _escapeName(name):
-    return re.sub('/', '_', name)
 
 
 def _getDsJobExtractObjects(rest_result):
@@ -286,11 +285,15 @@ def _getInfoAnalyzerExtractObjects(rest_result):
     return extract
 
 
+def _escapeModelName(name):
+    return re.sub('/', '_', name)
+
+
 def _getDataModelExtractObjects(rest_result):
     namespace = rest_result['namespace']
-    name = _escapeName(rest_result['_name'])
+    name = _escapeModelName(rest_result['_name'])
     if len(rest_result['_context']) > 0:
-        name = _escapeName(rest_result['_context'][0]['_name'])
+        name = _escapeModelName(rest_result['_context'][0]['_name'])
     extract = {
         "namespace": namespace,
         "name": name
@@ -301,7 +304,29 @@ def _getDataModelExtractObjects(rest_result):
 def _getDatabaseExtractObjects(rest_result):
     extract = {
         "path": _getContextPath(rest_result),
-        "name": _escapeName(rest_result['_name']),
+        "name": rest_result['_name'],
         "type": rest_result['_type']
+    }
+    return extract
+
+
+def _escapeFilePath(name):
+    return re.sub('/', '\\/', name)
+
+
+def _getDataFileExtractObjects(rest_result):
+    path = _getContextPath(rest_result)
+    host = path
+    folder = path
+    foldname = ""
+    if path.find('/') > 0:
+        host = path[0:path.find('/')]
+        folder = path[path.find('/'):]
+        foldname = path[(path.rfind('/') + 1):]
+    extract = {
+        "host": host,
+        "folder": _escapeFilePath(folder),
+        "foldname": foldname,
+        "name": rest_result['_name']
     }
     return extract

@@ -381,6 +381,56 @@ ibm_infosvr_impexp_db_export:
       - { property: "database.host.name", operator: "=", value: "MYHOST.SOMEWHERE.COM" }
 ```
 
+## Data file metadata
+
+**Note**: As with common metadata, data file metadata export and import should really only be used when you need to load metadata into an environment where that environment will not have access to the source data file itself.  When possible, it will be more robust to directly load the metadata through IBM Metadata Asset Manager, which can be automated through the [IBM.infosvr-metadata-asset-manager](https://galaxy.ansible.com/IBM/infosvr-metadata-asset-manager) role.  IBM Metadata Asset Manager will ensure that accurate metadata is recorded, and can be periodically refreshed (re-imported) to be kept up-to-date, including staging potentially destructive changes for review.  The re-importing is handled automatically as part of the [IBM.infosvr-metadata-asset-manager](https://galaxy.ansible.com/IBM/infosvr-metadata-asset-manager) role, so can also be automated (and will warn if there is a potentially destructive change that has been stage and requires review before it can be published).
+
+**Imports**:
+
+```yml
+ibm_infosvr_impexp_df_mappings:
+  - { type: "<string>", attr: "<string>", from: "<value>", to: "<value>" }
+  - ...
+
+ibm_infosvr_impexp_df_import:
+  - { src: "<path>", options: "<string>", map: "<list>", overwrite: <boolean> }
+  - ...
+```
+
+Mappings are purely optional, and the only required parameter for the import is the `src` file from which to load them.
+
+**Exports**:
+
+```yml
+ibm_infosvr_impexp_df_export:
+  - dest: "<path>"
+    changes_in_last_hours: <int>
+    conditions:
+      - { property: "<string>", operator: "<string>", value: "<value>" }
+      - ...
+  - ...
+```
+
+Conditions are purely optional, take the form of the IGC REST API's conditions (see http://www.ibm.com/support/docview.wss?uid=swg27047054) and are currently always AND'd (all conditions must be met). The conditions should be relative to the data_file asset type. The `changes_in_last_hours` is also optional; if used, specify the number of hours prior to the playbook running from which to identify (and extract) any changes. (Changes to sub-objects of the specified `type` -- its contained data file records and data file fields -- will automatically be checked for changes as well.)
+
+**Examples**:
+
+```yml
+ibm_infosvr_impexp_file_mappings:
+  - { type: "HostSystem", attr: "name", from: "MY_HOST", to: "YOUR_HOST" }
+
+ibm_infosvr_impexp_file_import:
+  - { src: "import.isx", options: "-allowDup", map: "{{ ibm_infosvr_impexp_file_mappings }}", overwrite: True }
+
+ibm_infosvr_impexp_file_export:
+  - dest: cache/files_changed_in_last_2_days.isx
+    type: data_file_folder
+    changes_in_last_hours: 48
+    conditions:
+      - { property: "host.name", operator: "=", value: "MYHOST.SOMEWHERE.COM" }
+      - { property: "name", operator: "=", value: "/" }
+```
+
 ## Data classes
 
 **Imports**:
