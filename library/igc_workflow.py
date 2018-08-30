@@ -242,23 +242,10 @@ def main():
     comment = module.params['comment']
 
     # First check whether workflow is even enabled
-    wflCheck = {
-        "pageSize": 1,
-        "workflowMode": "draft",
-        "properties": ["name"],
-        "types": [asset_type]
-    }
-
-    wflResults = igcrest.search(wflCheck, False)
-
-    # Ensure search worked before proceeding
-    if wflResults == '':
-        module.fail_json(msg='IGC workflow status check failed', **result)
-    # Ensure workflow is enabled before proceeding (if not, return immediately)
-    elif wflResults['paging']['numTotal'] == 0:
-        return result
-    else:
+    if igcrest.isWorkflowEnabled():
         result['workflow_enabled'] = True
+    else:
+        module.exit_json(**result)
 
     # Basic query
     reqJSON = {

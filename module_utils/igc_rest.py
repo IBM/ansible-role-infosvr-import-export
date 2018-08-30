@@ -24,6 +24,7 @@ import requests
 import json
 import logging
 import re
+import copy
 
 
 class RestIGC(object):
@@ -41,10 +42,26 @@ class RestIGC(object):
         self.baseURL = "https://" + host + ":" + port
         logging.getLogger("requests").setLevel(logging.ERROR)
         logging.getLogger("urllib3").setLevel(logging.ERROR)
+        self.workflow_types = ["category", "term", "information_governance_policy", "information_governance_rule"]
 
     '''
     common code for setting up interactivity with IGC REST API
     '''
+
+    def isWorkflowType(self, asset_type):
+        return asset_type in self.workflow_types
+
+    # Note: not using v11.7-specific API so that
+    # we are backwards-compatible with v11.5
+    def isWorkflowEnabled(self):
+        wflCheck = {
+            "pageSize": 1,
+            "workflowMode": "draft",
+            "properties": ["name"],
+            "types": ["category", "term", "information_governance_policy", "information_governance_rule"]
+        }
+        wflResults = self.search(wflCheck, False)
+        return (wflResults != '' and wflResults['paging']['numTotal'] > 0)
 
     def closeSession(self):
         self.session.request(
@@ -179,7 +196,9 @@ class RestIGC(object):
                     mapped_value = mapRE.sub(mapping['to'], from_value)
         return mapped_value
 
-    def getMappedItem(self, restItem, mappings):
+    # Always return an array -- could have up to two items, if an asset is both
+    # in the workflow and published; otherwise should be just 1
+    def getMappedItem(self, restItem, mappings, workflow):
         # Map the item itself (ie. renaming)
         renamed = self._getMappedValue(restItem['_type'], "name", restItem['_name'], mappings)
         q = {
@@ -229,14 +248,29 @@ class RestIGC(object):
                 "operator": "=",
                 "property": pre_host_path + ".path"
             })
+        mapped_assets = []
+        if workflow and self.isWorkflowType(restItem['_type']):
+            qDev = copy.deepcopy(q)
+            qDev['workflowMode'] = "draft"
+            qDev['properties'].append("workflow_current_state")
+            qDev['where']['conditions'].append({
+                "property": "workflow_current_state",
+                "operator": "isNull",
+                "negated": True
+            })
+            resDev = self.search(qDev)
+            if len(resDev) == 1:
+                mapped_assets.append(resDev[0])
+            elif len(resDev) > 1:
+                self.module.warn("Multiple items found in workflow -- " + json.dumps(qDev))
+                mapped_assets = resDev
         resSearch = self.search(q)
         if len(resSearch) == 1:
-            return resSearch[0]
+            mapped_assets.append(resSearch[0])
         elif len(resSearch) > 1:
             self.module.warn("Multiple items found when expecting only one -- " + json.dumps(q))
-            return resSearch[0]
-        else:
-            return ""
+            mapped_assets = mapped_assets + resSearch
+        return mapped_assets
 
     def addRelationshipsToAsset(self,
                                 from_asset,

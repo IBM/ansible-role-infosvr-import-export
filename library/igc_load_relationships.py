@@ -276,35 +276,39 @@ def main():
     allAssets = json.load(f)
     f.close()
 
+    wfl_enabled = igcrest.isWorkflowEnabled()
+
     for asset in allAssets:
         if asset['_type'] == asset_type:
-            mappedItem = igcrest.getMappedItem(asset, mappings)
-            if mappedItem == "":
+            a_mappedItems = igcrest.getMappedItem(asset, mappings, wfl_enabled)
+            if len(a_mappedItems) == 0:
                 module.fail_json(msg='Unable to find mapped item -- failing', **result)
             aRelns = asset[relnprop]
             aMappedRelnRIDs = []
             for reln in aRelns:
                 if '_type' in reln:
-                    mappedReln = igcrest.getMappedItem(reln, mappings)
-                    if mappedReln == "":
+                    a_mappedRelns = igcrest.getMappedItem(reln, mappings, wfl_enabled)
+                    if len(a_mappedRelns) == 0:
                         module.fail_json(msg='Unable to find mapped relationship -- failing', **result)
-                    aMappedRelnRIDs.append(mappedReln['_id'])
-            if len(aMappedRelnRIDs) > 0:
-                update_rc, update_msg = igcrest.addRelationshipsToAsset(
-                    mappedItem,
-                    aMappedRelnRIDs,
-                    relnprop,
-                    module.params['mode'],
-                    replace_type=module.params['replace_type'],
-                    conditions=module.params['conditions'],
-                    batch=module.params['batch']
-                )
-                if update_rc != 200:
-                    module.fail_json(rc=update_rc, msg='Update failed: %s' % json.dumps(update_msg), **result)
-                else:
-                    result['changed'] = True
-            result['asset_update_count'] += 1
-            result['relationship_update_count'] += len(aMappedRelnRIDs)
+                    for mappedReln in a_mappedRelns:
+                        aMappedRelnRIDs.append(mappedReln['_id'])
+            for mappedItem in a_mappedItems:
+                if len(aMappedRelnRIDs) > 0:
+                    update_rc, update_msg = igcrest.addRelationshipsToAsset(
+                        mappedItem,
+                        aMappedRelnRIDs,
+                        relnprop,
+                        module.params['mode'],
+                        replace_type=module.params['replace_type'],
+                        conditions=module.params['conditions'],
+                        batch=module.params['batch']
+                    )
+                    if update_rc != 200:
+                        module.fail_json(rc=update_rc, msg='Update failed: %s' % json.dumps(update_msg), **result)
+                    else:
+                        result['changed'] = True
+                result['asset_update_count'] += 1
+                result['relationship_update_count'] += len(aMappedRelnRIDs)
 
     # Close the IGC REST API session
     igcrest.closeSession()

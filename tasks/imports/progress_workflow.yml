@@ -34,4 +34,5 @@
   loop_control:
     label: "{{ item.type }} - {{ item.action }}"
 
-#- debug: var=__ibm_infosvr_impexp_workflow_updates
+- debug: var=__ibm_infosvr_impexp_workflow_updates
+  tags: [ 'never', 'debug' ]
