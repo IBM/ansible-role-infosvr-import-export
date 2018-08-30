@@ -130,7 +130,7 @@ def _getContextPath(rest_result, delim='/'):
 
 
 def _escapeName(name):
-    return re.sub(pattern='/', repl='_', name)
+    return re.sub('/', '_', name)
 
 
 def _getDsJobExtractObjects(rest_result):
