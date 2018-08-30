@@ -63,6 +63,9 @@
 - import_tasks: exports/export_lm.yml
   when: ('ibm-information-server-engine' in group_names) and ibm_infosvr_impexp_lm_export is defined
 
+- import_tasks: exports/export_pm.yml
+  when: ('ibm-information-server-engine' in group_names) and ibm_infosvr_impexp_pm_export is defined
+
 - import_tasks: exports/export_mdm.yml
   when: ('ibm-information-server-engine' in group_names) and ibm_infosvr_impexp_mdm_export is defined
 

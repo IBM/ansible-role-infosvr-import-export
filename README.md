@@ -186,10 +186,6 @@ ibm_infosvr_impexp_cm_export:
   - { dest: "cache/cm_file_def_structures.isx", path: "/*/*/*.fdl" }
   - { dest: "cache/cm_file_def_domains.isx", path: "/*/*/*/*.ddd" }
   - { dest: "cache/cm_fields.isx", path: "/*/*.did" }
-  - { dest: "cache/cm_pdms.isx", path: "/*/*.pm" }
-  - { dest: "cache/cm_pdm_tables.isx", path: "/*/*/*.dtl" }
-  - { dest: "cache/cm_pdm_procedures.isx", path: "/*/*/*.dp" }
-  - { dest: "cache/cm_pdm_domains.isx", path: "/*/*/*/*.pdd" }
   - { dest: "cache/cm_bi_servers.isx", path: "/*.srv" }
   - { dest: "cache/cm_bi_folders.isx", path: "/*/*/*.fld" }
   - { dest: "cache/cm_bi_models.isx", path: "/*/*/*.oml" }
@@ -244,6 +240,55 @@ ibm_infosvr_impexp_lm_import:
 
 ibm_infosvr_impexp_lm_export:
   - dest: cache/ldm_sample_changed_in_last_2_days.isx
+    changes_in_last_hours: 48
+    conditions:
+      - { property: "name", operator: "=", value: "Sample" }
+      - { property: "namespace", operator: "=", value: "SampleNamespace" }
+```
+
+## Physical model metadata
+
+**Note**: As with common metadata, physical model metadata export and import should really only be used when you need to load metadata into an environment where that environment will not have access to the original model files or a metadata interchange server capable of loading them.  When possible, it will be more robust to directly load the metadata through IBM Metadata Asset Manager, which can be automated through the [IBM.infosvr-metadata-asset-manager](https://galaxy.ansible.com/IBM/infosvr-metadata-asset-manager) role.  IBM Metadata Asset Manager will ensure that accurate metadata is recorded, and can be periodically refreshed (re-imported) to be kept up-to-date, including staging potentially destructive changes for review.  The re-importing is handled automatically as part of the [IBM.infosvr-metadata-asset-manager](https://galaxy.ansible.com/IBM/infosvr-metadata-asset-manager) role, so can also be automated (and will warn if there is a potentially destructive change that has been stage and requires review before it can be published).
+
+**Imports**:
+
+```yml
+ibm_infosvr_impexp_pm_mappings:
+  - { type: "<string>", attr: "<string>", from: "<value>", to: "<value>" }
+  - ...
+
+ibm_infosvr_impexp_pm_import:
+  - { src: "<path>", options: "<string>", map: "<list>", overwrite: <boolean> }
+  - ...
+```
+
+Mappings are purely optional, and the only required parameter for the import is the `src` file from which to load them.
+
+**Exports**:
+
+```yml
+ibm_infosvr_impexp_pm_export:
+  - dest: "<path>"
+    changes_in_last_hours: <int>
+    conditions:
+      - { property: "<string>", operator: "<string>", value: "<value>" }
+      - ...
+  - ...
+```
+
+Conditions are purely optional, take the form of the IGC REST API's conditions (see http://www.ibm.com/support/docview.wss?uid=swg27047054) and are currently always AND'd (all conditions must be met). The conditions should be relative to the top-level physical_data_model object(s) you wish to include. The `changes_in_last_hours` is also optional; if used, specify the number of hours prior to the playbook running from which to identify (and extract) any changes. (Changes to sub-objects of the physical model -- its contained physical models, design tables, design views, design stored procedures, and physical domains -- will automatically be checked for changes as well.)
+
+**Examples**:
+
+```yml
+ibm_infosvr_impexp_pm_mappings:
+  - { type: "HostSystem", attr: "name", from: "MY_HOST", to: "YOUR_HOST" }
+
+ibm_infosvr_impexp_pm_import:
+  - { src: "import.isx", options: "-allowDup", map: "{{ ibm_infosvr_impexp_pm_mappings }}", overwrite: True }
+
+ibm_infosvr_impexp_pm_export:
+  - dest: cache/pdm_sample_changed_in_last_2_days.isx
     changes_in_last_hours: 48
     conditions:
       - { property: "name", operator: "=", value: "Sample" }

@@ -46,7 +46,8 @@ asset_type_to_properties = {
     "data_rule_set": ["project"] + common_properties,
     "metric": ["project"] + common_properties,
     "label": ["name"],
-    "logical_data_model": ["namespace"] + common_properties
+    "logical_data_model": ["namespace"] + common_properties,
+    "physical_data_model": ["namespace"] + common_properties
 }
 
 xa_asset_type_to_extract_type = {
@@ -112,8 +113,9 @@ def get_asset_extract_object(asset_type, rest_result):
           asset_type == 'data_rule_set' or
           asset_type == 'metric'):
         return _getInfoAnalyzerExtractObjects(rest_result)
-    elif asset_type == 'logical_data_model':
-        return _getLogicalDataModelExtractObjects(rest_result)
+    elif (asset_type == 'logical_data_model' or
+          asset_type == 'physical_data_model'):
+        return _getDataModelExtractObjects(rest_result)
     else:
         return "UNIMPLEMENTED"
 
@@ -279,7 +281,7 @@ def _getInfoAnalyzerExtractObjects(rest_result):
     return extract
 
 
-def _getLogicalDataModelExtractObjects(rest_result):
+def _getDataModelExtractObjects(rest_result):
     namespace = rest_result['namespace']
     name = _escapeName(rest_result['_name'])
     if len(rest_result['_context']) > 0:
