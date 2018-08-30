@@ -35,6 +35,9 @@
   register: __ibm_infosvr_impexp_lm_export_changes
   with_items: "{{ ibm_infosvr_impexp_lm_export }}"
 
+- debug: var=__ibm_infosvr_impexp_lm_export_changes
+  tags: [ 'never', 'debug' ]
+
 - name: export_lm - export common metadata
   shell: >
           source ~/.bashrc &&
