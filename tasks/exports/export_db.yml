@@ -57,7 +57,7 @@
     - "{{ __ibm_infosvr_impexp_db_export_changes.results }}"
     - "assets"
   loop_control:
-    label: "{{ item.0.item.dest | basename }} - {{ item.1.namespace }}/{{ item.1.name }}"
+    label: "{{ item.0.item.dest | basename }} - {{ item.1.path }}/{{ item.1.name }}"
 
 - name: export_db - transfer files
   fetch: src=/tmp/__export_db_{{ item.dest | basename }} dest={{ item.dest }} flat=yes
