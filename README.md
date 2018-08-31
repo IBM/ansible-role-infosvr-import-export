@@ -80,8 +80,8 @@ The following describes all of the actions and object types currently covered by
     1. `glossary` - [glossary assets](docs/glossary.md)
     1. `relationships` - [metadata relationships](docs/relationships.md)
     1. `omd` - [operational metadata](docs/omd.md)
-1. `progress` - [Progressing the workflow](docs/progress.md)
-1. `validate` - [Validation framework](docs/validate.md)
+1. `progress` - [progressing the workflow](docs/progress.md)
+1. `validate` - [validation framework](docs/validate.md)
 
 For the `export` and `import`, [mappings](docs/mappings.md) can be applied to transform metadata between environments (eg. renaming, changing containment, etc), and most asset types can also be limited through the use of [conditions](docs/conditions.md).
 
