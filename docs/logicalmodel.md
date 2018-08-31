@@ -1,0 +1,65 @@
+# Logical model metadata
+
+[<- Back to the overview](../README.md)
+
+**Note**: logical model metadata export and import should really only be used when you need to load metadata into an environment where that environment will not have access to the original model files or a metadata interchange server capable of loading them.  When possible, it will be more robust to directly load the metadata through IBM Metadata Asset Manager, which can be automated through the [IBM.infosvr-metadata-asset-manager](https://galaxy.ansible.com/IBM/infosvr-metadata-asset-manager) role.  IBM Metadata Asset Manager will ensure that accurate metadata is recorded, and can be periodically refreshed (re-imported) to be kept up-to-date, including staging potentially destructive changes for review.  The re-importing is handled automatically as part of the [IBM.infosvr-metadata-asset-manager](https://galaxy.ansible.com/IBM/infosvr-metadata-asset-manager) role, so can also be automated (and will warn if there is a potentially destructive change that has been stage and requires review before it can be published).
+
+## Exports
+
+The export will be generate an ISX file that could be separately processed through the `istool` command-line.
+
+```yml
+export:
+  logicalmodel:
+    - to: <path>
+      changes_in_last_hours: <int>
+      conditions:
+        - { property: "<string>", operator: "<string>", value: "<value>" }
+        - ...
+    - ...
+```
+
+[`conditions`](conditions.md) are purely optional, and are currently always AND'd (all conditions must be met). The conditions should be relative to the top-level logical_data_model object(s) you wish to include.
+
+`changes_in_last_hours` is also optional; if used, specify the number of hours prior to the playbook running from which to identify (and extract) any changes. (Changes to sub-objects of the logical model -- its contained logical models, subject areas, logical entities and logical domains -- will automatically be checked for changes as well.)
+
+## Imports
+
+```yml
+import:
+  logicalmodel:
+    - from: <path>
+      options: <string>
+      map: <list>
+      overwrite: <boolean>
+    - ...
+```
+
+Mappings are purely optional, and the only required parameter for the import is the file `from` which to load them. If provided, mappings should use the [ISX style](mappings.md#isx-style).
+
+Available `options` are:
+
+- `-allowDuplicates`: Allows import when duplicates exists in the imported metadata or when imported metadata matches duplicate objects in the repository.
+
+## Examples
+
+```yml
+export:
+  logicalmodel:
+    - to: cache/ldm_sample_changed_in_last_2_days.isx
+      changes_in_last_hours: 48
+      conditions:
+        - { property: "name", operator: "=", value: "Sample" }
+        - { property: "namespace", operator: "=", value: "SampleNamespace" }
+
+isx_mappings:
+  - { type: "HostSystem", attr: "name", from: "MY_HOST", to: "YOUR_HOST" }
+
+import:
+  logicalmodel:
+    - from: cache/ldm_sample_changed_in_last_2_days.isx
+      map: "{{ isx_mappings }}"
+      overwrite: True
+```
+
+[<- Back to the overview](../README.md)
