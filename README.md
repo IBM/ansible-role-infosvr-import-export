@@ -76,7 +76,7 @@ The following describes all of the actions and object types currently covered by
     1. `ds_vars` - [DataStage project variables](docs/ds_vars.md)
     1. `infoanalyzer` - [Information Analyzer assets](docs/infoanalyzer.md)
     1. `extendedsources` - [extended data sources](docs/extendedsources.md)
-    1. `extensionmaps` - [extension mapping documents](docs/extensionmap.md)
+    1. `extensionmaps` - [extension mapping documents](docs/extensionmaps.md)
     1. `glossary` - [glossary assets](docs/glossary.md)
     1. `relationships` - [metadata relationships](docs/relationships.md)
     1. `omd` - [operational metadata](docs/omd.md)
