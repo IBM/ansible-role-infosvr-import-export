@@ -84,7 +84,7 @@ The following describes all of the actions and object types currently covered by
 1. `gather` - [environment detail gathering](docs/gather.md)
 1. `export` / `import` metadata asset types (as with the actions above, the ordering below defines the order in which these object types will be extracted and loaded -- irrespective of the order in which they appear within an action)
     1. `customattrs` - [custom attribute definitions](docs/customattrs.md)
-    1. `common` - [common metadata](docs/common.md)
+    1. `common` - [common metadata](docs/common.md) (should be considered low-level, and where possible avoided by using one of the type-specific options)
     1. `logicalmodel` - [logical model metadata](docs/logicalmodel.md)
     1. `physicalmodel` - [physical model metadata](docs/physicalmodel.md)
     1. `mdm` - [master data management model metadata](docs/mdm.md)
