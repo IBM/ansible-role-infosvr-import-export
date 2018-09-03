@@ -11,20 +11,21 @@ The export will be generate an ISX file that could be separately processed throu
 ```yml
 export:
   database:
-    - to: <path>
-      type: <string>
-      changes_in_last_hours: <int>
-      conditions:
-        - { property: "<string>", operator: "<string>", value: "<value>" }
+    - into: <path>
+      including_objects:
+        - type: <string>
+          changes_in_last_hours: <int>
+          only_with_conditions:
+            - { property: "<string>", operator: "<string>", value: "<value>" }
+            - ...
         - ...
     - ...
 ```
 
-Only the `to` and `type` are required, and the `type` must be one of: `database` or `database_schema`.
+In addition to the file `into` which to extract the assets, at least one `type` should be specified under `including_objects`. Each `type` must be one of `database` or `database_schema`.
 
-[`conditions`](conditions.md) are purely optional and are currently always AND'd (all conditions must be met). The conditions should be relative to the top-level object `type` specified.
-
-`changes_in_last_hours` is also optional; if used, specify the number of hours prior to the playbook running from which to identify (and extract) any changes. (Changes to sub-objects of the specified `type` -- its contained tables, views, stored procedures, and columns -- will automatically be checked for changes as well.)
+- `only_with_conditions` are purely optional and are currently always AND'd (all conditions must be met). Any [conditions](conditions.md) specified should be within the context of the specified asset `type`.
+- `changes_in_last_hours` is also optional; if used, specify the number of hours prior to the playbook running from which to identify (and extract) any changes of the specified `type`.
 
 ## Imports
 
@@ -32,28 +33,33 @@ Only the `to` and `type` are required, and the `type` must be one of: `database`
 import:
   database:
     - from: <path>
-      options: <string>
-      map: <list>
-      overwrite: <boolean>
+      with_options:
+        overwrite: <boolean>
+        transformed_by: <list>
+        args: <string>
     - ...
 ```
 
-Mappings are purely optional, and the only required parameter for the import is the file `from` which to load them. If provided, mappings should use the [ISX style](mappings.md#isx-style).
+The only required parameter for the import is the file `from` which to load them.
 
-Available `options` are:
+The options under `with_options` are all optional:
 
-- `-allowDuplicates`: Allows import when duplicates exists in the imported metadata or when imported metadata matches duplicate objects in the repository.
+- `overwrite` specifies whether to overwrite any existing assets with the same identities.
+- `transformed_by` specifies a list of mappings that can be used to transform the assets; if provided, mappings should use the [ISX style](mappings.md#isx-style).
+- `args` provides additional arguments to the export command; currently the following are possible:
+  - `-allowDuplicates`: Allows import when duplicates exists in the imported metadata or when imported metadata matches duplicate objects in the repository.
 
 ## Examples
 
 ```yml
 export:
   database:
-    - to: cache/db_schemas_changed_in_last_2_days.isx
-      type: database_schema
-      changes_in_last_hours: 48
-      conditions:
-        - { property: "database.host.name", operator: "=", value: "MYHOST.SOMEWHERE.COM" }
+    - into: cache/db_schemas_changed_in_last_2_days.isx
+      including_objects:
+        type: database_schema
+        changes_in_last_hours: 48
+        only_with_conditions:
+          - { property: "database.host.name", operator: "=", value: "MYHOST.SOMEWHERE.COM" }
 
 isx_mappings:
   - { type: "HostSystem", attr: "name", from: "MY_HOST", to: "YOUR_HOST" }
@@ -61,8 +67,9 @@ isx_mappings:
 import:
   database:
     - from: db_schemas_changed_in_last_2_days.isx
-      map: "{{ isx_mappings }}"
-      overwrite: True
+      with_options:
+        transformed_by: "{{ isx_mappings }}"
+        overwrite: True
 ```
 
 [<- Back to the overview](../README.md)

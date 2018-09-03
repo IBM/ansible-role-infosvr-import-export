@@ -11,17 +11,19 @@ The export will be generate an ISX file that could be separately processed throu
 ```yml
 export:
   logicalmodel:
-    - to: <path>
-      changes_in_last_hours: <int>
-      conditions:
-        - { property: "<string>", operator: "<string>", value: "<value>" }
-        - ...
+    - into: <path>
+      limited_to:
+        changes_in_last_hours: <int>
+        only_with_conditions:
+          - { property: "<string>", operator: "<string>", value: "<value>" }
+          - ...
     - ...
 ```
 
-[`conditions`](conditions.md) are purely optional, and are currently always AND'd (all conditions must be met). The conditions should be relative to the top-level logical_data_model object(s) you wish to include.
+The options under `limited_to` are all optional:
 
-`changes_in_last_hours` is also optional; if used, specify the number of hours prior to the playbook running from which to identify (and extract) any changes. (Changes to sub-objects of the logical model -- its contained logical models, subject areas, logical entities and logical domains -- will automatically be checked for changes as well.)
+- `only_with_conditions` defines [conditions](conditions.md) that are currently always AND'd (all conditions must be met). The conditions should be relative to the top-level logical_data_model object(s) you wish to include.
+- `changes_in_last_hours` specifies the number of hours prior to the playbook running from which to identify (and extract) any changes. Changes to sub-objects of the logical model -- its contained logical models, subject areas, logical entities and logical domains -- will automatically be checked as well.
 
 ## Imports
 
@@ -29,28 +31,33 @@ export:
 import:
   logicalmodel:
     - from: <path>
-      options: <string>
-      map: <list>
-      overwrite: <boolean>
+      with_options:
+        overwrite: <boolean>
+        transformed_by: <list>
+        args: <string>
     - ...
 ```
 
-Mappings are purely optional, and the only required parameter for the import is the file `from` which to load them. If provided, mappings should use the [ISX style](mappings.md#isx-style).
+The only required parameter for the import is the file `from` which to load them.
 
-Available `options` are:
+The options under `with_options` are all optional:
 
-- `-allowDuplicates`: Allows import when duplicates exists in the imported metadata or when imported metadata matches duplicate objects in the repository.
+- `overwrite` specifies whether to overwrite any existing assets with the same identities.
+- `transformed_by` specifies a list of mappings that can be used to transform the assets; if provided, mappings should use the [ISX style](mappings.md#isx-style).
+- `args` provides additional arguments to the export command; currently the following are possible:
+  - `-allowDuplicates`: Allows import when duplicates exists in the imported metadata or when imported metadata matches duplicate objects in the repository.
 
 ## Examples
 
 ```yml
 export:
   logicalmodel:
-    - to: cache/ldm_sample_changed_in_last_2_days.isx
-      changes_in_last_hours: 48
-      conditions:
-        - { property: "name", operator: "=", value: "Sample" }
-        - { property: "namespace", operator: "=", value: "SampleNamespace" }
+    - into: cache/ldm_sample_changed_in_last_2_days.isx
+      limited_to:
+        changes_in_last_hours: 48
+        only_with_conditions:
+          - { property: "name", operator: "=", value: "Sample" }
+          - { property: "namespace", operator: "=", value: "SampleNamespace" }
 
 isx_mappings:
   - { type: "HostSystem", attr: "name", from: "MY_HOST", to: "YOUR_HOST" }
@@ -58,8 +65,9 @@ isx_mappings:
 import:
   logicalmodel:
     - from: cache/ldm_sample_changed_in_last_2_days.isx
-      map: "{{ isx_mappings }}"
-      overwrite: True
+      with_options:
+        transformed_by: "{{ isx_mappings }}"
+        overwrite: True
 ```
 
 [<- Back to the overview](../README.md)

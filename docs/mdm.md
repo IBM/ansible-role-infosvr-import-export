@@ -11,7 +11,7 @@ The export will be generate an ISX file that could be separately processed throu
 ```yml
 export:
   mdm:
-    - to: <path>
+    - into: <path>
       path: <string>
     - ...
 ```
@@ -24,24 +24,28 @@ The wildcard for `path`, is `"*"`, and it is the asset path as defined at https:
 import:
   mdm:
     - from: <path>
-      options: <string>
-      map: <list>
-      overwrite: <boolean>
+      with_options:
+        overwrite: <boolean>
+        transformed_by: <list>
+        args: <string>
     - ...
 ```
 
-Mappings are purely optional, and the only required parameter for the import is the file `from` which to load them. If provided, mappings should use the [ISX style](mappings.md#isx-style).
+The only required parameter for the import is the file `from` which to load them.
 
-Available `options` are:
+The options under `with_options` are all optional:
 
-- `-allowDuplicates`: Allows import when duplicates exists in the imported metadata or when imported metadata matches duplicate objects in the repository.
+- `overwrite` specifies whether to overwrite any existing assets with the same identities.
+- `transformed_by` specifies a list of mappings that can be used to transform the assets; if provided, mappings should use the [ISX style](mappings.md#isx-style).
+- `args` provides additional arguments to the export command; currently the following are possible:
+  - `-allowDuplicates`: Allows import when duplicates exists in the imported metadata or when imported metadata matches duplicate objects in the repository.
 
 ## Examples
 
 ```yml
 export:
   mdm:
-    - to: cache/mdm.isx
+    - into: cache/mdm.isx
       path: "/*/*.mdm"
 
 isx_mappings:
@@ -50,8 +54,9 @@ isx_mappings:
 import:
   mdm:
     - from: cache/mdm.isx
-      map: "{{ isx_mappings }}"
-      overwrite: True
+      with_options:
+        transformed_by: "{{ isx_mappings }}"
+        overwrite: True
 ```
 
 [<- Back to the overview](../README.md)

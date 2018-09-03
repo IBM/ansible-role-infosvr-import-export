@@ -18,13 +18,15 @@ In case you set the escalation to false, ensure that the following are done in y
 
 ## Role Variables
 
-See `defaults/main.yml` for inline documentation, and the example below for the main variables needed. For any clarification on the expected sub-structures for the various objects, refer to the documentation below.
+See `defaults/main.yml` for inline documentation, and the example below for the main variables needed. For any clarification on the expected action variables and sub-structures for the various object types, refer to the documentation below.
+
+By default, the role will do SSL verification of self-signed certificates by first retrieving the root certificate directly from the domain tier of the environment. This is controlled by the `ibm_infosvr_impexp_verify_selfsigned_ssl` variable of the role: if you want to only verify against properly signed and trusted SSL certificates, you can set this variable to `False` and any self-signed domain tier certificate will no longer be trusted.
 
 ## Example Playbook
 
 The role includes the ability to both export and import a number of different asset types in Information Server. The role can be imported into another playbook providing only the variables of interest in order to restrict the assets to include in either an import or export (empty variables will mean the role will skip any processing of those asset types). (Thus the need for Ansible v2.4.x and the `import_role` module.)
 
-The first level of variables define the broad actions to take, and will always run in this order regardless of the order in which they're specified:
+The first level of variables provided to the role define the broad actions to take, and will always run in this order regardless of the order in which they're specified:
 
 1. `gather` - retrieve details about the environment (ie. version numbers)
 1. `export` - extract assets from an environment into file(s)
@@ -41,22 +43,39 @@ For example:
   vars:
     isx_mappings:
       - { type: "HostSystem", attr: "name", from: "MY_HOST", to "YOUR_HOST" }
+    gather: True
     import:
       datastage:
         - from: /some/directory/file1.isx
-          project: dstage1
-          overwrite: True
+          into_project: dstage1
+          with_options:
+            overwrite: True
       common:
         - from: file2.isx
-          map: "{{ isx_mappings }}"
-          overwrite: True
+          with_options:
+            transformed_by: "{{ isx_mappings }}"
+            overwrite: True
+    validate:
+      that:
+        - number_of: dsjob
+          meeting_all_conditions:
+            - { property: "transformation_project.name", operator: "=", value: "dstage1" }
+          is: 5
+        - number_of: database_table
+          meeting_all_conditions:
+            - { property: "database_schema.database.host.name", operator: "=", value: "YOUR_HOST" }
+          is: 10
 ```
 
-... will import the common metadata from a file `file2.isx` expected in your playbook's `/files/` directory, renaming any hostnames from `MY_HOST` to `YOUR_HOST`, and overwriting any existing assets with the same identities. It will then import the DataStage assets from `/some/directory/file1.isx` into the `dstage1` project, overwriting any existing assets with the same identities.
+... will start by gathering environment details from the environment the playbook is running against.
+
+It will then import the common metadata from a file `file2.isx` (expected a `files/` sub-directory relative to your playbook), renaming any hostnames from `MY_HOST` to `YOUR_HOST`, and overwriting any existing assets with the same identities. It will then import the DataStage assets from `/some/directory/file1.isx` into the `dstage1` project, overwriting any existing assets with the same identities.
 
 Note that the order in which the variables are defined does not matter: the role will take care of exporting and importing objects in the appropriate order to ensure dependencies between objects are handled (ie. that common and business metadata are loaded before relationships, etc). However, the order of multiple objects defined within a given type _may_ matter, depending on your own dependencies.
 
-By default, the role will do SSL verification of self-signed certificates by first retrieving the root certificate directly from the domain tier of the environment. This is controlled by the `ibm_infosvr_impexp_verify_selfsigned_ssl` variable of the role: if you want to only verify against properly signed and trusted SSL certificates, you can set this variable to `False` and any self-signed domain tier certificate will no longer be trusted.
+Finally, the playbook will validate the load has resulted in the expected assets in the target environment: 5 DataStage jobs in the `dstage1` project and 10 database tables in some combination of schemas and databases on the `YOUR_HOST` server.
+
+(Since neither `progress` nor `export` actions are specified, they will not be run.)
 
 ## Action (and object) structures
 

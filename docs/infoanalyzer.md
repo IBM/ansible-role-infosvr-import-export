@@ -9,41 +9,40 @@ The export will be generate an XML file that could be separately processed throu
 ```yml
 export:
   infoanalyzer:
-    - to: <path>
-      project: <string>
-      objects:
+    - into: <path>
+      from_project: <string>
+      including_objects:
         - type: data_rule_definition
           changes_in_last_hours: <int>
-          conditions:
+          only_with_conditions:
             - { property: "<string>", operator: "<string>", value: "<value>" }
             - ...
         - type: data_rule_set_definition
           changes_in_last_hours: <int>
-          conditions:
+          only_with_conditions:
             - { property: "<string>", operator: "<string>", value: "<value>" }
             - ...
         - type: data_rule
           changes_in_last_hours: <int>
-          conditions:
+          only_with_conditions:
             - { property: "<string>", operator: "<string>", value: "<value>" }
             - ...
         - type: data_rule_set
           changes_in_last_hours: <int>
-          conditions:
+          only_with_conditions:
             - { property: "<string>", operator: "<string>", value: "<value>" }
             - ...
         - type: metric
           changes_in_last_hours: <int>
-          conditions:
+          only_with_conditions:
             - { property: "<string>", operator: "<string>", value: "<value>" }
             - ...
 ```
 
 Objects that can be conditionally exported include `data_rule_definition`, `data_rule_set_definition`, `data_rule`, `data_rule_set`, and `metric`. Other objects within the project (virtual tables, virtual columns, folders, etc) are all always included in the export.
 
-[`conditions`](conditions.md) are purely optional and are currently always AND'd (all conditions must be met). The conditions should be relative to the object `type` specified.
-
-`changes_in_last_hours` is also optional; if used, specify the number of hours prior to the playbook running from which to identify (and extract) any changes. For executable objects (`data_rule`, `data_rule_set` and `metric`), any execution of those rules within the the time defined will also be included.
+- `only_with_conditions` are purely optional and are currently always AND'd (all conditions must be met). The [conditions](conditions.md) should be relative to the object `type` specified.
+- `changes_in_last_hours` is also optional; if used, specify the number of hours prior to the playbook running from which to identify (and extract) any changes. For executable objects (`data_rule`, `data_rule_set` and `metric`), any execution of those rules within the the time defined will also be included.
 
 ## Imports
 
@@ -51,29 +50,34 @@ Objects that can be conditionally exported include `data_rule_definition`, `data
 import:
   infoanalyzer:
     - from: <path>
-      project: <string>
-      map: <list>
+      into_project: <string>
+      with_options:
+        transformed_by: <list>
     - ...
 ```
 
-Mappings are purely optional, and the only required parameters for the import are the file `from` which to load the assets and the `project` name into which to load them. If provided, mappings should use the [Information Analyzer style](mappings.md#information-analyzer-style).
+The required parameters for the import are the file `from` which to load the assets and the `into_project` project name into which to load them.
+
+The options under `with_options` are all optional:
+
+- `transformed_by` specifies a list of mappings that can be used to transform the assets; if provided, mappings should use the [Information Analyzer style](mappings.md#information-analyzer-style).
 
 ## Examples
 
 ```yml
 export:
   infoanalyzer:
-    - to: cache/ia_fullproject.xml
-      project: UGDefaultWorkspace
-      objects:
+    - into: cache/ia_fullproject.xml
+      from_project: UGDefaultWorkspace
+      including_objects:
         - type: data_rule_definition
         - type: data_rule_set_definition
         - type: data_rule
         - type: data_rule_set
         - type: metric
-    - to: cache/ia_project_delta.xml
-      project: UGDefaultWorkspace
-      objects:
+    - into: cache/ia_project_delta.xml
+      from_project: UGDefaultWorkspace
+      including_objects:
         - type: data_rule_definition
           changes_in_last_hours: 48
         - type: data_rule_set_definition
@@ -93,8 +97,9 @@ ia_mappings:
 import:
   infoanalyzer:
     - from: cache/ia_project_delta.xml
-      project: UGDefaultWorkspace
-      map: "{{ ia_mappings }}"
+      into_project: UGDefaultWorkspace
+      with_options:
+        transformed_by: "{{ ia_mappings }}"
 ```
 
 [<- Back to the overview](../README.md)

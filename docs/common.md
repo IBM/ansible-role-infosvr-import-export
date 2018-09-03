@@ -15,12 +15,12 @@ The export will be generate an ISX file that could be separately processed throu
 ```yml
 export:
   common:
-    - to: <path>
-      path: <string>
+    - into: <path>
+      with_path: <string>
     - ...
 ```
 
-The wildcard for `path`, is `"*"`, and it is the asset path as defined at https://www.ibm.com/support/knowledgecenter/en/SSZJPZ_11.7.0/com.ibm.swg.im.iis.iisinfsv.assetint.doc/topics/cm_asset_types_id_strings.html.
+The wildcard for `with_path`, is `"*"`, and it is the asset path as defined at https://www.ibm.com/support/knowledgecenter/en/SSZJPZ_11.7.0/com.ibm.swg.im.iis.iisinfsv.assetint.doc/topics/cm_asset_types_id_strings.html.
 
 ## Imports
 
@@ -28,35 +28,39 @@ The wildcard for `path`, is `"*"`, and it is the asset path as defined at https:
 import:
   common:
     - from: <path>
-      options: <string>
-      map: <list>
-      overwrite: <boolean>
+      with_options:
+        overwrite: <boolean>
+        transformed_by: <list>
+        args: <string>
     - ...
 ```
 
-Mappings are purely optional, and the only required parameter for the import is the file `from` which to load them. If provided, mappings should use the [ISX style](mappings.md#isx-style).
+The only required parameter for the import is the file `from` which to load them.
 
-Available `options` are:
+The options under `with_options` are all optional:
 
-- `-allowDuplicates`: Allows import when duplicates exists in the imported metadata or when imported metadata matches duplicate objects in the repository.
+- `overwrite` specifies whether to overwrite any existing assets with the same identities.
+- `transformed_by` specifies a list of mappings that can be used to transform the assets; if provided, mappings should use the [ISX style](mappings.md#isx-style).
+- `args` provides additional arguments to the export command; currently the following are possible:
+  - `-allowDuplicates`: Allows import when duplicates exists in the imported metadata or when imported metadata matches duplicate objects in the repository.
 
 ## Examples
 
 ```yml
 export:
   common:
-    - to: cache/cm_file_structures.isx
-      path: "/*/*/*/*.dcl"
-    - to: cache/cm_file_domains.isx
-      path: "/*/*/*/*/*.fdd"
-    - to: cache/cm_file_defs.isx
-      path: "/*/*.fd"
-    - to: cache/cm_file_def_structures.isx
-      path: "/*/*/*.fdl"
-    - to: cache/cm_file_def_domains.isx
-      path: "/*/*/*/*.ddd"
-    - to: cache/cm_fields.isx
-      path: "/*/*.did"
+    - into: cache/cm_file_structures.isx
+      with_path: "/*/*/*/*.dcl"
+    - into: cache/cm_file_domains.isx
+      with_path: "/*/*/*/*/*.fdd"
+    - into: cache/cm_file_defs.isx
+      with_path: "/*/*.fd"
+    - into: cache/cm_file_def_structures.isx
+      with_path: "/*/*/*.fdl"
+    - into: cache/cm_file_def_domains.isx
+      with_path: "/*/*/*/*.ddd"
+    - into: cache/cm_fields.isx
+      with_path: "/*/*.did"
 
 isx_mappings:
   - { type: "HostSystem", attr: "name", from: "MY_HOST", to: "YOUR_HOST" }
@@ -64,23 +68,29 @@ isx_mappings:
 import:
   common:
     - from: cache/cm_file_structures.isx
-      map: "{{ isx_mappings }}"
-      overwrite: True
+      with_options:
+        transformed_by: "{{ isx_mappings }}"
+        overwrite: True
     - from: cache/cm_file_domains.isx
-      map: "{{ isx_mappings }}"
-      overwrite: True
+      with_options:
+        transformed_by: "{{ isx_mappings }}"
+        overwrite: True
     - from: cache/cm_file_defs.isx
-      map: "{{ isx_mappings }}"
-      overwrite: True
+      with_options:
+        transformed_by: "{{ isx_mappings }}"
+        overwrite: True
     - from: cache/cm_file_def_structures.isx
-      map: "{{ isx_mappings }}"
-      overwrite: True
+      with_options:
+        transformed_by: "{{ isx_mappings }}"
+        overwrite: True
     - from: cache/cm_file_def_domains.isx
-      map: "{{ isx_mappings }}"
-      overwrite: True
+      with_options:
+        transformed_by: "{{ isx_mappings }}"
+        overwrite: True
     - from: cache/cm_fields.isx
-      map: "{{ isx_mappings }}"
-      overwrite: True
+      with_options:
+        transformed_by: "{{ isx_mappings }}"
+        overwrite: True
 ```
 
 [<- Back to the overview](../README.md)

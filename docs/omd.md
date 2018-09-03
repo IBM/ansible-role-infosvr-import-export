@@ -7,14 +7,17 @@
 ```yml
 export:
   omd:
-    - to: <path>
-      changes_in_last_hours: <int>
+    - into: <path>
+      limited_to:
+        changes_in_last_hours: <int>
     - ...
 ```
 
-The directory `to` which the operational metadata flow files should be stored is required.
+The directory `into` which the operational metadata flow files should be stored is required.
 
-`changes_in_last_hours` is also optional; if used, specify the number of hours prior to the playbook running from which to identify (and extract) any operational metadata flows.
+The options under `limited_to` are all optional:
+
+- `changes_in_last_hours` specifies the number of hours prior to the playbook running from which to identify (and extract) any operational metadata flows.
 
 ## Imports
 
@@ -37,8 +40,9 @@ As part of the import process, the following actions will be taken:
 ```yml
 export:
   omd:
-    - to: cache/omd_exports/
-      changes_in_last_hours: 48
+    - into: cache/omd_exports/
+      limited_to:
+        changes_in_last_hours: 48
 
 import:
   omd:
