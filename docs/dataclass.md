@@ -12,7 +12,7 @@ export:
     - into: <path>
       limited_to:
         changes_in_last_hours: <int>
-        only_wwith_conditions:
+        only_with_conditions:
           - { property: "<string>", operator: "<string>", value: "<value>" }
           - ...
     - ...
