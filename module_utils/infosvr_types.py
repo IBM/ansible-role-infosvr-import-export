@@ -239,10 +239,7 @@ def _getDsParameterSetExtractObjects(rest_result):
 
 def _getDataClassExtractObjects(rest_result):
     if len(rest_result['_context']) == 0:
-        extract = {
-            "class_code": rest_result['class_code']
-        }
-        return extract
+        return "/" + rest_result['class_code'] + ".dc"
 
 
 def _getExtensionMappingDocumentExtractObjects(rest_result):
@@ -292,13 +289,14 @@ def _escapeModelName(name):
 def _getDataModelExtractObjects(rest_result):
     namespace = rest_result['namespace']
     name = _escapeModelName(rest_result['_name'])
+    model_type = rest_result['_type']
     if len(rest_result['_context']) > 0:
         name = _escapeModelName(rest_result['_context'][0]['_name'])
-    extract = {
-        "namespace": namespace,
-        "name": name
-    }
-    return extract
+    if model_type == 'physical_data_model':
+        model_type = "pm"
+    elif model_type == 'logical_data_model':
+        model_type = "lm"
+    return "/" + namespace + "/" + name + "." + model_type
 
 
 def _getDatabaseExtractObjects(rest_result):
@@ -323,9 +321,4 @@ def _getDataFileExtractObjects(rest_result):
         folder = path[(path.find('/') + 1):]
         if folder.startswith('//'):
             folder = folder[1:]
-    extract = {
-        "host": host,
-        "folder": _escapeFilePath(folder),
-        "name": rest_result['_name']
-    }
-    return extract
+    return "/" + host + "/" + _escapeFilePath(folder) + "/" + rest_result['_name'] + ".fl"

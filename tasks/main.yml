@@ -15,14 +15,17 @@
 # limitations under the License.
 ###
 
+- import_tasks: get_env_details.yml
+  when: gather is defined and gather
+  tags:
+    - envdetails
+
 - import_tasks: export.yml
+  when: export is defined
   tags:
     - export
 
 - import_tasks: import.yml
+  when: import is defined
   tags:
     - import
-
-- import_tasks: get_env_details.yml
-  tags:
-    - envdetails

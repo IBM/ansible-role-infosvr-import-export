@@ -15,6 +15,11 @@
 # limitations under the License.
 ###
 
+- assert:
+    that:
+      - "export is defined"
+    msg: "a complex 'export' variable must be defined to do an export"
+
 - name: install prerequisite packages
   yum: state=latest name={{ item }}
   with_items:
@@ -52,75 +57,99 @@
 
 # Security (-sec)
 
-- import_tasks: exports/export_cadefs.yml
-  become_user: "{{ ibm_infosvr_impexp_infosvr_dsadm_user }}"
-  become: yes
-  when: ('ibm-information-server-engine' in group_names) and ibm_infosvr_impexp_cadefs_export is defined
+#- import_tasks: exports/export_cadefs.yml
+#  become_user: "{{ ibm_infosvr_impexp_infosvr_dsadm_user }}"
+#  become: yes
+#  when: ('ibm-information-server-engine' in group_names) and ibm_infosvr_impexp_cadefs_export is defined
+#
+#- import_tasks: exports/export_cm.yml
+#  when: ('ibm-information-server-engine' in group_names) and ibm_infosvr_impexp_cm_export is defined
 
-- import_tasks: exports/export_cm.yml
-  when: ('ibm-information-server-engine' in group_names) and ibm_infosvr_impexp_cm_export is defined
+- import_tasks: exports/one_type_with_conditions.yml
+  vars:
+    __ibm_infosvr_impexp_type: logical_data_model
+    __ibm_infosvr_impexp_items: "{{ export.logicalmodel }}"
+    __ibm_infosvr_impexp_switch: "-lm"
+  when: >
+        export.logicalmodel is defined
+        and ('ibm-information-server-engine' in group_names)
 
-- import_tasks: exports/export_lm.yml
-  when: ('ibm-information-server-engine' in group_names) and ibm_infosvr_impexp_lm_export is defined
+- import_tasks: exports/one_type_with_conditions.yml
+  vars:
+    __ibm_infosvr_impexp_type: physical_data_model
+    __ibm_infosvr_impexp_items: "{{ export.physicalmodel }}"
+    __ibm_infosvr_impexp_switch: "-cm"
+  when: >
+        export.physicalmodel is defined
+        and ('ibm-information-server-engine' in group_names)
 
-- import_tasks: exports/export_pm.yml
-  when: ('ibm-information-server-engine' in group_names) and ibm_infosvr_impexp_pm_export is defined
+#- import_tasks: exports/export_db.yml
+#  when: ('ibm-information-server-engine' in group_names) and ibm_infosvr_impexp_db_export is defined
 
-- import_tasks: exports/export_db.yml
-  when: ('ibm-information-server-engine' in group_names) and ibm_infosvr_impexp_db_export is defined
+- import_tasks: exports/one_type_with_conditions.yml
+  vars:
+    __ibm_infosvr_impexp_type: data_file
+    __ibm_infosvr_impexp_items: "{{ export.datafile }}"
+    __ibm_infosvr_impexp_switch: "-cm"
+  when: >
+        export.datafile is defined
+        and ('ibm-information-server-engine' in group_names)
 
-- import_tasks: exports/export_df.yml
-  when: ('ibm-information-server-engine' in group_names) and ibm_infosvr_impexp_df_export is defined
+#- import_tasks: exports/export_mdm.yml
+#  when: ('ibm-information-server-engine' in group_names) and ibm_infosvr_impexp_mdm_export is defined
 
-- import_tasks: exports/export_mdm.yml
-  when: ('ibm-information-server-engine' in group_names) and ibm_infosvr_impexp_mdm_export is defined
+- import_tasks: exports/one_type_with_conditions.yml
+  vars:
+    __ibm_infosvr_impexp_type: data_class
+    __ibm_infosvr_impexp_items: "{{ export.dataclass }}"
+    __ibm_infosvr_impexp_switch: "-dca"
+  when: >
+        export.dataclass is defined
+        and ('ibm-information-server-engine' in group_names)
 
-- import_tasks: exports/export_dc.yml
-  when: ('ibm-information-server-engine' in group_names) and ibm_infosvr_impexp_dc_export is defined
-
-- import_tasks: exports/export_datastage.yml
-  become_user: "{{ ibm_infosvr_impexp_infosvr_dsadm_user }}"
-  become: yes
-  when: ('ibm-information-server-engine' in group_names) and ibm_infosvr_impexp_ds_export is defined
-
-- import_tasks: exports/export_ds_vars.yml
-  become_user: "{{ ibm_infosvr_impexp_infosvr_dsadm_user }}"
-  become: yes
-  when: ('ibm-information-server-engine' in group_names) and ibm_infosvr_impexp_ds_vars_export is defined
-
-# Reports (-rep)
-
-- import_tasks: exports/export_ia.yml
-  become_user: "{{ ibm_infosvr_impexp_infosvr_dsadm_user }}"
-  become: yes
-  when: ('ibm-information-server-engine' in group_names) and ibm_infosvr_impexp_ia_export is defined
-
-# FastTrack (-fasttrack)
-
-- import_tasks: exports/export_xa.yml
-  become_user: "{{ ibm_infosvr_impexp_infosvr_dsadm_user }}"
-  become: yes
-  when: ('ibm-information-server-engine' in group_names) and ibm_infosvr_impexp_xa_export is defined
-
-- import_tasks: exports/export_xm.yml
-  become_user: "{{ ibm_infosvr_impexp_infosvr_dsadm_user }}"
-  become: yes
-  when: ('ibm-information-server-engine' in group_names) and ibm_infosvr_impexp_xm_export is defined
-
-- import_tasks: exports/export_glossary.yml
-  become_user: "{{ ibm_infosvr_impexp_infosvr_dsadm_user }}"
-  become: yes
-  when: ('ibm-information-server-engine' in group_names) and ibm_infosvr_impexp_bg_export is defined
-
-- import_tasks: exports/export_igc_relns.yml
-  become_user: "{{ ibm_infosvr_impexp_infosvr_dsadm_user }}"
-  become: yes
-  when: ('ibm-information-server-engine' in group_names) and ibm_infosvr_impexp_igc_relns_export is defined
-
-- import_tasks: exports/export_omd.yml
-  become_user: "{{ ibm_infosvr_impexp_infosvr_dsadm_user }}"
-  become: yes
-  when: ('ibm-information-server-engine' in group_names) and ibm_infosvr_impexp_omd_export is defined
+#- import_tasks: exports/export_datastage.yml
+#  become_user: "{{ ibm_infosvr_impexp_infosvr_dsadm_user }}"
+#  become: yes
+#  when: ('ibm-information-server-engine' in group_names) and ibm_infosvr_impexp_ds_export is defined
+#
+#- import_tasks: exports/export_ds_vars.yml
+#  become_user: "{{ ibm_infosvr_impexp_infosvr_dsadm_user }}"
+#  become: yes
+#  when: ('ibm-information-server-engine' in group_names) and ibm_infosvr_impexp_ds_vars_export is defined
+#
+## Reports (-rep)
+#
+#- import_tasks: exports/export_ia.yml
+#  become_user: "{{ ibm_infosvr_impexp_infosvr_dsadm_user }}"
+#  become: yes
+#  when: ('ibm-information-server-engine' in group_names) and ibm_infosvr_impexp_ia_export is defined
+#
+## FastTrack (-fasttrack)
+#
+#- import_tasks: exports/export_xa.yml
+#  become_user: "{{ ibm_infosvr_impexp_infosvr_dsadm_user }}"
+#  become: yes
+#  when: ('ibm-information-server-engine' in group_names) and ibm_infosvr_impexp_xa_export is defined
+#
+#- import_tasks: exports/export_xm.yml
+#  become_user: "{{ ibm_infosvr_impexp_infosvr_dsadm_user }}"
+#  become: yes
+#  when: ('ibm-information-server-engine' in group_names) and ibm_infosvr_impexp_xm_export is defined
+#
+#- import_tasks: exports/export_glossary.yml
+#  become_user: "{{ ibm_infosvr_impexp_infosvr_dsadm_user }}"
+#  become: yes
+#  when: ('ibm-information-server-engine' in group_names) and ibm_infosvr_impexp_bg_export is defined
+#
+#- import_tasks: exports/export_igc_relns.yml
+#  become_user: "{{ ibm_infosvr_impexp_infosvr_dsadm_user }}"
+#  become: yes
+#  when: ('ibm-information-server-engine' in group_names) and ibm_infosvr_impexp_igc_relns_export is defined
+#
+#- import_tasks: exports/export_omd.yml
+#  become_user: "{{ ibm_infosvr_impexp_infosvr_dsadm_user }}"
+#  become: yes
+#  when: ('ibm-information-server-engine' in group_names) and ibm_infosvr_impexp_omd_export is defined
 
 - import_tasks: remove_certificate.yml
   when: ibm_infosvr_impexp_verify_selfsigned_ssl is defined and ibm_infosvr_impexp_verify_selfsigned_ssl
