@@ -67,12 +67,12 @@ options:
       - (See "GET /ibm/iis/igc-rest/v1/types" in your environment for choices.)
     required: true
     type: str
-  relationship:
+  relationships:
     description:
       - The IGC REST asset's property (eg. C(assigned_assets)) to use to retrieve relationships.
       - (See "GET /ibm/iis/igc-rest/v1/types/<asset_type>?showViewProperties=true" in your environment for choices.)
     required: true
-    type: str
+    type: list
   dest:
     description:
       - The (remote) file in which to capture the results of the relationship retrieval
@@ -144,7 +144,8 @@ EXAMPLES = '''
     user: isadmin
     password: isadmin
     asset_type: term
-    relationship: assigned_assets
+    relationships:
+      - assigned_assets
     dest: /tmp/all.json
 
 - name: retrieve assigned_assets for terms named test
@@ -154,7 +155,8 @@ EXAMPLES = '''
     user: isadmin
     password: isadmin
     asset_type: term
-    relationship: assigned_assets
+    relationships:
+      - assigned_assets
     dest: /tmp/namedTestOnly.json
     conditions:
       - { "property": "name", "operator": "=", "value": "test" }
@@ -166,7 +168,8 @@ EXAMPLES = '''
     user: isadmin
     password: isadmin
     asset_type: term
-    relationship: assigned_assets
+    relationships:
+      - assigned_assets
     limit:
       - database_table
     dest: /tmp/dbTablesOnly.json
@@ -204,7 +207,7 @@ def main():
         user=dict(type='str', required=True),
         password=dict(type='str', required=True, no_log=True),
         asset_type=dict(type='str', required=True),
-        relationship=dict(type='str', required=True),
+        relationships=dict(type='list', required=True),
         dest=dict(type='path', required=True),
         from_time=dict(type='int', required=False, default=-1),
         to_time=dict(type='int', required=False),
@@ -244,12 +247,12 @@ def main():
         cert=module.params['cert']
     )
 
-    relnprop = module.params['relationship']
+    relnprops = module.params['relationships']
     limit = module.params['limit']
 
     # Basic query
     reqJSON = {
-        "properties": [relnprop],
+        "properties": relnprops,
         "types": [module.params['asset_type']],
         "pageSize": module.params['batch']
     }
@@ -285,18 +288,30 @@ def main():
     result['asset_count'] = len(jsonResults)
 
     for item in jsonResults:
-        item[relnprop] = igcrest.getAllPages(item[relnprop]['items'], item[relnprop]['paging'])
-        for relation in item[relnprop]:
-            # Limit included relationships to only those types of interest
-            if (len(limit) > 0) and not (relation['_type'] in limit):
-                relation.clear()
-            else:
-                relnCtx = igcrest.getContextForItem(relation['_id'], relation['_type'])
-                if relnCtx == '':
-                    module.fail_json(msg='Unable to retieve context for search result', **result)
+        minifyItem(item)
+        for itmCtx in item['_context']:
+            minifyItem(itmCtx)
+        for relnprop in relnprops:
+            item[relnprop] = igcrest.getAllPages(item[relnprop]['items'], item[relnprop]['paging'])
+            aRemoveIndices = []
+            iIdx = 0
+            for relation in item[relnprop]:
+                # Limit included relationships to only those types of interest
+                if (len(limit) > 0) and not (relation['_type'] in limit):
+                    aRemoveIndices.append(iIdx)
                 else:
-                    result['relationship_count'] += 1
-                    relation['_context'] = relnCtx
+                    relnCtx = igcrest.getContextForItem(relation['_id'], relation['_type'])
+                    if relnCtx == '':
+                        module.fail_json(msg='Unable to retieve context for search result', **result)
+                    else:
+                        minifyItem(relation)
+                        for ctx in relnCtx:
+                            minifyItem(ctx)
+                        result['relationship_count'] += 1
+                        relation['_context'] = relnCtx
+                iIdx += 1
+            for removal in aRemoveIndices:
+                del item[relnprop][removal]
 
     # Close the IGC REST API session
     igcrest.closeSession()
@@ -331,6 +346,11 @@ def main():
         os.unlink(tmpfile)
 
     module.exit_json(**result)
+
+
+def minifyItem(asset):
+    del asset['_id']
+    del asset['_url']
 
 
 if __name__ == '__main__':
