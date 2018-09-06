@@ -144,57 +144,41 @@ def _getDsJobExtractObjects(rest_result):
     # Note: the "folder" returned by REST API does not include certain information (eg. the "/Jobs/..." portion);
     # furthermore because jobs must be universally unique in naming within a project (irrespective of folder) we can
     # safely ignore the folder altogether (just wildcard it)
-    extract = {
-        "host": rest_result['_context'][0]['_name'],
-        "project": rest_result['_context'][1]['_name'],
-        "folder": "*",
-        "jobs": rest_result['_name']
-    }
+    jobname = rest_result['_name']
     # TODO: figure out all potential extensions based on different "type" settings
     if rest_result['type'] == "Parallel":
-        extract['jobs'] += ".pjb"
+        jobname += ".pjb"
     elif rest_result['type'] == "Sequence":
-        extract['jobs'] += ".qjb"
+        jobname += ".qjb"
     elif rest_result['type'] == "Server":
-        extract['jobs'] += ".sjb"
+        jobname += ".sjb"
     else:
-        extract['jobs'] += ".*"
-    return extract
+        jobname += ".*"
+    return rest_result['_context'][0]['_name'] + "/" + rest_result['_context'][1]['_name'] + "/*/" + jobname
 
 
 def _getDsRoutineExtractObjects(rest_result):
     # https://www.ibm.com/support/knowledgecenter/en/SSZJPZ_11.7.0/com.ibm.swg.im.iis.iisinfsv.assetint.doc/topics/depasset.html
     # Note: because routines must be universally unique in naming within a project (irrespective of folder)
     # we can safely ignore the folder altogether (just wildcard it)
-    extract = {
-        "host": rest_result['_context'][0]['_name'],
-        "project": rest_result['_context'][1]['_name'],
-        "folder": "*",
-        "jobs": rest_result['_name']
-    }
     # TODO: not currently any way to distinguish between Parallel and Server routines
     # from the REST API results (?) -- so just wildcard the extension for now...
-    extract['jobs'] += ".*"
-    return extract
+    jobname = rest_result['_name'] + ".*"
+    return rest_result['_context'][0]['_name'] + "/" + rest_result['_context'][1]['_name'] + "/*/" + jobname
 
 
 def _getDsSharedContainerExtractObjects(rest_result):
     # https://www.ibm.com/support/knowledgecenter/en/SSZJPZ_11.7.0/com.ibm.swg.im.iis.iisinfsv.assetint.doc/topics/depasset.html
     # Note: because shared containres must be universally unique in naming within a project (irrespective of folder)
     # we can safely ignore the folder altogether (just wildcard it)
-    extract = {
-        "host": rest_result['_context'][0]['_name'],
-        "project": rest_result['_context'][1]['_name'],
-        "folder": "*",
-        "jobs": rest_result['_name']
-    }
+    jobname = rest_result['_name']
     if rest_result['type'] == "PARALLEL":
-        extract['jobs'] += ".psc"
+        jobname += ".psc"
     elif rest_result['type'] == "SERVER":
-        extract['jobs'] += ".ssc"
+        jobname += ".ssc"
     else:
-        extract['jobs'] += ".*"
-    return extract
+        jobname += ".*"
+    return rest_result['_context'][0]['_name'] + "/" + rest_result['_context'][1]['_name'] + "/*/" + jobname
 
 
 def _getQualifiedNameForTableDefinition(rest_result):
@@ -213,28 +197,16 @@ def _getDsTableDefinitionExtractObjects(rest_result):
     # https://www.ibm.com/support/knowledgecenter/en/SSZJPZ_11.7.0/com.ibm.swg.im.iis.iisinfsv.assetint.doc/topics/depasset.html
     # Note: because table definitions must be universally unique in naming within a project (irrespective of folder)
     # we can safely ignore the folder altogether (just wildcard it)
-    extract = {
-        "host": rest_result['_context'][0]['_name'],
-        "project": rest_result['_context'][1]['_name'],
-        "folder": "*",
-        "jobs": _getQualifiedNameForTableDefinition(rest_result)
-    }
-    if extract['jobs'] != '':
-        return extract
+    tablename = _getQualifiedNameForTableDefinition(rest_result)
+    if tablename != '':
+        return rest_result['_context'][0]['_name'] + "/" + rest_result['_context'][1]['_name'] + "/*/" + tablename
 
 
 def _getDsParameterSetExtractObjects(rest_result):
     # https://www.ibm.com/support/knowledgecenter/en/SSZJPZ_11.7.0/com.ibm.swg.im.iis.iisinfsv.assetint.doc/topics/depasset.html
     # Note: because parameter sets must be universally unique in naming within a project (irrespective of folder) we can
     # safely ignore the folder altogether (just wildcard it)
-    extract = {
-        "host": rest_result['_context'][0]['_name'],
-        "project": rest_result['_context'][1]['_name'],
-        "folder": "*",
-        "jobs": rest_result['_name']
-    }
-    extract['jobs'] += ".pst"
-    return extract
+    return rest_result['_context'][0]['_name'] + "/" + rest_result['_context'][1]['_name'] + "/*/" + rest_result['_name'] + ".pst"
 
 
 def _getDataClassExtractObjects(rest_result):
@@ -257,7 +229,7 @@ def _getExternalAssetExtractObjects(rest_result):
     }
     if rest_result['_type'] in xa_asset_type_to_extract_type:
         extract['type'] = xa_asset_type_to_extract_type[rest_result['_type']]
-    return extract
+        return extract
 
 
 def _getInfoAnalyzerExtractObjects(rest_result):
@@ -300,12 +272,12 @@ def _getDataModelExtractObjects(rest_result):
 
 
 def _getDatabaseExtractObjects(rest_result):
-    extract = {
-        "path": _getContextPath(rest_result),
-        "name": rest_result['_name'],
-        "type": rest_result['_type']
-    }
-    return extract
+    obj_type = rest_result['_type']
+    if obj_type == 'database':
+        obj_type = "db"
+    elif obj_type == 'database_schema':
+        obj_type = "sch"
+    return "/" + _getContextPath(rest_result) + "/" + rest_result['_name'] + "." + obj_type
 
 
 def _escapeFilePath(name):
