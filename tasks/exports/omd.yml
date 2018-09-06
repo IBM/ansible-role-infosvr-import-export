@@ -88,7 +88,7 @@
     to_time: >
               {{ __ibm_infosvr_impexp_to_epoch | int }}
   register: __ibm_infosvr_impexp_omd_extract
-  with_items: "{{ ibm_infosvr_impexp_omd_export }}"
+  with_items: "{{ __ibm_infosvr_impexp_items }}"
   become: yes
   become_user: "{{ ibm_infosvr_impexp_infosvr_dsadm_user }}"
 
