@@ -10,6 +10,8 @@ export:
     - into: <path>
       limited_to:
         changes_in_last_hours: <int>
+      with_options:
+        remove_once_exported: <boolean>
     - ...
 ```
 
@@ -18,6 +20,10 @@ The directory `into` which the operational metadata flow files should be stored 
 The options under `limited_to` are all optional:
 
 - `changes_in_last_hours` specifies the number of hours prior to the playbook running from which to identify (and extract) any operational metadata flows.
+
+The options under `with_options` are all optional:
+
+- `remove_once_exported` indicates that once exported, the operational metadata XML should be removed (if `True`) or should be left behind (if `False`); defaults to `False` if not specified.
 
 ## Imports
 

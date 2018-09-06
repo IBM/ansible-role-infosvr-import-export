@@ -16,6 +16,8 @@ In case you set the escalation to false, ensure that the following are done in y
 - Installation of the `python-lxml` library (eg. via `yum`)
 - The `{IS_HOME}/ASBServer/logs` directory of the domain tier must be write-able by the user running the role (as well as each of the `.log` files in that directory)
 
+(The privilege escalation to `dsadm` is used primarily for the operational metadata handling; if you do not need to use this, you may not need any privilege escalation.)
+
 ## Role Variables
 
 See `defaults/main.yml` for inline documentation, and the example below for the main variables needed. For any clarification on the expected action variables and sub-structures for the various object types, refer to the documentation below.
