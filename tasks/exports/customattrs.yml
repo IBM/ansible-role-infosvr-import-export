@@ -73,7 +73,7 @@
     to_time: >
               {{ __ibm_infosvr_impexp_to_epoch | int }}
     model_ver: >
-              {{ __ibm_infosvr_impexp_model_versions | json_query("[?model == 'ASCLCustomAttribute'].version | [0]") }}
+              {{ hostvars[groups['ibm-information-server-domain'][0]]['__ibm_infosvr_impexp_model_versions'] | json_query("[?model == 'ASCLCustomAttribute'].version | [0]") }}
     names: "{% if item.0.item.limited_to is defined %}{{ item.0.item.limited_to.names | default([]) }}{% else %}[]{% endif %}"
   register: __ibm_infosvr_impexp_ca_extract
   with_subelements:

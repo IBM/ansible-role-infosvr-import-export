@@ -96,9 +96,6 @@
     - progress
     - validate
 
-- debug: var=__ibm_infosvr_impexp_model_versions
-  tags: ['never', 'debug']
-
 - name: load mapping defaults (un-escalated)
   include_tasks: setup_mappings.yml
   when: >
