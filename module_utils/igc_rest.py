@@ -160,11 +160,11 @@ class RestIGC(object):
                 "pageSize": 2
             }
             itemWithCtx = self.search(q, False)
-            if len(itemWithCtx) == 1:
-                return itemWithCtx[0]['_context']
-            elif len(itemWithCtx) > 1:
+            if 'items' in itemWithCtx and len(itemWithCtx['items']) == 1:
+                return itemWithCtx['items'][0]['_context']
+            elif 'items' in itemWithCtx and len(itemWithCtx['items']) > 1:
                 self.module.warn("Multiple items found when expecting only one -- " + json.dumps(q))
-                return itemWithCtx[0]['_context']
+                return itemWithCtx['items'][0]['_context']
             else:
                 return ""
 
