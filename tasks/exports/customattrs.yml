@@ -91,21 +91,31 @@
     path: /tmp/__export_{{ __ibm_infosvr_impexp_type }}_{{ item.into | basename }}_tmp/
     format: zip
   with_items: "{{ __ibm_infosvr_impexp_items }}"
+  loop_control:
+    label: "{{ item.into | basename }}"
 
 - name: remove temporary unarchive location
   file:
     path: /tmp/__export_{{ __ibm_infosvr_impexp_type }}_{{ item.into | basename }}_tmp
     state: absent
   with_items: "{{ __ibm_infosvr_impexp_items }}"
+  loop_control:
+    label: "/tmp/__export_{{ __ibm_infosvr_impexp_type }}_{{ item.into | basename }}_tmp"
 
 - name: transfer files
   fetch: src=/tmp/__export_{{ __ibm_infosvr_impexp_type }}_{{ item.into | basename }}.zip dest={{ item.into }} flat=yes
   with_items: "{{ __ibm_infosvr_impexp_items }}"
+  loop_control:
+    label: "{{ item.into | basename }}"
 
 - name: cleanup exported files
   file: path=/tmp/__export_{{ __ibm_infosvr_impexp_type }}_{{ item.into | basename }}_full.zip state=absent
   with_items: "{{ __ibm_infosvr_impexp_items }}"
+  loop_control:
+    label: "{{ item.into | basename }}"
 
 - name: cleanup restricted files
   file: path=/tmp/__export_{{ __ibm_infosvr_impexp_type }}_{{ item.into | basename }}.zip state=absent
   with_items: "{{ __ibm_infosvr_impexp_items }}"
+  loop_control:
+    label: "{{ item.into | basename }}"
