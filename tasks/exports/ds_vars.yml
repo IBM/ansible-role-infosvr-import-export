@@ -28,6 +28,8 @@
   args:
     executable: /bin/bash
     chdir: "{{ ibm_infosvr_impexp_infosvr_install_location }}/Server/DSEngine"
+  become: yes
+  become_user: "{{ ibm_infosvr_impexp_infosvr_dsadm_user }}"
   with_items: "{{ __ibm_infosvr_impexp_items }}"
   loop_control:
     label: "{{ item.into | basename }} - {{ item.from_project }}"
@@ -37,6 +39,8 @@
           grep '^{{ item.1 }}'
           /tmp/__export_{{ __ibm_infosvr_impexp_type }}_{{ item.0.into | basename }}
           >> /tmp/__export_{{ __ibm_infosvr_impexp_type }}_{{ item.0.into | basename }}.limited
+  become: yes
+  become_user: "{{ ibm_infosvr_impexp_infosvr_dsadm_user }}"
   with_subelements:
     - "{{ __ibm_infosvr_impexp_items | selectattr('limited_to', 'defined') | list }}"
     - "limited_to"
@@ -48,49 +52,75 @@
     src: /tmp/__export_{{ __ibm_infosvr_impexp_type }}_{{ item.into | basename }}.limited
     dest: /tmp/__export_{{ __ibm_infosvr_impexp_type }}_{{ item.into | basename }}
     remote_src: True
+  become: yes
+  become_user: "{{ ibm_infosvr_impexp_infosvr_dsadm_user }}"
   when: item.limited_to is defined
   with_items: "{{ __ibm_infosvr_impexp_items }}"
+  loop_control:
+    label: "{{ item.into | basename }}"
 
 - name: remove (limited) files
   file: path=/tmp/__export_{{ __ibm_infosvr_impexp_type }}_{{ item.into | basename }}.limited state=absent
+  become: yes
+  become_user: "{{ ibm_infosvr_impexp_infosvr_dsadm_user }}"
   when: item.limited_to is defined
   with_items: "{{ __ibm_infosvr_impexp_items }}"
+  loop_control:
+    label: "{{ item.into | basename }}"
 
 - name: transfer files
   fetch: src=/tmp/__export_{{ __ibm_infosvr_impexp_type }}_{{ item.into | basename }} dest={{ item.into }}.properties flat=yes
+  become: yes
+  become_user: "{{ ibm_infosvr_impexp_infosvr_dsadm_user }}"
   with_items: "{{ __ibm_infosvr_impexp_items }}"
+  loop_control:
+    label: "{{ item.into | basename }}"
 
 - name: transfer DSParams
   fetch:
     src: "{{ ibm_infosvr_impexp_projects_dir }}/{{ item.from_project }}/DSParams"
     dest: "{{ item.into }}.dsparams"
     flat: yes
+  become: yes
+  become_user: "{{ ibm_infosvr_impexp_infosvr_dsadm_user }}"
   with_items: "{{ __ibm_infosvr_impexp_items }}"
+  loop_control:
+    label: "{{ item.from_project | basename }}"
 
 - name: cleanup exported files
   file: path=/tmp/__export_{{ __ibm_infosvr_impexp_type }}_{{ item.into | basename }} state=absent
+  become: yes
+  become_user: "{{ ibm_infosvr_impexp_infosvr_dsadm_user }}"
   with_items: "{{ __ibm_infosvr_impexp_items }}"
+  loop_control:
+    label: "{{ item.into | basename }}"
 
 - name: convert properties to YAML
   local_action:
     module: template
     src: ds_vars.yml.j2
     dest: "{{ item.into }}"
-  with_items: "{{ __ibm_infosvr_impexp_items }}"
   become: no
+  with_items: "{{ __ibm_infosvr_impexp_items }}"
+  loop_control:
+    label: "{{ item.into | basename }}"
 
 - name: remove properties file
   local_action:
     module: file
     path: "{{ item.into }}.properties"
     state: absent
-  with_items: "{{ __ibm_infosvr_impexp_items }}"
   become: no
+  with_items: "{{ __ibm_infosvr_impexp_items }}"
+  loop_control:
+    label: "{{ item.into | basename }}"
 
 - name: remove DSParams file
   local_action:
     module: file
     path: "{{ item.into }}.dsparams"
     state: absent
-  with_items: "{{ __ibm_infosvr_impexp_items }}"
   become: no
+  with_items: "{{ __ibm_infosvr_impexp_items }}"
+  loop_control:
+    label: "{{ item.into | basename }}"
