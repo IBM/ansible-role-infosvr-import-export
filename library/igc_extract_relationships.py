@@ -351,8 +351,10 @@ def main():
 
 
 def minifyItem(asset):
-    del asset['_id']
-    del asset['_url']
+    if '_id' in asset:
+        del asset['_id']
+    if '_url' in asset:
+        del asset['_url']
 
 
 if __name__ == '__main__':
