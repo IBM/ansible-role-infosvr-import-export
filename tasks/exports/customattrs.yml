@@ -31,12 +31,16 @@
     executable: /bin/bash
     chdir: "{{ ibm_infosvr_impexp_infosvr_install_location }}/Server/DSEngine"
   with_items: "{{ __ibm_infosvr_impexp_items }}"
+  loop_control:
+    label: "{{ item.into | basename }}"
 
 - name: create temporary unarchive location
   file:
     path: /tmp/__export_{{ __ibm_infosvr_impexp_type }}_{{ item.into | basename }}_tmp
     state: directory
   with_items: "{{ __ibm_infosvr_impexp_items }}"
+  loop_control:
+    label: "/tmp/__export_{{ __ibm_infosvr_impexp_type }}_{{ item.into | basename }}_tmp"
 
 - name: unarchive ISX file
   unarchive:
@@ -44,6 +48,8 @@
     dest: /tmp/__export_{{ __ibm_infosvr_impexp_type }}_{{ item.into | basename }}_tmp
     remote_src: yes
   with_items: "{{ __ibm_infosvr_impexp_items }}"
+  loop_control:
+    label: "{{ item.into | basename }}"
 
 - name: list unarchived XML files
   find:
@@ -52,6 +58,8 @@
     recurse: yes
   with_items: "{{ __ibm_infosvr_impexp_items }}"
   register: __ibm_infosvr_impexp_ca_unarchived
+  loop_control:
+    label: "/tmp/__export_{{ __ibm_infosvr_impexp_type }}_{{ item.into | basename }}_tmp"
 
 - name: restrict exported custom attributes
   customattr_get_changes:
