@@ -1,0 +1,65 @@
+---
+###
+# Copyright 2018 IBM Corp. All Rights Reserved.
+# 
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+# 
+#      http://www.apache.org/licenses/LICENSE-2.0
+# 
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+###
+
+- name: setup_mappings - load mapping defaults
+  include_vars: file=asset_mapping_packages.yml
+
+- name: setup_mappings - load model versions
+  shell: >
+          ./xmetaAdmin.sh
+          listModels
+          -dbfile ../conf/database.properties
+          | grep '^{{ item.model }}'
+          | awk '{print $2}'
+  args:
+    executable: /bin/bash
+    chdir: "{{ ibm_infosvr_impexp_infosvr_install_location }}/ASBServer/bin"
+  register: __ibm_infosvr_impexp_models
+  with_items: "{{ ibm_infosvr_impexp_models_to_types }}"
+  changed_when: False
+  loop_control:
+    label: "{{ item.model }}"
+
+- name: setup_mappings - parse model versions
+  set_fact:
+    __ibm_infosvr_impexp_model_version:
+      model: "{{ item.item.model }}"
+      version: "{{ item.stdout[1:-1] }}"
+      types: "{{ item.item.types }}"
+  with_items: "{{ __ibm_infosvr_impexp_models.results }}"
+  register: __ibm_infosvr_impexp_model_versions_tmp
+  changed_when: False
+  loop_control:
+    label: "{{ item.item.model }}"
+
+- name: setup_mappings - splice in model versions
+  set_fact:
+    __ibm_infosvr_impexp_model_version:
+      model: "{{ item.item.item | combine(item.ansible_facts.__ibm_infosvr_impexp_model_version) }}"
+  with_items: "{{ __ibm_infosvr_impexp_model_versions_tmp.results }}"
+  register: __ibm_infosvr_impexp_model_versions_tmp
+  changed_when: False
+  loop_control:
+    label: "{{ item.item.item.model }}"
+
+- name: setup_mappings - simplify model version fact
+  set_fact:
+    __ibm_infosvr_impexp_model_versions: "{{ __ibm_infosvr_impexp_model_versions_tmp.results | map(attribute='ansible_facts.__ibm_infosvr_impexp_model_version.model') | list }}"
+  changed_when: False
+
+- debug: var=__ibm_infosvr_impexp_model_versions
+  tags: [ 'never', 'debug' ]

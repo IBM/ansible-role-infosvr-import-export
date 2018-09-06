@@ -84,7 +84,7 @@
 
 # Must remain 'import' rather than 'include' to pass-through privilege escalation
 - name: load mapping defaults (escalated)
-  import_tasks: imports/setup_mappings.yml
+  import_tasks: setup_mappings.yml
   become: yes
   when: >
           ibm_infosvr_impexp_priv_escalate
@@ -97,7 +97,7 @@
     - validate
 
 - name: load mapping defaults (un-escalated)
-  include_tasks: imports/setup_mappings.yml
+  include_tasks: setup_mappings.yml
   when: >
           ('ibm-information-server-domain' in group_names)
           and not ibm_infosvr_impexp_priv_escalate
