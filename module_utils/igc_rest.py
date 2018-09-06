@@ -122,7 +122,7 @@ class RestIGC(object):
         # type, just return the details straight from the cache
         if cache and asset_type in self.ctxCache:
             if rid in self.ctxCache[asset_type]:
-                return self.ctxCache[asset_type][rid]['_context']
+                return self.ctxCache[asset_type][rid]
             else:
                 return ""
         elif asset_type not in self.ctxForTypeCounters:
@@ -142,7 +142,7 @@ class RestIGC(object):
             self.ctxCache[asset_type] = {}
             for asset in allAssetsOfType:
                 asset_rid = asset['_id']
-                self.ctxCache[asset_type][asset_rid] = asset
+                self.ctxCache[asset_type][asset_rid] = asset['_context']
             return self.getContextForItem(rid, asset_type, batch, limit, cache)
         # Otherwise, just do a one-off request
         else:
