@@ -46,7 +46,7 @@
 
 - name: check if CSV-based extract
   include_tasks: extensionmap.yml
-  when: __ibm_infosvr_impexp_type == 'extensionmap'
+  when: __ibm_infosvr_impexp_type == 'extension_mapping_document'
 
 - name: "{{ __ibm_infosvr_impexp_type }} - transfer files"
   fetch: src=/tmp/__export_{{ __ibm_infosvr_impexp_type }}_{{ item.into | basename }} dest={{ item.into }} flat=yes

@@ -142,7 +142,6 @@
   vars:
     __ibm_infosvr_impexp_type: extension_mapping_document
     __ibm_infosvr_impexp_items: "{{ export.extensionmap }}"
-    __ibm_infosvr_impexp_switch: "-cm"
   when: >
         export.extensionmap is defined
         and ('ibm-information-server-engine' in group_names)
