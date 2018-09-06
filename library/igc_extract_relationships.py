@@ -310,8 +310,10 @@ def main():
                         result['relationship_count'] += 1
                         relation['_context'] = relnCtx
                 iIdx += 1
+            iIdx = 0
             for removal in aRemoveIndices:
-                del item[relnprop][removal]
+                del item[relnprop][removal - iIdx]
+                iIdx += 1
 
     # Close the IGC REST API session
     igcrest.closeSession()
