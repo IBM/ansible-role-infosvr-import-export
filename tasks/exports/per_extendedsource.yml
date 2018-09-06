@@ -36,18 +36,3 @@
   with_items: "{{ __ibm_infosvr_impexp_assets }}"
   loop_control:
     label: "{{ outer_item.into | basename }} - {{ item.name }}"
-
-# TODO: above should be capable of multiple files per entry (ie. multiple 'types')...
-# ... so should we bundle these into a .zip as we do for extension mapping documents?
-# ... (or does the '-ap' option above mean they're all appended to a single CSV file?)
-- name: bundle exported files
-  archive:
-    dest: /tmp/__export_{{ __ibm_infosvr_impexp_type }}_{{ item.item.dest | basename }}
-    path: >
-          {{ item | to_json | from_json | json_query("assets[*].join('',['/tmp/',file])") }}
-    format: zip
-    remove: yes
-  when: item.assets is defined and (item.assets | length) > 0
-  with_items: "{{ __ibm_infosvr_impexp_one_type_conditions_changes.results }}"
-  loop_control:
-    label: "{{ item.item.dest | basename }}"
