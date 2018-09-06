@@ -15,13 +15,15 @@
 # limitations under the License.
 ###
 
-- name: "{{ __ibm_infosvr_impexp_type }} - get changed assets"
-  igc_get_changed_assets:
-    host: "{{ ibm_infosvr_impexp_services_host }}"
+- name: export IGC metadata relationships
+  igc_extract_relationships:
+    host: "{{ ibm_infosvr_impexp_services_host | lower }}"
     port: "{{ ibm_infosvr_impexp_services_console_port }}"
     user: "{{ ibm_infosvr_impexp_infosvr_admin_user }}"
     password: "{{ ibm_infosvr_impexp_infosvr_admin_user_pwd }}"
-    asset_type: "{{ __ibm_infosvr_impexp_type }}"
+    asset_type: "{{ item.from_type }}"
+    relationships: "{{ item.via_properties }}"
+    dest: /tmp/__export_{{ __ibm_infosvr_impexp_type }}_{{ item.into | basename }}
     from_time: >
               {% if item.limited_to is defined and item.limited_to.changes_in_last_hours is defined %}
               {{ (__ibm_infosvr_impexp_to_epoch | int) - ((item.limited_to.changes_in_last_hours | int) * 3600 * 1000) }}
@@ -30,32 +32,25 @@
               {% endif %}
     to_time: >
               {{ __ibm_infosvr_impexp_to_epoch | int }}
-    conditions: "{% if item.limited_to is defined %}{{ item.limited_to.only_with_conditions | default(omit) }}{% else %}[]{% endif %}"
+    limit: "{% if item.limited_to is defined %}{{ item.limited_to.only_including_related_types | default([]) }}{% else %}[]{% endif %}"
+    conditions: "{% if item.limited_to is defined %}{{ item.limited_to.only_with_conditions | default([]) }}{% else %}[]{% endif %}"
     cert: "{{ __ibm_infosvr_impexp_ssl_cert_location | default(omit) }}"
-  register: __ibm_infosvr_impexp_one_type_conditions_changes
+  register: __ibm_infosvr_impexp_igc_relns_extract
   with_items: "{{ __ibm_infosvr_impexp_items }}"
   loop_control:
     label: "{{ item.into | basename }}"
 
-- debug: var=__ibm_infosvr_impexp_one_type_conditions_changes
+- debug: var=__ibm_infosvr_impexp_igc_relns_extract
   tags: [ 'never', 'debug' ]
 
-- name: check if ISX-based extract
-  include_tasks: simple_switch.yml
-  when: __ibm_infosvr_impexp_switch is defined
-
-- name: check if CSV-based extract
-  include_tasks: extensionmap.yml
-  when: __ibm_infosvr_impexp_type == 'extensionmap'
-
-- name: "{{ __ibm_infosvr_impexp_type }} - transfer files"
-  fetch: src=/tmp/__export_{{ __ibm_infosvr_impexp_type }}_{{ item.into | basename }} dest={{ item.into }} flat=yes
-  with_items: "{{ __ibm_infosvr_impexp_items }}"
+- name: transfer files
+  fetch: src=/tmp/__export_{{ __ibm_infosvr_impexp_type }}_{{ item.item.into | basename }} dest={{ item.item.into }} flat=yes
+  with_items: "{{ __ibm_infosvr_impexp_igc_relns_extract.results }}"
   loop_control:
-    label: "{{ item.into | basename }}"
+    label: "{{ item.item.into }}"
 
-- name: "{{ __ibm_infosvr_impexp_type }} - cleanup exported files"
-  file: path=/tmp/__export_{{ __ibm_infosvr_impexp_type }}_{{ item.into | basename }} state=absent
-  with_items: "{{ __ibm_infosvr_impexp_items }}"
+- name: cleanup exported files
+  file: path=/tmp/__export_{{ __ibm_infosvr_impexp_type }}_{{ item.item.into | basename }} state=absent
+  with_items: "{{ __ibm_infosvr_impexp_igc_relns_extract.results }}"
   loop_control:
-    label: "{{ item.into | basename }}"
+    label: "/tmp/__export_{{ __ibm_infosvr_impexp_type }}_{{ item.item.into | basename }}"

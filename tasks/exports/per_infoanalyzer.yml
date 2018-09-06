@@ -15,23 +15,16 @@
 # limitations under the License.
 ###
 
-- name: progress_workflow - update workflow state(s)
-  igc_workflow:
+- name: export assets
+  ia_extract_project:
     host: "{{ ibm_infosvr_impexp_services_host | lower }}"
     port: "{{ ibm_infosvr_impexp_services_console_port }}"
     user: "{{ ibm_infosvr_impexp_infosvr_admin_user }}"
     password: "{{ ibm_infosvr_impexp_infosvr_admin_user_pwd }}"
-    asset_type: "{{ item.type }}"
-    from_state: "{{ item.from_state | default(omit) }}"
-    action: "{{ item.action }}"
-    comment: "{{ item.comment | default(omit) }}"
-    conditions: "{{ item.conditions | default(omit) }}"
-    condition_join: "{{ item.condition_join | default(omit) }}"
-    batch: "{{ item.batch | default(omit) }}"
+    project: "{{ outer_item.from_project }}"
+    dest: /tmp/__export_{{ __ibm_infosvr_impexp_type }}_{{ outer_item.into | basename }}
+    assets_to_keep: "{{ __ibm_infosvr_impexp_assets }}"
     cert: "{{ __ibm_infosvr_impexp_ssl_cert_location | default(omit) }}"
-  register: __ibm_infosvr_impexp_workflow_updates
-  with_items: "{{ ibm_infosvr_impexp_workflow_progress }}"
+  register: __ibm_infosvr_impexp_ia_extract
   loop_control:
-    label: "{{ item.type }} - {{ item.action }}"
-
-#- debug: var=__ibm_infosvr_impexp_workflow_updates
+    label: "{{ outer_item.into | basename }}"

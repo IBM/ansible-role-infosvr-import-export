@@ -31,6 +31,8 @@
   register: __ibm_infosvr_impexp_models
   with_items: "{{ ibm_infosvr_impexp_models_to_types }}"
   changed_when: False
+  loop_control:
+    label: "{{ item.model }}"
 
 - name: setup_mappings - parse model versions
   set_fact:

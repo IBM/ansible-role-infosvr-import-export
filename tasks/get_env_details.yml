@@ -15,24 +15,6 @@
 # limitations under the License.
 ###
 
-- name: get nanosecond epoch
-  command: date -u +%s%N
-  register: __ibm_infosvr_impexp_epoch
-
-- name: set date and time inputs
-  set_fact:
-    __ibm_infosvr_impexp_timestamp: "{{ '%Y%m%d_%H%M%S' | strftime(__ibm_infosvr_impexp_epoch.stdout[:-9]) }}"
-    __ibm_infosvr_impexp_to_epoch: "{{ __ibm_infosvr_impexp_epoch.stdout[:-6] }}"
-    cacheable: no
-
-- name: ensure XML library is installed
-  yum: name=python-lxml state=latest
-  become: yes
-  when: >
-        ibm_infosvr_impexp_priv_escalate
-        and not ('ibm-information-server-ug' in group_names)
-        and not ('ibm-information-server-clients' in group_names)
-
 - name: retrieve Version.xml
   fetch:
     src: "{{ ibm_infosvr_impexp_infosvr_install_location }}/Version.xml"

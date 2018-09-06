@@ -1,0 +1,49 @@
+---
+###
+# Copyright 2018 IBM Corp. All Rights Reserved.
+# 
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+# 
+#      http://www.apache.org/licenses/LICENSE-2.0
+# 
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+###
+
+- name: export extension mapping documents
+  shell: >
+          source ~/.bashrc &&
+          . dsenv &&
+          {{ ibm_infosvr_impexp_infosvr_install_location }}/Clients/istools/cli/istool.sh
+          workbench extension mapping export
+          -u {{ ibm_infosvr_impexp_infosvr_admin_user }}
+          -p {{ ibm_infosvr_impexp_infosvr_admin_user_pwd }}
+          -dom {{ ibm_infosvr_impexp_services_host | lower }}:{{ ibm_infosvr_impexp_services_console_port }}
+          -pt '{{ item.1.name }}%'
+          -dir /tmp
+          -o /tmp/__export_{{ __ibm_infosvr_impexp_type }}_{{ item.0.item.into | basename }}.log
+  args:
+    executable: /bin/bash
+    chdir: "{{ ibm_infosvr_impexp_infosvr_install_location }}/Server/DSEngine"
+  with_subelements:
+    - "{{ __ibm_infosvr_impexp_one_type_conditions_changes.results }}"
+    - assets
+  loop_control:
+    label: "{{ item.0.item.into | basename }} - {{ item.1.name }}"
+
+- name: bundle exported files
+  archive:
+    dest: /tmp/__export_{{ __ibm_infosvr_impexp_type }}_{{ item.item.into | basename }}
+    path: >
+          {{ item | to_json | from_json | json_query("assets[*].join('',['/tmp/',file])") }}
+    format: zip
+    remove: yes
+  when: item.assets is defined and (item.assets | length) > 0
+  with_items: "{{ __ibm_infosvr_impexp_one_type_conditions_changes.results }}"
+  loop_control:
+    label: "{{ item.item.into | basename }}"
