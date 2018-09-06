@@ -41,6 +41,8 @@ class RestIGC(object):
         self.baseURL = "https://" + host + ":" + port
         logging.getLogger("requests").setLevel(logging.ERROR)
         logging.getLogger("urllib3").setLevel(logging.ERROR)
+        self.ctxForTypeCounters = {}
+        self.ctxCache = {}
 
     '''
     common code for setting up interactivity with IGC REST API
@@ -115,28 +117,56 @@ class RestIGC(object):
         )
         return (r.status_code == 200)
 
-    def getContextForItem(self, rid, asset_type):
-        q = {
-            "properties": ["name"],
-            "types": [asset_type],
-            "where": {
-                "conditions": [{
-                    "value": rid,
-                    "operator": "=",
-                    "property": "_id"
-                }],
-                "operator": "and"
-            },
-            "pageSize": 2
-        }
-        itemWithCtx = self.search(q)
-        if len(itemWithCtx) == 1:
-            return itemWithCtx[0]['_context']
-        elif len(itemWithCtx) > 1:
-            self.module.warn("Multiple items found when expecting only one -- " + json.dumps(q))
-            return itemWithCtx[0]['_context']
+    def getContextForItem(self, rid, asset_type, batch=100, limit=5, cache=True):
+        # IF we have already bulk-queried and have a cache for this asset
+        # type, just return the details straight from the cache
+        if cache and asset_type in self.ctxCache:
+            if rid in ctxCache[asset_type]:
+                return self.ctxCache[asset_type][rid]['_context']
+            else:
+                return ""
+        elif asset_type not in self.ctxForTypeCounters:
+            ctxForTypeCounters[asset_type] = 1
         else:
-            return ""
+            ctxForTypeCounters[asset_type] += 1
+        # If we've had more than the limit of one-off requests for
+        # the context of a particular asset type, bulk-request them
+        # and save as a cache
+        if cache and ctxForTypeCounters[asset_type] > limit:
+            q = {
+                "properties": ["name"],
+                "types": [asset_type]
+                "pageSize": batch
+            }
+            allAssetsOfType = self.search(q)
+            self.ctxCache[asset_type] = {}
+            for asset in allAssetsOfType:
+                asset_rid = asset['_id']
+                self.ctxCache[asset_type][asset_rid] = asset
+            return self.getContextForItem(rid, asset_type, batch, limit, cache)
+        # Otherwise, just do a one-off request
+        else:
+            q = {
+                "properties": ["name"],
+                "types": [asset_type],
+                "where": {
+                    "conditions": [{
+                        "value": rid,
+                        "operator": "=",
+                        "property": "_id"
+                    }],
+                    "operator": "and"
+                },
+                "pageSize": 2
+            }
+            itemWithCtx = self.search(q, False)
+            if len(itemWithCtx) == 1:
+                return itemWithCtx[0]['_context']
+            elif len(itemWithCtx) > 1:
+                self.module.warn("Multiple items found when expecting only one -- " + json.dumps(q))
+                return itemWithCtx[0]['_context']
+            else:
+                return ""
 
     def _getCtxQueryParamName(self, asset_type, ctx_type):
         new_type = ctx_type
