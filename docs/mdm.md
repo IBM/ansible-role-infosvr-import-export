@@ -12,11 +12,11 @@ The export will be generate an ISX file that could be separately processed throu
 export:
   mdm:
     - into: <path>
-      path: <string>
+      with_path: <string>
     - ...
 ```
 
-The wildcard for `path`, is `"*"`, and it is the asset path as defined at https://www.ibm.com/support/knowledgecenter/en/SSZJPZ_11.7.0/com.ibm.swg.im.iis.iisinfsv.assetint.doc/topics/cm_asset_types_id_strings.html#cm_asset_types_id_strings__mdm.
+The wildcard for `with_path`, is `"*"`, and it is the asset path as defined at https://www.ibm.com/support/knowledgecenter/en/SSZJPZ_11.7.0/com.ibm.swg.im.iis.iisinfsv.assetint.doc/topics/cm_asset_types_id_strings.html#cm_asset_types_id_strings__mdm.
 
 ## Imports
 
@@ -46,7 +46,7 @@ The options under `with_options` are all optional:
 export:
   mdm:
     - into: cache/mdm.isx
-      path: "/*/*.mdm"
+      with_path: "/*/*.mdm"
 
 isx_mappings:
   - { type: "HostSystem", attr: "name", from: "MY_HOST", to: "YOUR_HOST" }

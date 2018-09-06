@@ -11,7 +11,9 @@ export:
   relationships:
     - into: <path>
       from_type: <string>
-      with_property: <string>
+      via_properties:
+        - <string>
+        - ...
       limited_to:
         only_with_conditions:
           - { property: "<string>", operator: "<string>", value: "<value>" }
@@ -23,13 +25,13 @@ export:
     - ...
 ```
 
-The `into`, `from_type` and `with_property` are required:
+The `into`, `from_type` and `via_properties` are required:
 
 - `into` defines the file to which to extract the relationships
 - `from_type` defines the type of asset for which to extract relationships
-- `with_property` defines the relationship property to extract
+- `via_properties` defines one or more relationship properties to extract
 
-For the names of the `from_type`s and their `with_property` relationship properties, check the REST API type documentation for your release at: https://github.com/IBM/node-igc-rest/tree/master/doc
+For the names of the `from_type`s and their `via_properties` relationship properties, check the REST API type documentation for your release at: https://github.com/IBM/node-igc-rest/tree/master/doc
 
 The options under `limited_to` are all optional:
 
@@ -37,7 +39,7 @@ The options under `limited_to` are all optional:
 - `changes_in_last_hours` specifies the number of hours prior to the playbook running from which to identify (and extract) any changes.
 - `only_including_related_types` provides a list of the related asset types to retain as relationships.
 
-Be aware that all relationships in IGC are bi-directional, so it is usually possible to achieve the extraction of the same relationship in two different ways (depending on the `from_type` and `with_property` used). For example, the `assigned_assets` on a `term` is also represented by the `assigned_to_terms` on a `database_column`, `database_table`, `data_file_field`, etc. Depending on the intended import mode (see below), one of the directions may be significantly more efficient to load than the other.
+Be aware that all relationships in IGC are bi-directional, so it is usually possible to achieve the extraction of the same relationship in two different ways (depending on the `from_type` and `via_properties` used). For example, the `assigned_assets` on a `term` is also represented by the `assigned_to_terms` on a `database_column`, `database_table`, `data_file_field`, etc. Depending on the intended import mode (see below), one of the directions may be significantly more efficient to load than the other.
 
 ## Imports
 
@@ -80,7 +82,8 @@ export:
   relationships:
     - into: cache/terms2assets_underSomeCategory_changed_in_last48hrs_only_dbcols.json
       from_type: term
-      with_property: assigned_assets
+      via_properties:
+        - assigned_assets
       limited_to:
         changes_in_last_hours: 48
         only_with_conditions:
@@ -89,7 +92,8 @@ export:
           - database_column
     - into: cache/same_as_above_but_more_efficient_to_import.json
       from_type: database_column
-      with_property: assigned_to_terms
+      via_properties:
+        - assigned_to_terms
       limited_to:
         changes_in_last_hours: 48
         only_with_conditions:

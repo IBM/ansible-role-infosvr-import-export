@@ -8,7 +8,7 @@ The export will be generate a CSV file that could be separately processed throug
 
 ```yml
 export:
-  extendedsources:
+  extendedsource:
     - into: <path>
       including_objects:
         - type: <string>
@@ -29,7 +29,7 @@ In addition to the file `into` which to extract the assets, at least one `type` 
 
 ```yml
 import:
-  extendedsources:
+  extendedsource:
     - from: <path>
       with_options:
         overwrite: <boolean>
@@ -46,7 +46,7 @@ The options under `with_options` are all optional:
 
 ```yml
 export:
-  extendedsources:
+  extendedsource:
     - into: cache/xa_apps_changed_in_last48hrs.csv
       including_objects:
         type: application
@@ -61,7 +61,7 @@ export:
         changes_in_last_hours: 48
 
 import:
-  extendedsources:
+  extendedsource:
     - from: cache/xa_apps_changed_in_last48hrs.csv
       with_options:
         overwrite: True

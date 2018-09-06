@@ -14,7 +14,7 @@ In case you set the escalation to false, ensure that the following are done in y
 
 - Installation of the `python-requests` library (eg. via `yum`)
 - Installation of the `python-lxml` library (eg. via `yum`)
-- The `{IS_HOME}/ASBServer/logs` directory of the domain tier must be write-able by the user running the role
+- The `{IS_HOME}/ASBServer/logs` directory of the domain tier must be write-able by the user running the role (as well as each of the `.log` files in that directory)
 
 ## Role Variables
 
@@ -94,8 +94,8 @@ The following describes all of the actions and object types currently covered by
     1. `datastage` - [DataStage assets](docs/datastage.md)
     1. `ds_vars` - [DataStage project variables](docs/ds_vars.md)
     1. `infoanalyzer` - [Information Analyzer assets](docs/infoanalyzer.md)
-    1. `extendedsources` - [extended data sources](docs/extendedsources.md)
-    1. `extensionmaps` - [extension mapping documents](docs/extensionmaps.md)
+    1. `extendedsource` - [extended data sources](docs/extendedsource.md)
+    1. `extensionmap` - [extension mapping documents](docs/extensionmap.md)
     1. `glossary` - [glossary assets](docs/glossary.md)
     1. `relationships` - [metadata relationships](docs/relationships.md)
     1. `omd` - [operational metadata](docs/omd.md)
