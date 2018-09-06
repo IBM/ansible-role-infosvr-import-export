@@ -135,7 +135,7 @@ class RestIGC(object):
         if cache and ctxForTypeCounters[asset_type] > limit:
             q = {
                 "properties": ["name"],
-                "types": [asset_type]
+                "types": [asset_type],
                 "pageSize": batch
             }
             allAssetsOfType = self.search(q)
