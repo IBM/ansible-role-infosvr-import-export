@@ -121,18 +121,18 @@ class RestIGC(object):
         # IF we have already bulk-queried and have a cache for this asset
         # type, just return the details straight from the cache
         if cache and asset_type in self.ctxCache:
-            if rid in ctxCache[asset_type]:
+            if rid in self.ctxCache[asset_type]:
                 return self.ctxCache[asset_type][rid]['_context']
             else:
                 return ""
         elif asset_type not in self.ctxForTypeCounters:
-            ctxForTypeCounters[asset_type] = 1
+            self.ctxForTypeCounters[asset_type] = 1
         else:
-            ctxForTypeCounters[asset_type] += 1
+            self.ctxForTypeCounters[asset_type] += 1
         # If we've had more than the limit of one-off requests for
         # the context of a particular asset type, bulk-request them
         # and save as a cache
-        if cache and ctxForTypeCounters[asset_type] > limit:
+        if cache and self.ctxForTypeCounters[asset_type] > limit:
             q = {
                 "properties": ["name"],
                 "types": [asset_type],
