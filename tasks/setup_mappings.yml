@@ -15,26 +15,39 @@
 # limitations under the License.
 ###
 
-- name: setup_mappings - load mapping defaults
+- name: load mapping defaults
   include_vars: file=asset_mapping_packages.yml
 
-- name: setup_mappings - load model versions
+- name: load model versions
   shell: >
           ./xmetaAdmin.sh
           listModels
           -dbfile ../conf/database.properties
+          > /tmp/__ibm_infosvr_impexp_models.txt
+  args:
+    executable: /bin/bash
+    chdir: "{{ ibm_infosvr_impexp_infosvr_install_location }}/ASBServer/bin"
+  changed_when: False
+
+- name: filter model versions
+  shell: >
+          cat /tmp/__ibm_infosvr_impexp_models.txt
           | grep '^{{ item.model }}'
           | awk '{print $2}'
   args:
     executable: /bin/bash
-    chdir: "{{ ibm_infosvr_impexp_infosvr_install_location }}/ASBServer/bin"
   register: __ibm_infosvr_impexp_models
   with_items: "{{ ibm_infosvr_impexp_models_to_types }}"
   changed_when: False
   loop_control:
     label: "{{ item.model }}"
 
-- name: setup_mappings - parse model versions
+- name: remove temporary file
+  file:
+    path: /tmp/__ibm_infosvr_impexp_models.txt
+    state: absent
+
+- name: parse model versions
   set_fact:
     __ibm_infosvr_impexp_model_version:
       model: "{{ item.item.model }}"
@@ -46,7 +59,7 @@
   loop_control:
     label: "{{ item.item.model }}"
 
-- name: setup_mappings - splice in model versions
+- name: splice in model versions
   set_fact:
     __ibm_infosvr_impexp_model_version:
       model: "{{ item.item.item | combine(item.ansible_facts.__ibm_infosvr_impexp_model_version) }}"
@@ -56,7 +69,7 @@
   loop_control:
     label: "{{ item.item.item.model }}"
 
-- name: setup_mappings - simplify model version fact
+- name: simplify model version fact
   set_fact:
     __ibm_infosvr_impexp_model_versions: "{{ __ibm_infosvr_impexp_model_versions_tmp.results | map(attribute='ansible_facts.__ibm_infosvr_impexp_model_version.model') | list }}"
   changed_when: False
