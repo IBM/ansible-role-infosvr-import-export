@@ -215,10 +215,14 @@ def _getDataClassExtractObjects(rest_result):
 
 
 def _getExtensionMappingDocumentExtractObjects(rest_result):
+    path = _getContextPath(rest_result)
+    file = rest_result['file_name']
+    if path.find('/') >= 0:
+        path = path[(path.find('/') + 1):]
+        file = path + "/" + file
     extract = {
         "name": rest_result['_name'],
-        "folder": rest_result['parent_folder']['_name'],
-        "file": rest_result['file_name']
+        "file": file
     }
     return extract
 
