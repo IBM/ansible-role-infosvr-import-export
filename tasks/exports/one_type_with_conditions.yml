@@ -46,6 +46,9 @@
 
 - name: check if CSV-based extract
   include_tasks: extensionmap.yml
+  with_items: "{{ __ibm_infosvr_impexp_one_type_conditions_changes.results }}"
+  loop_control:
+    loop_var: outer_item
   when: __ibm_infosvr_impexp_type == 'extension_mapping_document'
 
 - name: "{{ __ibm_infosvr_impexp_type }} - transfer files"
