@@ -1,0 +1,46 @@
+---
+###
+# Copyright 2018 IBM Corp. All Rights Reserved.
+# 
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+# 
+#      http://www.apache.org/licenses/LICENSE-2.0
+# 
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+###
+
+- name: transfer files
+  copy: src={{ item.from }} dest=/tmp/__load_infoanalyzer_{{ item.from | basename }}
+  with_items: "{{ ingest.infoanalyzer }}"
+  loop_control:
+    label: "{{ item.from | basename }}"
+
+- name: load Information Analyzer project
+  ia_load_project:
+    host: "{{ ibm_infosvr_impexp_services_host | lower }}"
+    port: "{{ ibm_infosvr_impexp_services_console_port }}"
+    user: "{{ ibm_infosvr_impexp_infosvr_admin_user }}"
+    password: "{{ ibm_infosvr_impexp_infosvr_admin_user_pwd }}"
+    project: "{{ item.into_project }}"
+    src: /tmp/__load_infoanalyzer_{{ item.from | basename }}
+    mappings: "{% if item.with_options is defined %}{{ item.with_options.transformed_by | default([]) }}{% else %}[]{% endif %}"
+    cert: "{{ __ibm_infosvr_impexp_ssl_cert_location | default(omit) }}"
+  register: __ibm_infosvr_impexp_ia_load
+  with_items: "{{ ingest.infoanalyzer }}"
+  loop_control:
+    label: "{{ item.from | basename }} - {{ item.into_project }}"
+
+- debug: var=__ibm_infosvr_impexp_ia_load
+  tags: [ 'never', 'debug' ]
+
+- name: import_ia - cleanup transferred files
+  file: path=/tmp/__load_infoanalyzer_{{ item.from | basename }} state=absent
+  with_items: "{{ ingest.infoanalyzer }}"
+  loop_control:
+    label: "{{ item.from | basename }}"
