@@ -47,6 +47,8 @@ The options under `with_options` are all optional:
 
 When specifying multiple `args`, simply include them all separated by spaces.
 
+**Important note**: ingestion will _not_ fail when a given mapping's source or target metadata does not exist in the environment. Currently the only way to check for this condition is to use the `validate` step to confirm that the outcome in the environment is as expected.
+
 ## Examples
 
 ```yml
