@@ -20,8 +20,9 @@
     path: /tmp/__export_{{ __ibm_infosvr_impexp_type }}_{{ outer_item.item.into | basename }}_tmp
     state: directory
 
-- debug: var=outer_item.assets
-  tags: ['never', 'debug']
+- debug:
+    var: outer_item.assets
+    verbosity: 2
 
 - name: per extension mapping document
   include_tasks: per_extensionmap.yml

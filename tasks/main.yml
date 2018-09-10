@@ -108,8 +108,9 @@
     - progress
     - validate
 
-- debug: var=__ibm_infosvr_impexp_model_versions
-  tags: ['never', 'debug']
+- debug:
+    var: __ibm_infosvr_impexp_model_versions
+    verbosity: 2
 
 - name: export metadata
   include_tasks: export.yml
