@@ -128,6 +128,21 @@ def get_asset_extract_object(asset_type, rest_result):
         return "UNIMPLEMENTED"
 
 
+def get_mapped_value(from_type, from_property, from_value, mappings):
+    # default case: return the originally-provided value
+    mapped_value = from_value
+    for mapping in mappings:
+        # Do not return straight away from a match, as there could be multiple
+        # mappings for a particular type (ensure we either have a match before returning,
+        # or have exhausted all possibilities)
+        if from_type == mapping['type'] and from_property == mapping['property']:
+            if re.search(mapping['from'], from_value):
+                # change name based on regex and 'to' provided in mapping, only
+                # if there was a match (if no match, we might clobber a previous match)
+                mapped_value = re.sub(mapping['from'], mapping['to'], from_value)
+    return mapped_value
+
+
 def _getRidOnly(rest_result):
     return rest_result['_id']
 
