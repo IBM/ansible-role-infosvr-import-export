@@ -24,6 +24,7 @@ import requests
 import json
 import logging
 import re
+from ansible.module_utils.infosvr_types import get_mapped_value
 
 
 class RestIGC(object):
@@ -42,7 +43,8 @@ class RestIGC(object):
         logging.getLogger("requests").setLevel(logging.ERROR)
         logging.getLogger("urllib3").setLevel(logging.ERROR)
         self.ctxForTypeCounters = {}
-        self.ctxCache = {}
+        self.ctxCacheByRID = {}
+        self.ctxCacheByIdentity = {}
 
     '''
     common code for setting up interactivity with IGC REST API
@@ -120,9 +122,9 @@ class RestIGC(object):
     def getContextForItem(self, rid, asset_type, batch=100, limit=5, cache=True):
         # IF we have already bulk-queried and have a cache for this asset
         # type, just return the details straight from the cache
-        if cache and asset_type in self.ctxCache:
-            if rid in self.ctxCache[asset_type]:
-                return self.ctxCache[asset_type][rid]
+        if cache and asset_type in self.ctxCacheByRID:
+            if rid in self.ctxCacheByRID[asset_type]:
+                return self.ctxCacheByRID[asset_type][rid]
             else:
                 return ""
         elif asset_type not in self.ctxForTypeCounters:
@@ -139,10 +141,10 @@ class RestIGC(object):
                 "pageSize": batch
             }
             allAssetsOfType = self.search(q)
-            self.ctxCache[asset_type] = {}
+            self.ctxCacheByRID[asset_type] = {}
             for asset in allAssetsOfType:
                 asset_rid = asset['_id']
-                self.ctxCache[asset_type][asset_rid] = asset['_context']
+                self.ctxCacheByRID[asset_type][asset_rid] = asset['_context']
             return self.getContextForItem(rid, asset_type, batch, limit, cache)
         # Otherwise, just do a one-off request
         else:
@@ -194,27 +196,20 @@ class RestIGC(object):
 
         return new_type
 
-    def _getMappedValue(self, from_type, from_property, from_value, mappings):
-        # default case: return the originally-provided value
-        mapped_value = from_value
-        for mapping in mappings:
-            # Do not return straight away from a match, as there could be multiple
-            # mappings for a particular type (ensure we either have a match before returning,
-            # or have exhausted all possibilities)
-            if from_type == mapping['type'] and from_property == mapping['property']:
-                mapRE = re.compile(mapping['from'])
-                if mapRE.search(from_value):
-                    # change name based on regex and 'to' provided in mapping, only
-                    # if there was a match (if no match, we might clobber a previous match)
-                    mapped_value = mapRE.sub(mapping['to'], from_value)
-        return mapped_value
+    def _getIdentity(self, aCtx, name, delim='::'):
+        identity = ''
+        for ctx in aCtx:
+            identity += ctx['_name'] + delim
+        identity += name
+        return identity
 
-    def getMappedItem(self, restItem, mappings):
+    def getMappedItem(self, restItem, mappings, batch=100, limit=5, cache=True):
         # Map the item itself (ie. renaming)
-        renamed = self._getMappedValue(restItem['_type'], "name", restItem['_name'], mappings)
+        asset_type = restItem['_type']
+        renamed = get_mapped_value(asset_type, "name", restItem['_name'], mappings)
         q = {
             "properties": ["name"],
-            "types": [restItem['_type']],
+            "types": [asset_type],
             "pageSize": 2,
             "where": {
                 "conditions": [{
@@ -225,6 +220,7 @@ class RestIGC(object):
                 "operator": "and"
             }
         }
+        aMappedCtx = []
         ctx_path = ""
         folder_path = ""
         pre_host_path = ""
@@ -235,10 +231,11 @@ class RestIGC(object):
             if ctx_type == 'data_file_folder':
                 folder_path = ctx_value + "/" + folder_path
             else:
-                ctx_value = self._getMappedValue(ctx_type, 'name', ctx_value, mappings)
-                if ctx_type == 'host_(engine)' and restItem['_type'].startswith("data_file"):
+                ctx_value = get_mapped_value(ctx_type, 'name', ctx_value, mappings)
+                aMappedCtx.insert(0, {"_type": ctx_type, "_name": ctx_value})
+                if ctx_type == 'host_(engine)' and asset_type.startswith("data_file"):
                     pre_host_path = ctx_path
-                ctx_type = self._getCtxQueryParamName(restItem['_type'], ctx_type)
+                ctx_type = self._getCtxQueryParamName(asset_type, ctx_type)
                 if idx == 0:
                     ctx_path = ctx_type
                 else:
@@ -253,20 +250,56 @@ class RestIGC(object):
                     })
         if folder_path != "":
             # Strip off the preceding and trailing '/' of the folder_path
-            mappedPath = self._getMappedValue('data_file', 'path', folder_path[1:-1], mappings)
+            mappedPath = get_mapped_value('data_file', 'path', folder_path[1:-1], mappings)
             q['where']['conditions'].append({
                 "value": mappedPath,
                 "operator": "=",
                 "property": pre_host_path + ".path"
             })
-        resSearch = self.search(q)
-        if len(resSearch) == 1:
-            return resSearch[0]
-        elif len(resSearch) > 1:
-            self.module.warn("Multiple items found when expecting only one -- " + json.dumps(q))
-            return resSearch[0]
+            # Add folder path to identity from 1st position (0 = host)
+            # TODO: anything special to handle for root directory '/' ?
+            for path_component in mappedPath.split('/'):
+                aMappedCtx.insert(1, {"_type": "data_file_folder", "_name": path_component})
+        identity = self._getIdentity(aMappedCtx, renamed)
+        if cache and asset_type in self.ctxCacheByIdentity:
+            if identity in self.ctxCacheByIdentity[asset_type]:
+                return self.ctxCacheByIdentity[asset_type][identity]
+            else:
+                return ""
+        elif asset_type not in self.ctxForTypeCounters:
+            self.ctxForTypeCounters[asset_type] = 1
         else:
-            return ""
+            self.ctxForTypeCounters[asset_type] += 1
+        # If we've had more than the limit of one-off requests for
+        # the context of a particular asset type, bulk-request them
+        # and save as a cache
+        if cache and self.ctxForTypeCounters[asset_type] > limit:
+            q = {
+                "properties": ["name"],
+                "types": [asset_type],
+                "pageSize": batch
+            }
+            allAssetsOfType = self.search(q)
+            self.ctxCacheByIdentity[asset_type] = {}
+            for asset in allAssetsOfType:
+                asset_identity = self._getIdentity(asset['_context'], asset['_name'])
+                if asset_identity in self.ctxCacheByIdentity[asset_type]:
+                    self.module.warn("Multiple items with same identity: " + asset_identity)
+                else:
+                    self.ctxCacheByIdentity[asset_type][asset_identity] = asset
+            if identity in self.ctxCacheByIdentity[asset_type]:
+                return self.ctxCacheByIdentity[asset_type][identity]
+            else:
+                return ""
+        else:
+            resSearch = self.search(q)
+            if len(resSearch) == 1:
+                return resSearch[0]
+            elif len(resSearch) > 1:
+                self.module.warn("Multiple items found when expecting only one -- " + json.dumps(q))
+                return resSearch[0]
+            else:
+                return ""
 
     def addRelationshipsToAsset(self,
                                 from_asset,
