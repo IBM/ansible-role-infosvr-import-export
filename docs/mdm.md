@@ -2,7 +2,7 @@
 
 [<- Back to the overview](../README.md)
 
-**Note**: master data management model metadata export and import should really only be used when you need to load metadata into an environment where that environment will not have access to the original model files or a metadata interchange server capable of loading them.  When possible, it will be more robust to directly load the metadata through IBM Metadata Asset Manager, which can be automated through the [IBM.infosvr-metadata-asset-manager](https://galaxy.ansible.com/IBM/infosvr-metadata-asset-manager) role.  IBM Metadata Asset Manager will ensure that accurate metadata is recorded, and can be periodically refreshed (re-imported) to be kept up-to-date, including staging potentially destructive changes for review.  The re-importing is handled automatically as part of the [IBM.infosvr-metadata-asset-manager](https://galaxy.ansible.com/IBM/infosvr-metadata-asset-manager) role, so can also be automated (and will warn if there is a potentially destructive change that has been stage and requires review before it can be published).
+**Note**: master data management model metadata export and ingest should really only be used when you need to load metadata into an environment where that environment will not have access to the original model files or a metadata interchange server capable of loading them.  When possible, it will be more robust to directly load the metadata through IBM Metadata Asset Manager, which can be automated through the [IBM.infosvr-metadata-asset-manager](https://galaxy.ansible.com/IBM/infosvr-metadata-asset-manager) role.  IBM Metadata Asset Manager will ensure that accurate metadata is recorded, and can be periodically refreshed (re-ingested) to be kept up-to-date, including staging potentially destructive changes for review.  The re-ingesting is handled automatically as part of the [IBM.infosvr-metadata-asset-manager](https://galaxy.ansible.com/IBM/infosvr-metadata-asset-manager) role, so can also be automated (and will warn if there is a potentially destructive change that has been stage and requires review before it can be published).
 
 ## Exports
 
@@ -18,10 +18,10 @@ export:
 
 The wildcard for `with_path`, is `"*"`, and it is the asset path as defined at https://www.ibm.com/support/knowledgecenter/en/SSZJPZ_11.7.0/com.ibm.swg.im.iis.iisinfsv.assetint.doc/topics/cm_asset_types_id_strings.html#cm_asset_types_id_strings__mdm.
 
-## Imports
+## Ingests
 
 ```yml
-import:
+ingest:
   mdm:
     - from: <path>
       with_options:
@@ -31,7 +31,7 @@ import:
     - ...
 ```
 
-The only required parameter for the import is the file `from` which to load them.
+The only required parameter for the ingest is the file `from` which to load them.
 
 The options under `with_options` are all optional:
 
@@ -51,7 +51,7 @@ export:
 isx_mappings:
   - { type: "HostSystem", attr: "name", from: "MY_HOST", to: "YOUR_HOST" }
 
-import:
+ingest:
   mdm:
     - from: cache/mdm.isx
       with_options:

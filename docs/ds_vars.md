@@ -4,7 +4,7 @@
 
 ## Exports
 
-The export will be generate a YAML file that can only be processed through the `import` action of this Ansible role.
+The export will be generate a YAML file that can only be processed through the `ingest` action of this Ansible role.
 
 ```yml
 export:
@@ -18,17 +18,17 @@ export:
 
 The only required parameters for the export are the file `into` which to extract the variables and their values and the `from_project` project name from which to export them. The `limited_to` list is optional, to specify which variables should be included; if not specified, all variables are included.
 
-## Imports
+## Ingests
 
 ```yml
-import:
+ingest:
   ds_vars:
     - from: <path>
       into_project: <string>
     - ...
 ```
 
-Both the file `from` which to load the variables and the `into_project` project name into which to load them are required. The import process will look for the `from` file within your playbook's `vars` directory.
+Both the file `from` which to load the variables and the `into_project` project name into which to load them are required. The ingest process will look for the `from` file within your playbook's `vars` directory.
 
 ## Examples
 
@@ -41,7 +41,7 @@ export:
         - ODPPLL
         - TMPDIR
 
-import:
+ingest:
   ds_vars:
     - from: ds_dstage1_vars.yml
       into_project: dstage1

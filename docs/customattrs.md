@@ -35,10 +35,10 @@ The options under `limited_to` are all optional:
 - `changes_in_last_hours` specifies the number of hours prior to the playbook running from which to identify (and extract) any changes.
 - `names` defines list of the specific custom attributes of that type to extract, by their name.
 
-## Imports
+## Ingests
 
 ```yml
-import:
+ingest:
   customattrs:
     - from: <path>
       with_options:
@@ -75,7 +75,7 @@ export:
 isx_mappings:
   - { type: "HostSystem", attr: "name", from: "MY_HOST", to: "YOUR_HOST" }
 
-import:
+ingest:
   customattrs:
     - from: cadefs_openigc.isx
       with_options:

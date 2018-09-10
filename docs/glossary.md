@@ -39,10 +39,10 @@ Options available for the `with_options` (which is itself optional) are:
 
 When specifying multiple options, simply include them separated by spaces.
 
-## Imports
+## Ingests
 
 ```yml
-import:
+ingest:
   glossary:
     - from: <path>
       merged_by: <string>
@@ -51,13 +51,13 @@ import:
   - ...
 ```
 
-Mappings are purely optional, and the only required parameter for the import is the file `from` which to load them and the `merged_by` option. The `merged_by` option must be one of `ignore`, `overwrite`, `mergeignore`, or `mergeoverwrite`.
+Mappings are purely optional, and the only required parameter for the ingest is the file `from` which to load them and the `merged_by` option. The `merged_by` option must be one of `ignore`, `overwrite`, `mergeignore`, or `mergeoverwrite`.
 
 The options under `with_options` are all optional:
 
 - `transformed_by` specifies a list of mappings that can be used to transform the relationships; if provided, they should use the [ISX style](mappings.md#isx-style).
 
-The order of importing is also important for glossary assets, since different asset types can be split across different XML files. You should always import in this order to ensure dependencies are met (will be done automatically if they are all included in a single export):
+The order of ingesting is also important for glossary assets, since different asset types can be split across different XML files. You should always ingest in this order to ensure dependencies are met (will be done automatically if they are all included in a single export):
 
 1. `label`
 1. `category`
@@ -92,7 +92,7 @@ export:
 isx_mappings:
   - { type: "HostSystem", attr: "name", from: "MY_HOST", to: "YOUR_HOST" }
 
-import:
+ingest:
   glossary:
     - from: cache/bg_all_terms.xml
       merged_by: mergeoverwrite

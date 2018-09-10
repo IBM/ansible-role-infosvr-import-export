@@ -44,10 +44,10 @@ Objects that can be conditionally exported include `data_rule_definition`, `data
 - `only_with_conditions` are purely optional and are currently always AND'd (all conditions must be met). The [conditions](conditions.md) should be relative to the object `type` specified.
 - `changes_in_last_hours` is also optional; if used, specify the number of hours prior to the playbook running from which to identify (and extract) any changes. For executable objects (`data_rule`, `data_rule_set` and `metric`), any execution of those rules within the the time defined will also be included.
 
-## Imports
+## Ingests
 
 ```yml
-import:
+ingest:
   infoanalyzer:
     - from: <path>
       into_project: <string>
@@ -56,7 +56,7 @@ import:
     - ...
 ```
 
-The required parameters for the import are the file `from` which to load the assets and the `into_project` project name into which to load them.
+The required parameters for the ingest are the file `from` which to load the assets and the `into_project` project name into which to load them.
 
 The options under `with_options` are all optional:
 
@@ -94,7 +94,7 @@ ia_mappings:
   - { type: "DataSource", attr: "name", from: "MYDB", to: "YOURDB" }
   - { type: "Schema", attr: "name", from: "MY_SCH", to: "YOUR_SCH" }
 
-import:
+ingest:
   infoanalyzer:
     - from: cache/ia_project_delta.xml
       into_project: UGDefaultWorkspace

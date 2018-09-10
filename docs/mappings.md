@@ -2,9 +2,9 @@
 
 [<- Back to the overview](../README.md)
 
-As part of importing assets, many asset types can have a mapping optionally applied. Mappings can be used to rename objects and change their containment hierarchy -- particularly useful when moving assets from one environment to another and certain characteristics (ie. host name where the asset resides) may need to change to reflect the new target environment.
+As part of ingesting assets, many asset types can have a mapping optionally applied. Mappings can be used to rename objects and change their containment hierarchy -- particularly useful when moving assets from one environment to another and certain characteristics (ie. host name where the asset resides) may need to change to reflect the new target environment.
 
-Currently, different styles of mappings are applied depending on the asset type. A general recommendation is to build playbooks that define both style of mappings between values, and abstract the need for users of the playbooks to worry about the differences by simply requesting the users to provide target values for their import. (The source values should be known by you when writing the playbook, given static content that's being loaded.)
+Currently, different styles of mappings are applied depending on the asset type. A general recommendation is to build playbooks that define both style of mappings between values, and abstract the need for users of the playbooks to worry about the differences by simply requesting the users to provide target values for their ingest. (The source values should be known by you when writing the playbook, given static content that's being loaded.)
 
 ## ISX-style
 

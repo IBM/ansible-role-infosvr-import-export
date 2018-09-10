@@ -2,11 +2,11 @@
 
 [<- Back to the overview](../README.md)
 
-**Note**: Common metadata export and import should really only be used when you need to load metadata into an environment where that environment will not have any of its own direct connectivity to the source of the metadata.  For example, to load metadata about a database when the instance into which you're loading the metadata has no connection of its own to the database in order to crawl it directly.  When such connectivity is possible, it will be more robust to directly index the metadata through IBM Metadata Asset Manager, which can be automated through the [IBM.infosvr-metadata-asset-manager](https://galaxy.ansible.com/IBM/infosvr-metadata-asset-manager) role.  IBM Metadata Asset Manager will ensure that accurate metadata is recorded, and can be periodically refreshed (re-imported) to be kept up-to-date, including staging potentially destructive changes for review.  The re-importing is handled automatically as part of the [IBM.infosvr-metadata-asset-manager](https://galaxy.ansible.com/IBM/infosvr-metadata-asset-manager) role, so can also be automated (and will warn if there is a potentially destructive change that has been stage and requires review before it can be published).
+**Note**: Common metadata export and ingest should really only be used when you need to load metadata into an environment where that environment will not have any of its own direct connectivity to the source of the metadata.  For example, to load metadata about a database when the instance into which you're loading the metadata has no connection of its own to the database in order to crawl it directly.  When such connectivity is possible, it will be more robust to directly index the metadata through IBM Metadata Asset Manager, which can be automated through the [IBM.infosvr-metadata-asset-manager](https://galaxy.ansible.com/IBM/infosvr-metadata-asset-manager) role.  IBM Metadata Asset Manager will ensure that accurate metadata is recorded, and can be periodically refreshed (re-ingested) to be kept up-to-date, including staging potentially destructive changes for review.  The re-ingesting is handled automatically as part of the [IBM.infosvr-metadata-asset-manager](https://galaxy.ansible.com/IBM/infosvr-metadata-asset-manager) role, so can also be automated (and will warn if there is a potentially destructive change that has been stage and requires review before it can be published).
 
-Furthermore, this method for exporting and importing metadata is rather low-level, and does not support various options like change-based detection. For most common asset types (database assets, data file assets, model assets, etc), you will likely want to instead use the dedicated export / import mechanism even when IMAM (as indicated above) is not an option.
+Furthermore, this method for exporting and ingesting metadata is rather low-level, and does not support various options like change-based detection. For most common asset types (database assets, data file assets, model assets, etc), you will likely want to instead use the dedicated export / ingest mechanism even when IMAM (as indicated above) is not an option.
 
-This method remains simply for the sake of completeness in case there is not already a dedicated export / import mechanism for a given type. (If you'd prefer one were created, feel free to raise an issue in this Git repository with the request.)
+This method remains simply for the sake of completeness in case there is not already a dedicated export / ingest mechanism for a given type. (If you'd prefer one were created, feel free to raise an issue in this Git repository with the request.)
 
 ## Exports
 
@@ -22,10 +22,10 @@ export:
 
 The wildcard for `with_path`, is `"*"`, and it is the asset path as defined at https://www.ibm.com/support/knowledgecenter/en/SSZJPZ_11.7.0/com.ibm.swg.im.iis.iisinfsv.assetint.doc/topics/cm_asset_types_id_strings.html.
 
-## Imports
+## Ingests
 
 ```yml
-import:
+ingest:
   common:
     - from: <path>
       with_options:
@@ -35,7 +35,7 @@ import:
     - ...
 ```
 
-The only required parameter for the import is the file `from` which to load them.
+The only required parameter for the ingest is the file `from` which to load them.
 
 The options under `with_options` are all optional:
 
@@ -65,7 +65,7 @@ export:
 isx_mappings:
   - { type: "HostSystem", attr: "name", from: "MY_HOST", to: "YOUR_HOST" }
 
-import:
+ingest:
   common:
     - from: cache/cm_file_structures.isx
       with_options:

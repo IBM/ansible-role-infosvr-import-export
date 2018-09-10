@@ -30,14 +30,14 @@ The options under `with_options` are all optional:
 
 ## Examples
 
-The following will publish any terms in the workflow (in any state) with the label "Public", and use the comment "Auto-publication by an import process" for each state change.
+The following will publish any terms in the workflow (in any state) with the label "Public", and use the comment "Auto-publication by an ingest process" for each state change.
 
 ```yml
 progress:
   - assets_of_type: term
     using_action: publish
     with_options:
-      with_comment: "Auto-publication by an import process"
+      with_comment: "Auto-publication by an ingest process"
       only_with_conditions:
         - { property: "label.name", operator: "=", value: "Public" }
 ```

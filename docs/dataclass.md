@@ -23,10 +23,10 @@ The options under `limited_to` are all optional:
 - `only_with_conditions` defines [conditions](conditions.md) that are currently always AND'd (all conditions must be met).
 - `changes_in_last_hours` specifies the number of hours prior to the playbook running from which to identify (and extract) any changes.
 
-## Imports
+## Ingests
 
 ```yml
-import:
+ingest:
   dataclass:
     - from: <path>
       with_options:
@@ -36,7 +36,7 @@ import:
     - ...
 ```
 
-The only required parameter for the import is the file `from` which to load them.
+The only required parameter for the ingest is the file `from` which to load them.
 
 The options under `with_options` are all optional:
 
@@ -59,7 +59,7 @@ export:
 isx_mappings:
   - { type: "HostSystem", attr: "name", from: "MY_HOST", to: "YOUR_HOST" }
 
-import:
+ingest:
   dataclass:
     - from: cache/dc_startsWith_MY_changed_in_last48hrs.isx
       with_options:

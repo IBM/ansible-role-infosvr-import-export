@@ -19,10 +19,10 @@ The options under `limited_to` are all optional:
 
 - `changes_in_last_hours` specifies the number of hours prior to the playbook running from which to identify (and extract) any changes.
 
-## Imports
+## Ingests
 
 ```yml
-import:
+ingest:
   extensionmap:
     - from: <path>
       with_options:
@@ -32,13 +32,13 @@ import:
     - ...
 ```
 
-The only required parameter for the import is the file `from` which to load them.
+The only required parameter for the ingest is the file `from` which to load them.
 
 The options under `with_options` are all optional:
 
 - `folder` specifies the folder location into which to load the extension mappings; if provided, it must always start with `root/` (using `/` as the subsequent separator for the rest of the folder structure). Folders are created if they do not already exist.
 - `overwrite` specifies whether to overwrite any existing assets with the same identities.
-- `args` provides additional arguments to the import command; currently the following are possible:
+- `args` provides additional arguments to the ingest command; currently the following are possible:
   - `-description`: Long description for all mapping documents (defaults to none)
   - `-shortDescription`: Short description for all mapping documents (defaults to none)
   - `-type`: Type for all mapping documents (defaults to none)
@@ -56,7 +56,7 @@ export:
       limited_to:
         changes_in_last_hours: 48
 
-import:
+ingest:
   extensionmap:
     - from: cache/xm_changed_in_last48hrs.zip
       with_options:

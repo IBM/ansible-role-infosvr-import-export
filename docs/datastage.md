@@ -25,10 +25,10 @@ In addition to the file `into` which to extract the assets, at least one `type` 
 - `only_with_conditions` are purely optional and are currently always AND'd (all conditions must be met). Any [conditions](conditions.md) specified should be within the context of the specified asset `type`.
 - `changes_in_last_hours` is also optional; if used, specify the number of hours prior to the playbook running from which to identify (and extract) any changes of the specified `type`.
 
-## Imports
+## Ingests
 
 ```yml
-import:
+ingest:
   datastage:
     - from: <path>
       into_project: <string>
@@ -37,13 +37,13 @@ import:
     - ...
 ```
 
-The only required parameters for the import are the file `from` which to load the assets and the `into_project` project name into which to load them.
+The only required parameters for the ingest are the file `from` which to load the assets and the `into_project` project name into which to load them.
 
 The options under `with_options` are all optional:
 
 - `overwrite` specifies whether to overwrite any existing assets with the same identities.
 
-Note that because design-time lineage depends on the resolution of job parameters, `parameter_set`s should be imported before any other DataStage asset types to ensure that eg. `dsjob` import picks up the design time parameters for appropriate design-time lineage.
+Note that because design-time lineage depends on the resolution of job parameters, `parameter_set`s should be ingested before any other DataStage asset types to ensure that eg. `dsjob` ingest picks up the design time parameters for appropriate design-time lineage.
 
 ## Examples
 
@@ -57,7 +57,7 @@ export:
           only_with_conditions:
             - { property: "transformation_project.name", operator: "=", value: "dstage1" }
 
-import:
+ingest:
   datastage:
     - from: cache/ds_dstage1_jobs_changes_in_last48hrs.isx
       into_project: dstage1

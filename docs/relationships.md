@@ -4,7 +4,7 @@
 
 ## Exports
 
-The export will be generate a JSON file that can currently only be loaded through the `import` action of this Ansible role.
+The export will be generate a JSON file that can currently only be loaded through the `ingest` action of this Ansible role.
 
 ```yml
 export:
@@ -39,12 +39,12 @@ The options under `limited_to` are all optional:
 - `changes_in_last_hours` specifies the number of hours prior to the playbook running from which to identify (and extract) any changes.
 - `only_including_related_types` provides a list of the related asset types to retain as relationships.
 
-Be aware that all relationships in IGC are bi-directional, so it is usually possible to achieve the extraction of the same relationship in two different ways (depending on the `from_type` and `via_properties` used). For example, the `assigned_assets` on a `term` is also represented by the `assigned_to_terms` on a `database_column`, `database_table`, `data_file_field`, etc. Depending on the intended import mode (see below), one of the directions may be significantly more efficient to load than the other.
+Be aware that all relationships in IGC are bi-directional, so it is usually possible to achieve the extraction of the same relationship in two different ways (depending on the `from_type` and `via_properties` used). For example, the `assigned_assets` on a `term` is also represented by the `assigned_to_terms` on a `database_column`, `database_table`, `data_file_field`, etc. Depending on the intended ingest mode (see below), one of the directions may be significantly more efficient to load than the other.
 
-## Imports
+## Ingests
 
 ```yml
-import:
+ingest:
   relationships:
     - from: <path>
       using_mode: <string>
@@ -57,7 +57,7 @@ import:
     - ...
 ```
 
-The required parameters for the import are the file `from` which to load them and the `using_mode` to use when loading them.
+The required parameters for the ingest are the file `from` which to load them and the `using_mode` to use when loading them.
 
 The `using_mode` must be one of the following:
 
@@ -71,9 +71,9 @@ The options under `with_options` are all optional:
 - `replacing_type` limits the type of asset that should be replaced when using `REPLACE_SOME`.
 - `only_with_conditions` further limits the assets that are replaced when using `REPLACE_SOME`.
 
-For example, if you specify `database_column` as the `with_options.replacing_type`, and `with_options.only_with_conditions` of `name = XYZ` the import will only replace related database columns where the name of the database column is XYZ and leave all other relationships alone.
+For example, if you specify `database_column` as the `with_options.replacing_type`, and `with_options.only_with_conditions` of `name = XYZ` the ingest will only replace related database columns where the name of the database column is XYZ and leave all other relationships alone.
 
-As noted above in the export, be aware of your intended import mode. It will be more efficient to export relationships in one direction (eg. `assigned_to_terms` from `database_column`) and use `REPLACE_ALL` then it is to use `REPLACE_SOME` (eg. with `assigned_assets` from `term`).
+As noted above in the export, be aware of your intended ingest mode. It will be more efficient to export relationships in one direction (eg. `assigned_to_terms` from `database_column`) and use `REPLACE_ALL` then it is to use `REPLACE_SOME` (eg. with `assigned_assets` from `term`).
 
 ## Examples
 
@@ -102,7 +102,7 @@ export:
 rest_mappings:
   - { type: "host", property: "name", from: "MY", to: "YOUR" }
 
-import:
+ingest:
   relationships:
     - from: cache/terms2assets_underSomeCategory_changed_in_last48hrs_only_dbcols.json
       using_mode: REPLACE_SOME
