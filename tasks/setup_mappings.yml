@@ -76,4 +76,4 @@
 
 - debug:
     var: __ibm_infosvr_impexp_model_versions
-    verbosity: 2
+    verbosity: 1

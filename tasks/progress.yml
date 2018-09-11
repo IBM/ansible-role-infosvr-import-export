@@ -36,4 +36,4 @@
 
 - debug:
     var: __ibm_infosvr_impexp_workflow_updates
-    verbosity: 2
+    verbosity: 1

@@ -39,7 +39,7 @@
 
 - debug:
     var: __ibm_infosvr_impexp_one_type_conditions_changes
-    verbosity: 2
+    verbosity: 1
 
 - name: check if ISX-based extract
   include_tasks: simple_switch.yml

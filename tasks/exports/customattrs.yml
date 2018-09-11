@@ -84,7 +84,7 @@
 
 - debug:
     var: __ibm_infosvr_impexp_ca_extract
-    verbosity: 2
+    verbosity: 1
 
 - name: re-archive ISX file
   archive:

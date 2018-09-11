@@ -29,7 +29,7 @@
 
 - debug:
     var: __ibm_infosvr_impexp_igc_relns_includes.results
-    verbosity: 2
+    verbosity: 1
 
 - name: transform JSON to CSV
   igc_json_to_asset_values_csv:
@@ -52,7 +52,7 @@
 
 - debug:
     var: __ibm_infosvr_impexp_igc_relns_xform
-    verbosity: 2
+    verbosity: 1
 
 - name: load IGC metadata relationships via CLI
   shell: >
@@ -111,7 +111,7 @@
 
 - debug:
     var: __ibm_infosvr_impexp_igc_relns_load
-    verbosity: 2
+    verbosity: 1
 
 - name: cleanup transferred files
   file: path=/tmp/__load_{{ __ibm_infosvr_impexp_type }}_{{ item.from | basename }} state=absent

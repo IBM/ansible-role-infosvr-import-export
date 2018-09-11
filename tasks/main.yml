@@ -110,7 +110,7 @@
 
 - debug:
     var: __ibm_infosvr_impexp_model_versions
-    verbosity: 2
+    verbosity: 1
 
 - name: export metadata
   include_tasks: export.yml

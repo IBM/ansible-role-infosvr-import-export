@@ -42,7 +42,7 @@
 
 - debug:
     var: __ibm_infosvr_impexp_igc_relns_extract
-    verbosity: 2
+    verbosity: 1
 
 - name: transfer files
   fetch: src=/tmp/__export_{{ __ibm_infosvr_impexp_type }}_{{ item.item.into | basename }} dest={{ item.item.into }} flat=yes

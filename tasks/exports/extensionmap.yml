@@ -22,7 +22,7 @@
 
 - debug:
     var: outer_item.assets
-    verbosity: 2
+    verbosity: 1
 
 - name: per extension mapping document
   include_tasks: per_extensionmap.yml
