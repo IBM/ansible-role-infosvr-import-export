@@ -32,7 +32,7 @@ The first level of variables provided to the role define the broad actions to ta
 
 1. `gather` - retrieve details about the environment (ie. version numbers)
 1. `export` - extract assets from an environment into file(s)
-1. `import` - load assets into an environment from file(s)
+1. `ingest` - load assets into an environment from file(s) (`import` is a reserved variable in Ansible, hence `ingest`...)
 1. `progress` - move assets through a workflow (will do nothing if workflow is not enabled)
 1. `validate` - validate an environment is in an expected state using objective asset counts
 
@@ -46,7 +46,7 @@ For example:
     isx_mappings:
       - { type: "HostSystem", attr: "name", from: "MY_HOST", to "YOUR_HOST" }
     gather: True
-    import:
+    ingest:
       datastage:
         - from: /some/directory/file1.isx
           into_project: dstage1
@@ -84,7 +84,7 @@ Finally, the playbook will validate the load has resulted in the expected assets
 The following describes all of the actions and object types currently covered by this role, and their expected structures.
 
 1. `gather` - [environment detail gathering](docs/gather.md)
-1. `export` / `import` metadata asset types (as with the actions above, the ordering below defines the order in which these object types will be extracted and loaded -- irrespective of the order in which they appear within an action)
+1. `export` / `ingest` metadata asset types (as with the actions above, the ordering below defines the order in which these object types will be extracted and loaded -- irrespective of the order in which they appear within an action)
     1. `customattrs` - [custom attribute definitions](docs/customattrs.md)
     1. `common` - [common metadata](docs/common.md) (should be considered low-level, and where possible avoided by using one of the type-specific options)
     1. `logicalmodel` - [logical model metadata](docs/logicalmodel.md)
@@ -104,7 +104,7 @@ The following describes all of the actions and object types currently covered by
 1. `progress` - [progressing the workflow](docs/progress.md)
 1. `validate` - [validation framework](docs/validate.md)
 
-For the `export` and `import`, [mappings](docs/mappings.md) can be applied to transform metadata between environments (eg. renaming, changing containment, etc), and most asset types can also be limited through the use of [conditions](docs/conditions.md).
+For the `export` and `ingest`, [mappings](docs/mappings.md) can be applied to transform metadata between environments (eg. renaming, changing containment, etc), and most asset types can also be limited through the use of [conditions](docs/conditions.md).
 
 Note that you can generally write these variable structures using any form supported by Ansible, eg. these are all equivalent and simply up to your personal preference:
 
