@@ -15,7 +15,19 @@
 # limitations under the License.
 ###
 
-# TODO: for Information Analyzer, want to add a condition automatically for project
+- name: setup default conditions
+  set_fact:
+    __ibm_infosvr_impexp_default_conditions: >
+          {%if __ibm_infosvr_impexp_type == 'infoanalyzer' -%}
+          [{'property': 'project', 'operator': '=', 'value': '{{ outer_item.from_project }}' }]
+          {%- elif __ibm_infosvr_impexp_type == 'datastage' -%}
+          [{'property': 'transformation_project.name', 'operator': '=', 'value': '{{ outer_item.from_project }}' }]
+          {%- endif%}
+
+- debug:
+    var: __ibm_infosvr_impexp_default_conditions
+    verbosity: 1
+
 - name: get changed assets
   igc_get_changed_assets:
     host: "{{ ibm_infosvr_impexp_services_host }}"
@@ -32,6 +44,7 @@
     to_time: >
               {{ __ibm_infosvr_impexp_to_epoch | int }}
     conditions: "{{ item.only_with_conditions | default(omit) }}"
+    conditions: "{{ item.only_with_conditions | default([]) | union(__ibm_infosvr_impexp_default_conditions) }}"
     cert: "{{ __ibm_infosvr_impexp_ssl_cert_location | default(omit) }}"
   register: __ibm_infosvr_impexp_changes
   with_items: "{{ outer_item.including_objects }}"
