@@ -53,6 +53,14 @@ asset_type_to_properties = {
     "data_file": common_properties
 }
 
+asset_relationship_properties_to_single_types = {
+    "labels",
+    "stewards",
+    "assigned_to_terms",
+    "implements_rules",
+    "governed_by_rules"
+}
+
 xa_asset_type_to_extract_type = {
     "application": "Application",
     "file": "File",
@@ -141,6 +149,10 @@ def get_mapped_value(from_type, from_property, from_value, mappings):
                 # if there was a match (if no match, we might clobber a previous match)
                 mapped_value = re.sub(mapping['from'], mapping['to'], from_value)
     return mapped_value
+
+
+def is_simple_native_relationship(prop_name):
+    return prop_name in asset_relationship_properties_to_single_types
 
 
 def _getRidOnly(rest_result):
