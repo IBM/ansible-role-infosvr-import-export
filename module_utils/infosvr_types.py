@@ -61,6 +61,83 @@ asset_relationship_properties_to_single_types = {
     "governed_by_rules"
 }
 
+# Up-to-date as of v11.7.0.2
+asset_types_for_import_asset_values = {
+    "application": "MwbExtensions.EDS_Application",
+    "attribute": "MDM.IISMDMMemberAttribute",
+    "attribute_type_field": "MDM.IISMDMSegmentField",
+    "attribute_type": "MDM.IISMDMSegment",
+    "bi_collection": "ASCLBI.OLAPCollection",
+    "bi_collection_member": "ASCLBI.OLAPMember",
+    "bi_cube": "ASCLBI.OLAPCube",
+    "bi_model": "ASCLBI.OLAPModel",
+    "bi_report": "ASCLBI.ReportDef",
+    "composite_view": "MDM.IISMDMCompositeView",
+    "database_alias": "ASCLModel.DatabaseAlias",
+    "database": "ASCLModel.Database",
+    "database_column": "ASCLModel.DatabaseField",
+    "database_schema": "ASCLModel.DataSchema",
+    "database_table": "ASCLModel.DatabaseTable",
+    "data_class": "ASCLAnalysis.DataClass",
+    "data_file": "ASCLModel.DefaultDataFile",
+    "data_file_definition": "ASCLModel.DataFileDef",
+    "data_file_definition_field": "ASCLModel.DataFileAttributeDef",
+    "data_file_definition_record": "ASCLModel.DataFileElementDef",
+    "data_file_field": "ASCLModel.DataFileAttribute",
+    "data_file_folder": "ASCLModel.DataFileFolder_noBucket",
+    "data_file_record": "ASCLModel.DataFileElement",
+    "data_science_model": "dsx.AnalyticsModel",
+    "data_science_project": "dsx.AnalyticsProject",
+    "design_column": "ASCLModel.PhysicalAttribute",
+    "design_stored_procedure": "ASCLModel.StoredProcedure_Model",
+    "design_stored_procedure_parameter": "ASCLModel.ParameterDef_SPModel",
+    "design_table": "ASCLModel.PhysicalEntity",
+    "design_view": "ASCLModel.DesignView",
+    "endpoint": "StreamsEndPoint.EndPoint",
+    "entity_attribute": "ASCLLogicalModel.Attribute",
+    "entity_type": "MDM.IISMDMEntity",
+    "extension_mapping_document": "MwbExtensions.MappingDoc_User",
+    "extension_mapping": "MwbExtensions.Mapping",
+    "file": "MwbExtensions.EDS_File",
+    "filter": "siq.Filter",
+    "host": "ASCLModel.HostSystem",
+    "idoc_field": "ASCLModel.SAP_IDOC_Field",
+    "idoc_segment_type": "ASCLModel.SAP_IDOC_SegmentType",
+    "idoc_type": "ASCLModel.SAP_IDOC_TYPE",
+    "infoset": "siq.Infoset",
+    "inout_parameter": "MwbExtensions.EDS_InOutParameter",
+    "in_parameter": "MwbExtensions.EDS_InParameter",
+    "input_parameter": "MwbExtensions.EDS_InputParameter",
+    "instance": "siq.SIQInstance",
+    "logical_data_model": "ASCLLogicalModel.LogicalModel",
+    "logical_entity": "ASCLLogicalModel.Entity",
+    "mdm_model": "MDM.IISMDMModel",
+    "member_type": "MDM.IISMDMMember",
+    "method": "MwbExtensions.EDS_Method",
+    "notebook": "dsx.Notebook",
+    "object_type": "MwbExtensions.EDS_ObjectType",
+    "out_parameter": "MwbExtensions.EDS_OutParameter",
+    "output_value": "MwbExtensions.EDS_OutputValue",
+    "physical_data_model": "ASCLModel.PhysicalModel",
+    "physical_object_attribute": "MDM.IISMDMPhysicalObjectAttribute",
+    "physical_object": "MDM.IISMDMPhysicalObject",
+    "rshiny_app": "dsx.RShinyApp",
+    "schema": "ASCLModel.DataSchema",
+    "stored_procedure": "ASCLModel.StoredProcedure_Schema",
+    "stored_procedure_definition": "MwbExtensions.EDS_StoredProcedure",
+    "stored_procedure_parameter": "ASCLModel.ParameterDef_SPSchema",
+    "tuple_attribute": "StreamsEndPoint.Attribute",
+    "view": "ASCLModel.DatabaseView",
+    "volume": "siq.Volume",
+    "xml_schema_definition": "XSDModel.XSDSchema",
+    "xsd_attribute_group": "XSDModel.XSDAttributeGroup",
+    "xsd_attribute": "XSDModel.XSDAttribute_ProperAttribute",
+    "xsd_complex_type": "XSDModel.XSDComplexType",
+    "xsd_element_group": "XSDModel.XSDElementGroup",
+    "xsd_element": "XSDModel.XSDElement_ProperElement",
+    "xsd_simple_type": "XSDModel.XSDSimpleType"
+}
+
 xa_asset_type_to_extract_type = {
     "application": "Application",
     "file": "File",
@@ -153,6 +230,10 @@ def get_mapped_value(from_type, from_property, from_value, mappings):
 
 def is_simple_native_relationship(prop_name):
     return prop_name in asset_relationship_properties_to_single_types
+
+
+def is_supported_by_import_asset_values(asset_type):
+    return asset_type in asset_types_for_import_asset_values
 
 
 def _getRidOnly(rest_result):

@@ -45,6 +45,7 @@
   when: >
           (item.custom_relations | length) == 0
           and (item.native_multi_relations | length) == 0
+          and item.asset_type_is_supported_by_import_asset_values
           and item.item.using_mode != 'REPLACE_SOME'
   with_items: "{{ __ibm_infosvr_impexp_igc_relns_includes.results }}"
   loop_control:
@@ -72,6 +73,7 @@
   when: >
           (item.custom_relations | length) == 0
           and (item.native_multi_relations | length) == 0
+          and item.asset_type_is_supported_by_import_asset_values
           and item.item.using_mode != 'REPLACE_SOME'
   with_items: "{{ __ibm_infosvr_impexp_igc_relns_includes.results }}"
   loop_control:
@@ -82,6 +84,7 @@
   when: >
           (item.custom_relations | length) == 0
           and (item.native_multi_relations | length) == 0
+          and item.asset_type_is_supported_by_import_asset_values
           and item.item.using_mode != 'REPLACE_SOME'
   with_items: "{{ __ibm_infosvr_impexp_igc_relns_includes.results }}"
   loop_control:
@@ -104,6 +107,7 @@
   when: >
           (item.custom_relations | length) > 0
           or (item.native_multi_relations | length) > 0
+          or (not item.asset_type_is_supported_by_import_asset_values)
           or item.item.using_mode == 'REPLACE_SOME'
   with_items: "{{ __ibm_infosvr_impexp_igc_relns_includes.results }}"
   loop_control:

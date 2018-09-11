@@ -55,6 +55,10 @@ EXAMPLES = '''
 '''
 
 RETURN = '''
+asset_type_is_supported_by_import_asset_values:
+  description: Indication of whether the asset type is supported through 'import asset values' of istool
+  type: bool
+  returned: always
 native_simple_relations:
   description: A list of the native (out-of-the-box) relationship properties that refer to only a single asset type
   type: list
@@ -80,7 +84,7 @@ custom_attributes:
 
 from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils._text import to_bytes
-from ansible.module_utils.infosvr_types import is_simple_native_relationship
+from ansible.module_utils.infosvr_types import is_simple_native_relationship, is_supported_by_import_asset_values
 import os.path
 import json
 
@@ -99,6 +103,7 @@ def main():
 
     result = dict(
         changed=False,
+        asset_type_is_supported_by_import_asset_values=False,
         native_simple_relations=[],
         native_multi_relations=[],
         native_attributes=[],
@@ -126,6 +131,8 @@ def main():
     f.close()
 
     for asset in allAssets:
+        asset_type = asset['_type']
+        result['asset_type_is_supported_by_import_asset_values'] = is_supported_by_import_asset_values(asset_type)
         for prop in asset:
             bRelation = isinstance(asset[prop], list)
             if prop.startswith('custom_'):
