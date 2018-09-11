@@ -1,0 +1,120 @@
+---
+###
+# Copyright 2018 IBM Corp. All Rights Reserved.
+# 
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+# 
+#      http://www.apache.org/licenses/LICENSE-2.0
+# 
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+###
+
+- name: transfer files
+  copy: src={{ item.from }} dest=/tmp/__load_{{ __ibm_infosvr_impexp_type }}_{{ item.from | basename }}
+  with_items: "{{ __ibm_infosvr_impexp_items }}"
+  loop_control:
+    label: "{{ item.from | basename }}"
+
+- name: check included relationships
+  igc_check_relationships:
+    src: /tmp/__load_{{ __ibm_infosvr_impexp_type }}_{{ item.from | basename }}
+  with_items: "{{ __ibm_infosvr_impexp_items }}"
+  register: __ibm_infosvr_impexp_igc_relns_includes
+
+- debug:
+    var: __ibm_infosvr_impexp_igc_relns_includes.results
+    verbosity: 2
+
+- name: transform JSON to CSV
+  igc_json_to_asset_values_csv:
+    host: "{{ ibm_infosvr_impexp_services_host | lower }}"
+    port: "{{ ibm_infosvr_impexp_services_console_port }}"
+    user: "{{ ibm_infosvr_impexp_infosvr_admin_user }}"
+    password: "{{ ibm_infosvr_impexp_infosvr_admin_user_pwd }}"
+    src: /tmp/__load_{{ __ibm_infosvr_impexp_type }}_{{ item.item.from | basename }}
+    dest: /tmp/__load_{{ __ibm_infosvr_impexp_type }}_{{ item.item.from | basename }}.csv
+    mappings: "{% if item.item.with_options is defined %}{{ item.item.with_options.transformed_by | default([]) }}{% else %}[]{% endif %}"
+    cert: "{{ __ibm_infosvr_impexp_ssl_cert_location | default(omit) }}"
+  register: __ibm_infosvr_impexp_igc_relns_xform
+  when: >
+          (item.custom_relations | length) == 0
+          and (item.native_multi_relations | length) == 0
+          and item.item.using_mode != 'REPLACE_SOME'
+  with_items: "{{ __ibm_infosvr_impexp_igc_relns_includes.results }}"
+  loop_control:
+    label: "{{ item.item.from | basename }}"
+
+- debug:
+    var: __ibm_infosvr_impexp_igc_relns_xform
+    verbosity: 2
+
+- name: load IGC metadata relationships via CLI
+  shell: >
+          source ~/.bashrc &&
+          . dsenv &&
+          {{ ibm_infosvr_impexp_infosvr_install_location }}/Clients/istools/cli/istool.sh
+          import asset values
+          -u {{ ibm_infosvr_impexp_infosvr_admin_user }}
+          -p {{ ibm_infosvr_impexp_infosvr_admin_user_pwd }}
+          -dom {{ ibm_infosvr_impexp_services_host | lower }}:{{ ibm_infosvr_impexp_services_console_port }}
+          -f /tmp/__load_{{ __ibm_infosvr_impexp_type }}_{{ item.item.from | basename }}.csv
+          -o /tmp/__load_{{ __ibm_infosvr_impexp_type }}.log
+          {% if item.item.using_mode == 'APPEND' %}-add{% elif item.item.using_mode == 'REPLACE_ALL' %}-replace{% endif %}
+  args:
+    executable: /bin/bash
+    chdir: "{{ ibm_infosvr_impexp_infosvr_install_location }}/Server/DSEngine"
+  when: >
+          (item.custom_relations | length) == 0
+          and (item.native_multi_relations | length) == 0
+          and item.item.using_mode != 'REPLACE_SOME'
+  with_items: "{{ __ibm_infosvr_impexp_igc_relns_includes.results }}"
+  loop_control:
+    label: "{{ item.item.from | basename }}"
+
+- name: cleanup transformed files
+  file: path=/tmp/__load_{{ __ibm_infosvr_impexp_type }}_{{ item.item.from | basename }}.csv state=absent
+  when: >
+          (item.custom_relations | length) == 0
+          and (item.native_multi_relations | length) == 0
+          and item.item.using_mode != 'REPLACE_SOME'
+  with_items: "{{ __ibm_infosvr_impexp_igc_relns_includes.results }}"
+  loop_control:
+    label: "{{ item.item.from | basename }}"
+
+- name: load IGC metadata relationships via API
+  igc_load_relationships:
+    host: "{{ ibm_infosvr_impexp_services_host | lower }}"
+    port: "{{ ibm_infosvr_impexp_services_console_port }}"
+    user: "{{ ibm_infosvr_impexp_infosvr_admin_user }}"
+    password: "{{ ibm_infosvr_impexp_infosvr_admin_user_pwd }}"
+    src: /tmp/__load_{{ __ibm_infosvr_impexp_type }}_{{ item.item.from | basename }}
+    mappings: "{% if item.item.with_options is defined %}{{ item.item.with_options.transformed_by | default([]) }}{% else %}[]{% endif %}"
+    mode: "{{ item.item.using_mode }}"
+    replace_type: "{% if item.item.with_options is defined %}{{ item.item.with_options.replacing_type | default([]) }}{% else %}[]{% endif %}"
+    conditions: "{% if item.item.with_options is defined %}{{ item.item.with_options.only_with_conditions | default([]) }}{% else %}[]{% endif %}"
+    batch: "{% if item.item.with_options is defined %}{{ item.item.with_options.batch_size | default('100') }}{% else %}100{% endif %}"
+    cert: "{{ __ibm_infosvr_impexp_ssl_cert_location | default(omit) }}"
+  register: __ibm_infosvr_impexp_igc_relns_load
+  when: >
+          (item.custom_relations | length) > 0
+          or (item.native_multi_relations | length) > 0
+          or item.item.using_mode == 'REPLACE_SOME'
+  with_items: "{{ __ibm_infosvr_impexp_igc_relns_includes.results }}"
+  loop_control:
+    label: "{{ item.item.from | basename }}"
+
+- debug:
+    var: __ibm_infosvr_impexp_igc_relns_load
+    verbosity: 2
+
+- name: cleanup transferred files
+  file: path=/tmp/__load_{{ __ibm_infosvr_impexp_type }}_{{ item.from | basename }} state=absent
+  with_items: "{{ __ibm_infosvr_impexp_items }}"
+  loop_control:
+    label: "{{ item.from | basename }}"
