@@ -10,6 +10,7 @@ The export will be generate an ISX file that could be separately processed throu
 export:
   datastage:
     - into: <path>
+      from_project: <string>
       including_objects:
         - type: <string>
           changes_in_last_hours: <int>
@@ -51,11 +52,10 @@ Note that because design-time lineage depends on the resolution of job parameter
 export:
   datastage:
     - into: cache/ds_dstage1_jobs_changes_in_last48hrs.isx
+      from_project: dstage1
       including_objects:
         - type: dsjob
           changes_in_last_hours: 48
-          only_with_conditions:
-            - { property: "transformation_project.name", operator: "=", value: "dstage1" }
 
 ingest:
   datastage:
