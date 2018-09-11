@@ -45,6 +45,8 @@ class RestIGC(object):
         self.ctxForTypeCounters = {}
         self.ctxCacheByRID = {}
         self.ctxCacheByIdentity = {}
+        self.propertyMapCache = {}
+        self.assetTypeNameCache = {}
 
     '''
     common code for setting up interactivity with IGC REST API
@@ -105,6 +107,31 @@ class RestIGC(object):
                 return first_results
         else:
             return ""
+
+    def getPropertyMap(self, asset_type):
+        url = "/ibm/iis/igc-rest/v1/types/" + asset_type
+        url += "?showEditProperties=true"
+        if asset_type in self.propertyMapCache and asset_type in self.assetTypeNameCache:
+            return self.assetTypeNameCache[asset_type], self.propertyMapCache[asset_type]
+        else:
+            r = self.session.request(
+                "GET",
+                self.baseURL + url,
+                auth=(self.username, self.password)
+            )
+            if r.status_code == 200:
+                result = r.json()
+                typeName = result['_name']
+                self.assetTypeNameCache[asset_type] = typeName
+                mapping = {}
+                for prop in result['editInfo']['properties']:
+                    name = prop['name']
+                    display = prop['displayName']
+                    mapping[name] = display
+                self.propertyMapCache[asset_type] = mapping
+                return typeName, mapping
+            else:
+                return asset_type, {}
 
     def takeWorkflowAction(self, rids, action, comment=''):
         payload = {
