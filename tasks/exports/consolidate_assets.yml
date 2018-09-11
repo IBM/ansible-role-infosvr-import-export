@@ -18,11 +18,13 @@
 - name: setup default conditions
   set_fact:
     __ibm_infosvr_impexp_default_conditions: >
-          {%if __ibm_infosvr_impexp_type == 'infoanalyzer' -%}
+          {%- if __ibm_infosvr_impexp_type == 'infoanalyzer' -%}
           [{'property': 'project', 'operator': '=', 'value': '{{ outer_item.from_project }}' }]
           {%- elif __ibm_infosvr_impexp_type == 'datastage' -%}
           [{'property': 'transformation_project.name', 'operator': '=', 'value': '{{ outer_item.from_project }}' }]
-          {%- endif%}
+          {%- else -%}
+          []
+          {%- endif -%}
 
 - debug:
     var: __ibm_infosvr_impexp_default_conditions
@@ -43,7 +45,6 @@
               {% endif %}
     to_time: >
               {{ __ibm_infosvr_impexp_to_epoch | int }}
-    conditions: "{{ item.only_with_conditions | default(omit) }}"
     conditions: "{{ item.only_with_conditions | default([]) | union(__ibm_infosvr_impexp_default_conditions) }}"
     cert: "{{ __ibm_infosvr_impexp_ssl_cert_location | default(omit) }}"
   register: __ibm_infosvr_impexp_changes
