@@ -133,11 +133,12 @@ def main():
                     result['custom_relations'].append(prop)
                 elif not bRelation and prop not in result['custom_attributes']:
                     result['custom_attributes'].append(prop)
-            else:
+            elif not prop.startswith('_'):
                 if bRelation:
-                    if is_simple_native_relationship(prop) and prop not in result['native_simple_relations']:
+                    bSimple = is_simple_native_relationship(prop)
+                    if bSimple and prop not in result['native_simple_relations']:
                         result['native_simple_relations'].append(prop)
-                    elif prop not in result['native_multi_relations']:
+                    elif not bSimple and prop not in result['native_multi_relations']:
                         result['native_multi_relations'].append(prop)
                 elif prop not in result['native_attributes']:
                     result['native_attributes'].append(prop)
