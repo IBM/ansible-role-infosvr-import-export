@@ -330,12 +330,13 @@ def _getDataClassExtractObjects(rest_result):
     # TODO: for now we'll assume no more than 2 levels of nesting of
     # data classes
     if (rest_result['parent_data_class.parent_data_class.class_code'] != '' and
-            rest_result['parent_data_class.parent_data_class.project'] != 'IBM'):
+            rest_result['parent_data_class.parent_data_class.provider'] != 'IBM'):
         return "/" + rest_result['parent_data_class.parent_data_class.class_code'] + ".dc"
     elif (rest_result['parent_data_class.class_code'] != '' and
           rest_result['parent_data_class.provider'] != 'IBM'):
         return "/" + rest_result['parent_data_class.class_code'] + ".dc"
-    elif rest_result['provider'] != 'IBM':
+    elif (rest_result['parent_data_class.class_code'] == '' and
+          rest_result['provider'] != 'IBM'):
         return "/" + rest_result['class_code'] + ".dc"
 
 
