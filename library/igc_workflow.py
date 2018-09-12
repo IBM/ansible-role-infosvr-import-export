@@ -256,7 +256,8 @@ def main():
         module.fail_json(msg='IGC workflow status check failed', **result)
     # Ensure workflow is enabled before proceeding (if not, return immediately)
     elif wflResults['paging']['numTotal'] == 0:
-        return result
+        igcrest.closeSession()
+        module.exit_json(**result)
     else:
         result['workflow_enabled'] = True
 
