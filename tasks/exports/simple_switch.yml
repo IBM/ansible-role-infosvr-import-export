@@ -30,6 +30,7 @@
   args:
     executable: /bin/bash
     chdir: "{{ ibm_infosvr_impexp_infosvr_install_location }}/Server/DSEngine"
+  when: (item.assets | length) > 0
   with_items: "{{ __ibm_infosvr_impexp_one_type_conditions_changes.results }}"
   loop_control:
     label: "{{ item.item.into | basename }}"
