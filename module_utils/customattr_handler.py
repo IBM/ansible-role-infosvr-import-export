@@ -117,6 +117,7 @@ class CustomAttrHandler(object):
             classRid = e_class.get("_xmeta_repos_object_id")
             if classId not in self.classIDs_keep and classRid not in seedRid:
                 self.dropDefinition(e_class)
+                self.result['ca_dropped_classes'].append(e_class.get('className'))
                 self.result['changed'] = True
             else:
                 # Remove references to dropped custom attributes as source
@@ -144,6 +145,7 @@ class CustomAttrHandler(object):
             enumId = self._getElementId(e_enum)
             if enumId not in self.enumIDs_keep:
                 self.dropDefinition(e_enum)
+                self.result['ca_dropped_enums'].append(e_enum.get('name'))
                 self.result['changed'] = True
 
     def writeCustomizedXML(self, filename):

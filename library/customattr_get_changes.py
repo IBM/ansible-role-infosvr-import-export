@@ -94,6 +94,14 @@ ca_dropped:
   description: A list of the names of custom attribute definitions that were dropped
   type: list
   returned: always
+ca_dropped_classes:
+  description: A list of the names of classes that were dropped
+  type: list
+  returned: always
+ca_dropped_enums:
+  description: A list of the names of enumerations that were dropped
+  type: list
+  returned: always
 '''
 
 from ansible.module_utils.basic import AnsibleModule
@@ -119,7 +127,9 @@ def main():
         changed=False,
         ca_count=0,
         ca_names=[],
-        ca_dropped=[]
+        ca_dropped=[],
+        ca_dropped_classes=[],
+        ca_dropped_enums=[]
     )
 
     # if the user is working with this module in only check mode we do not
