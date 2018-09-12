@@ -158,14 +158,14 @@ def main():
                 result['ca_count'] += 1
                 result['ca_names'].append(attr_name)
                 ca_xml.keepDefinition(attr_defn)
-            else:
-                result['ca_dropped'].append(attr_name)
-                ca_xml.dropDefinition(attr_defn)
-                result['changed'] = True
-        else:
-            result['ca_dropped'].append(attr_name)
-            ca_xml.dropDefinition(attr_defn)
-            result['changed'] = True
+            # else:
+            #     result['ca_dropped'].append(attr_name)
+            #     ca_xml.dropDefinition(attr_defn)
+            #     result['changed'] = True
+        # else:
+        #     result['ca_dropped'].append(attr_name)
+        #     ca_xml.dropDefinition(attr_defn)
+        #     result['changed'] = True
 
     ca_xml.writeCustomizedXML(ca_src)
 

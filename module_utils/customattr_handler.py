@@ -71,7 +71,7 @@ class CustomAttrHandler(object):
         if srcOfAttrs:
             for src_id in srcOfAttrs.split():
                 custom_attr = self.root.xpath("//has_CustomAttribute[@xmi:id='" + src_id + "']", namespaces=ns)
-                aAttrs = aAttrs + custom_attr
+                aAttrs = list(set(aAttrs + custom_attr))
         return aAttrs
 
     def _keepDefinitionSrcClassId(self, e_customattr):
@@ -140,6 +140,13 @@ class CustomAttrHandler(object):
                         e_class.set("isTargetOf_CustomAttribute", " ".join(a_newTargets))
                     else:
                         e_class.attrib.pop("isTargetOf_CustomAttribute")
+        # Drop any unused custom attributes
+        for e_customattr in self.root.xpath("//has_CustomAttribute"):
+            id_ca = self._getElementId(e_customattr)
+            if id_ca not in self.caIDs_keep:
+                self.dropDefinition(e_customattr)
+                self.result['ca_dropped'].append(e_customattr.get('name'))
+                self.result['changed'] = True
         # Drop any unused enumerated valid values
         for e_enum in self._getValidEnumerations():
             enumId = self._getElementId(e_enum)
