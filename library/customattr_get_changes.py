@@ -77,7 +77,7 @@ EXAMPLES = '''
               {{ ( (ansible_date_time.epoch | int) * 1000) - (48 * 3600 * 1000) ) | int }}
     to_time: >
               {{ ansible_date_time.epoch * 1000 | int }}
-    model_ver: __ibm_infosvr_impexp_model_versions???
+    model_ver: __ibm_infosvr_impexp_model_versions
   register: customattrs_changed_in_last_48hrs
 '''
 
@@ -158,14 +158,6 @@ def main():
                 result['ca_count'] += 1
                 result['ca_names'].append(attr_name)
                 ca_xml.keepDefinition(attr_defn)
-            # else:
-            #     result['ca_dropped'].append(attr_name)
-            #     ca_xml.dropDefinition(attr_defn)
-            #     result['changed'] = True
-        # else:
-        #     result['ca_dropped'].append(attr_name)
-        #     ca_xml.dropDefinition(attr_defn)
-        #     result['changed'] = True
 
     ca_xml.writeCustomizedXML(ca_src)
 
