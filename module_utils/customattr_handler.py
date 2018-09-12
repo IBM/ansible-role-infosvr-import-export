@@ -65,7 +65,14 @@ class CustomAttrHandler(object):
         seedRid = self._getSeedObjectRids()[0]
         search_path = "./ASCLCustomAttribute:ClassDescriptor[@_xmeta_repos_object_id='" + seedRid + "']"
         root_class = self.root.xpath(search_path, namespaces=ns)[0]
-        return root_class.xpath("./has_CustomAttribute")
+        aAttrs = root_class.xpath("./has_CustomAttribute")
+        # This is necessary for custom attributes defined against multiple types
+        srcOfAttrs = root_class.get("isSourceOf_CustomAttribute")
+        if srcOfAttrs:
+            for src_id in srcOfAttrs.split():
+                custom_attr = self.root.xpath("//has_CustomAttribute[@xmi:id='" + src_id + "']", namespaces=ns)
+                aAttrs = aAttrs + custom_attr
+        return aAttrs
 
     def _keepDefinitionSrcClassId(self, e_customattr):
         if "hasSource_ClassDescriptor" in e_customattr.attrib:
