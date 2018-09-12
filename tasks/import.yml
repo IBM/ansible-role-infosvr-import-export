@@ -102,7 +102,6 @@
   vars:
     __ibm_infosvr_impexp_type: datastage
     __ibm_infosvr_impexp_items: "{{ ingest.datastage }}"
-    __ibm_infosvr_impexp_switch: "-ds"
   when: >
         ingest.datastage is defined
         and ('ibm-information-server-engine' in group_names)

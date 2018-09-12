@@ -32,6 +32,10 @@
   include_tasks: simple_switch.yml
   when: __ibm_infosvr_impexp_switch is defined
 
+- name: check if ISX-based DataStage load
+  include_tasks: datastage.yml
+  when: __ibm_infosvr_impexp_type == 'datastage'
+
 - name: check if CSV-based XA load
   include_tasks: extendedsource.yml
   when: __ibm_infosvr_impexp_type == 'extendedsource'
