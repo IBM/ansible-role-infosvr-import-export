@@ -90,6 +90,10 @@ ca_names:
   description: A list of names of the custom attribute definitions that match the provided criteria
   type: list
   returned: always
+ca_dropped:
+  description: A list of the names of custom attribute definitions that were dropped
+  type: list
+  returned: always
 '''
 
 from ansible.module_utils.basic import AnsibleModule
@@ -114,7 +118,8 @@ def main():
     result = dict(
         changed=False,
         ca_count=0,
-        ca_names=[]
+        ca_names=[],
+        ca_dropped=[]
     )
 
     # if the user is working with this module in only check mode we do not
@@ -144,9 +149,11 @@ def main():
                 result['ca_names'].append(attr_name)
                 ca_xml.keepDefinition(attr_defn)
             else:
+                result['ca_dropped'].append(attr_name)
                 ca_xml.dropDefinition(attr_defn)
                 result['changed'] = True
         else:
+            result['ca_dropped'].append(attr_name)
             ca_xml.dropDefinition(attr_defn)
             result['changed'] = True
 
