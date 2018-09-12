@@ -60,18 +60,6 @@ options:
       - Password to use to access IGC REST API
     required: true
     type: str
-  asset_type:
-    description:
-      - The IGC REST asset type (eg. C(term)) for which to load relationships.
-      - (See "GET /ibm/iis/igc-rest/v1/types" in your environment for choices.)
-    required: true
-    type: str
-  relationship:
-    description:
-      - The IGC REST asset's property (eg. C(assigned_assets)) to use to load relationships.
-      - (See "GET /ibm/iis/igc-rest/v1/types/<asset_type>?showViewProperties=true" in your environment for choices.)
-    required: true
-    type: str
   src:
     description:
       - The (remote) file that contains the relationships to be loaded
@@ -168,8 +156,6 @@ EXAMPLES = '''
     port: 9446
     user: isadmin
     password: isadmin
-    asset_type: term
-    relationship: assigned_assets
     src: /tmp/all.json
 
 - name: load assigned_assets for terms and mapping hostnames
@@ -178,8 +164,6 @@ EXAMPLES = '''
     port: 9446
     user: isadmin
     password: isadmin
-    asset_type: term
-    relationship: assigned_assets
     src: /tmp/namedTestOnly.json
     mappings:
       - { type: "host", property: "name", from: "LocalServer01", to: "CentralServer01" }
@@ -202,6 +186,14 @@ relationship_update_count:
   description: A numeric indication of the number of relationships that were set
   type: int
   returned: always
+unmapped_assets:
+  description: A list of the assets for which no mapped item could be found
+  returned: always
+  type: list
+unmapped_relations:
+  description: A list of the assets for which no mapped relationship could be found
+  returned: always
+  type: list
 '''
 
 from ansible.module_utils.basic import AnsibleModule
@@ -218,8 +210,6 @@ def main():
         port=dict(type='str', required=True),
         user=dict(type='str', required=True),
         password=dict(type='str', required=True, no_log=True),
-        asset_type=dict(type='str', required=True),
-        relationship=dict(type='str', required=True),
         src=dict(type='path', required=True),
         mappings=dict(type='list', required=False, default=[]),
         mode=dict(type='str', required=True),
@@ -240,7 +230,9 @@ def main():
         queries=[],
         updates=[],
         asset_update_count=0,
-        relationship_update_count=0
+        relationship_update_count=0,
+        unmapped_assets=[],
+        unmapped_relations=[]
     )
 
     # if the user is working with this module in only check mode we do not
@@ -260,8 +252,6 @@ def main():
         cert=module.params['cert']
     )
 
-    asset_type = module.params['asset_type']
-    relnprop = module.params['relationship']
     mappings = module.params['mappings']
     src = module.params['src']
 
@@ -279,20 +269,24 @@ def main():
     wfl_enabled = igcrest.isWorkflowEnabled()
 
     for asset in allAssets:
-        if asset['_type'] == asset_type:
-            a_mappedItems = igcrest.getMappedItem(asset, mappings, wfl_enabled)
-            if len(a_mappedItems) == 0:
-                module.fail_json(msg='Unable to find mapped item -- failing', **result)
-            aRelns = asset[relnprop]
-            aMappedRelnRIDs = []
-            for reln in aRelns:
-                if '_type' in reln:
-                    a_mappedRelns = igcrest.getMappedItem(reln, mappings, wfl_enabled)
-                    if len(a_mappedRelns) == 0:
-                        module.fail_json(msg='Unable to find mapped relationship -- failing', **result)
-                    for mappedReln in a_mappedRelns:
-                        aMappedRelnRIDs.append(mappedReln['_id'])
-            for mappedItem in a_mappedItems:
+        a_mappedItems = igcrest.getMappedItem(asset, mappings, wfl_enabled)
+        if len(a_mappedItems) == 0:
+            result['unmapped_assets'].append(asset)
+            continue
+        # Automatically detect the relationship properties, should be the only
+        # ones that do NOT start with an underscore
+        for relnprop in asset:
+            if not relnprop.startswith('_'):
+                aRelns = asset[relnprop]
+                aMappedRelnRIDs = []
+                for reln in aRelns:
+                    if '_type' in reln:
+                        a_mappedRelns = igcrest.getMappedItem(reln, mappings, wfl_enabled)
+                        if len(a_mappedRelns) == 0:
+                            result['unmapped_relations'].append(reln)
+                            continue
+                for mappedItem in a_mappedItems:
+                    aMappedRelnRIDs.append(mappedReln['_id'])
                 if len(aMappedRelnRIDs) > 0:
                     update_rc, update_msg = igcrest.addRelationshipsToAsset(
                         mappedItem,
@@ -307,8 +301,8 @@ def main():
                         module.fail_json(rc=update_rc, msg='Update failed: %s' % json.dumps(update_msg), **result)
                     else:
                         result['changed'] = True
-                result['asset_update_count'] += 1
-                result['relationship_update_count'] += len(aMappedRelnRIDs)
+                    result['asset_update_count'] += 1
+                    result['relationship_update_count'] += len(aMappedRelnRIDs)
 
     # Close the IGC REST API session
     igcrest.closeSession()

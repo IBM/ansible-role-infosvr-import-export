@@ -15,111 +15,161 @@
 # limitations under the License.
 ###
 
-- name: install prerequisite packages
-  yum: state=latest name={{ item }}
-  with_items:
-    - python-requests
-  become: yes
-  when: ibm_infosvr_impexp_priv_escalate
-
-- name: get nanosecond epoch
-  command: date -u +%s%N
-  register: __ibm_infosvr_impexp_epoch
-
-- name: set date and time inputs
-  set_fact:
-    __ibm_infosvr_impexp_timestamp: "{{ '%Y%m%d_%H%M%S' | strftime(__ibm_infosvr_impexp_epoch.stdout[:-9]) }}"
-    __ibm_infosvr_impexp_to_epoch: "{{ __ibm_infosvr_impexp_epoch.stdout[:-6] }}"
-    cacheable: no
-
-- import_tasks: get_certificate.yml
-  when: >
-          ibm_infosvr_impexp_verify_selfsigned_ssl is defined
-          and ibm_infosvr_impexp_verify_selfsigned_ssl
-          and ('ibm-information-server-domain' in group_names)
-
-- import_tasks: load_certificate.yml
-  when: ibm_infosvr_impexp_verify_selfsigned_ssl is defined and ibm_infosvr_impexp_verify_selfsigned_ssl
-
-- name: load mapping defaults (escalated)
-  import_tasks: imports/setup_mappings.yml
-  become: yes
-  when: ibm_infosvr_impexp_priv_escalate and ('ibm-information-server-domain' in group_names)
-
-- name: load mapping defaults (un-escalated)
-  import_tasks: imports/setup_mappings.yml
-  when: ('ibm-information-server-domain' in group_names) and not ibm_infosvr_impexp_priv_escalate
-
 # Security (-sec)
 
-- import_tasks: imports/import_cadefs.yml
-  become_user: "{{ ibm_infosvr_impexp_infosvr_dsadm_user }}"
-  become: yes
-  when: ('ibm-information-server-engine' in group_names) and ibm_infosvr_impexp_cadefs_import is defined
+- name: import custom attribute definitions
+  include_tasks: imports/istool.yml
+  vars:
+    __ibm_infosvr_impexp_type: customattrs
+    __ibm_infosvr_impexp_items: "{{ ingest.customattrs }}"
+    __ibm_infosvr_impexp_switch: "-customattributes"
+  when: >
+        ingest.customattrs is defined
+        and ('ibm-information-server-engine' in group_names)
 
-- import_tasks: imports/import_cm.yml
-  when: ('ibm-information-server-engine' in group_names) and ibm_infosvr_impexp_cm_import is defined
+- name: import common (low-level) metadata
+  include_tasks: imports/istool.yml
+  vars:
+    __ibm_infosvr_impexp_type: common
+    __ibm_infosvr_impexp_items: "{{ ingest.common }}"
+    __ibm_infosvr_impexp_switch: "-cm"
+  when: >
+        ingest.common is defined
+        and ('ibm-information-server-engine' in group_names)
 
-- import_tasks: imports/import_lm.yml
-  when: ('ibm-information-server-engine' in group_names) and ibm_infosvr_impexp_lm_import is defined
+- name: import logical data model metadata
+  include_tasks: imports/istool.yml
+  vars:
+    __ibm_infosvr_impexp_type: logical_data_model
+    __ibm_infosvr_impexp_items: "{{ ingest.logicalmodel }}"
+    __ibm_infosvr_impexp_switch: "-lm"
+  when: >
+        ingest.logicalmodel is defined
+        and ('ibm-information-server-engine' in group_names)
 
-- import_tasks: imports/import_mdm.yml
-  when: ('ibm-information-server-engine' in group_names) and ibm_infosvr_impexp_mdm_import is defined
+- name: import physical data model metadata
+  include_tasks: imports/istool.yml
+  vars:
+    __ibm_infosvr_impexp_type: physical_data_model
+    __ibm_infosvr_impexp_items: "{{ ingest.physicalmodel }}"
+    __ibm_infosvr_impexp_switch: "-cm"
+  when: >
+        ingest.physicalmodel is defined
+        and ('ibm-information-server-engine' in group_names)
 
-- import_tasks: imports/import_dc.yml
-  when: ('ibm-information-server-engine' in group_names) and ibm_infosvr_impexp_dc_import is defined
+- name: import database metadata
+  include_tasks: imports/istool.yml
+  vars:
+    __ibm_infosvr_impexp_type: database
+    __ibm_infosvr_impexp_items: "{{ ingest.database }}"
+    __ibm_infosvr_impexp_switch: "-cm"
+  when: >
+        ingest.database is defined
+        and ('ibm-information-server-engine' in group_names)
 
-- import_tasks: imports/import_datastage.yml
-  become_user: "{{ ibm_infosvr_impexp_infosvr_dsadm_user }}"
-  become: yes
-  when: ('ibm-information-server-engine' in group_names) and ibm_infosvr_impexp_ds_import is defined
+- name: import data file metadata
+  include_tasks: imports/istool.yml
+  vars:
+    __ibm_infosvr_impexp_type: data_file
+    __ibm_infosvr_impexp_items: "{{ ingest.datafile }}"
+    __ibm_infosvr_impexp_switch: "-cm"
+  when: >
+        ingest.datafile is defined
+        and ('ibm-information-server-engine' in group_names)
 
-- include_tasks: imports/import_ds_vars.yml
-  become_user: "{{ ibm_infosvr_impexp_infosvr_dsadm_user }}"
-  become: yes
-  when: ('ibm-information-server-engine' in group_names) and ibm_infosvr_impexp_ds_vars_import is defined
-  with_items: "{{ ibm_infosvr_impexp_ds_vars_import }}"
+- name: import master data management model metadata
+  include_tasks: imports/istool.yml
+  vars:
+    __ibm_infosvr_impexp_type: mdm
+    __ibm_infosvr_impexp_items: "{{ ingest.mdm }}"
+    __ibm_infosvr_impexp_switch: "-mdm"
+  when: >
+        ingest.mdm is defined
+        and ('ibm-information-server-engine' in group_names)
+
+- name: import data class metadata
+  include_tasks: imports/istool.yml
+  vars:
+    __ibm_infosvr_impexp_type: data_class
+    __ibm_infosvr_impexp_items: "{{ ingest.dataclass }}"
+    __ibm_infosvr_impexp_switch: "-dca"
+  when: >
+        ingest.dataclass is defined
+        and ('ibm-information-server-engine' in group_names)
+
+- name: import DataStage assets
+  include_tasks: imports/istool.yml
+  vars:
+    __ibm_infosvr_impexp_type: datastage
+    __ibm_infosvr_impexp_items: "{{ ingest.datastage }}"
+    __ibm_infosvr_impexp_switch: "-ds"
+  when: >
+        ingest.datastage is defined
+        and ('ibm-information-server-engine' in group_names)
+
+- name: import DataStage project variables
+  include_tasks: imports/ds_vars.yml
+  vars:
+    __ibm_infosvr_impexp_type: ds_vars
+    __ibm_infosvr_impexp_items: "{{ ingest.ds_vars }}"
+  when: >
+        ingest.ds_vars is defined
+        and ('ibm-information-server-engine' in group_names)
+  with_items: "{{ ingest.ds_vars }}"
   loop_control:
     loop_var: outer_item
 
-# Reports (-rep)
+## Reports (-rep)
 
-- import_tasks: imports/import_ia.yml
-  become_user: "{{ ibm_infosvr_impexp_infosvr_dsadm_user }}"
-  become: yes
-  when: ('ibm-information-server-engine' in group_names) and ibm_infosvr_impexp_ia_import is defined
+- name: import Information Analyzer assets
+  include_tasks: imports/infoanalyzer.yml
+  when: >
+        ingest.infoanalyzer is defined
+        and ('ibm-information-server-engine' in group_names)
 
-# FastTrack (-fasttrack)
+## FastTrack (-fasttrack)
 
-- import_tasks: imports/import_xa.yml
-  become_user: "{{ ibm_infosvr_impexp_infosvr_dsadm_user }}"
-  become: yes
-  when: ('ibm-information-server-engine' in group_names) and ibm_infosvr_impexp_xa_import is defined
+- name: import extended data sources
+  include_tasks: imports/istool.yml
+  vars:
+    __ibm_infosvr_impexp_type: extendedsource
+    __ibm_infosvr_impexp_items: "{{ ingest.extendedsource }}"
+  when: >
+        ingest.extendedsource is defined
+        and ('ibm-information-server-engine' in group_names)
 
-- import_tasks: imports/import_xm.yml
-  become_user: "{{ ibm_infosvr_impexp_infosvr_dsadm_user }}"
-  become: yes
-  when: ('ibm-information-server-engine' in group_names) and ibm_infosvr_impexp_xm_import is defined
+- name: import extension mapping documents
+  include_tasks: imports/istool.yml
+  vars:
+    __ibm_infosvr_impexp_type: extensionmap
+    __ibm_infosvr_impexp_items: "{{ ingest.extensionmap }}"
+  when: >
+        ingest.extensionmap is defined
+        and ('ibm-information-server-engine' in group_names)
 
-- import_tasks: imports/import_glossary.yml
-  become_user: "{{ ibm_infosvr_impexp_infosvr_dsadm_user }}"
-  become: yes
-  when: ('ibm-information-server-engine' in group_names) and ibm_infosvr_impexp_bg_import is defined
+- name: import glossary metadata
+  include_tasks: imports/istool.yml
+  vars:
+    __ibm_infosvr_impexp_type: glossary
+    __ibm_infosvr_impexp_items: "{{ ingest.glossary }}"
+  when: >
+        ingest.glossary is defined
+        and ('ibm-information-server-engine' in group_names)
 
-- import_tasks: imports/import_igc_relns.yml
-  become_user: "{{ ibm_infosvr_impexp_infosvr_dsadm_user }}"
-  become: yes
-  when: ('ibm-information-server-engine' in group_names) and ibm_infosvr_impexp_igc_relns_import is defined
+- name: import IGC metadata relationships
+  include_tasks: imports/relationships.yml
+  vars:
+    __ibm_infosvr_impexp_type: relationships
+    __ibm_infosvr_impexp_items: "{{ ingest.relationships }}"
+  when: >
+        ingest.relationships is defined
+        and ('ibm-information-server-engine' in group_names)
 
-- import_tasks: imports/progress_workflow.yml
-  become_user: "{{ ibm_infosvr_impexp_infosvr_dsadm_user }}"
-  become: yes
-  when: ('ibm-information-server-engine' in group_names) and ibm_infosvr_impexp_workflow_progress is defined
-
-- import_tasks: imports/import_omd.yml
-  become_user: "{{ ibm_infosvr_impexp_infosvr_dsadm_user }}"
-  become: yes
-  when: ('ibm-information-server-engine' in group_names) and ibm_infosvr_impexp_omd_import is defined
-
-- import_tasks: remove_certificate.yml
-  when: ibm_infosvr_impexp_verify_selfsigned_ssl is defined and ibm_infosvr_impexp_verify_selfsigned_ssl
+- name: import operational metadata
+  include_tasks: imports/omd.yml
+  vars:
+    __ibm_infosvr_impexp_type: omd
+    __ibm_infosvr_impexp_items: "{{ ingest.omd }}"
+  when: >
+        ingest.omd is defined
+        and ('ibm-information-server-engine' in group_names)

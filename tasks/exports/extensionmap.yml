@@ -1,0 +1,59 @@
+---
+###
+# Copyright 2018 IBM Corp. All Rights Reserved.
+# 
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+# 
+#      http://www.apache.org/licenses/LICENSE-2.0
+# 
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+###
+
+- name: create temporary extract location
+  file:
+    path: /tmp/__export_{{ __ibm_infosvr_impexp_type }}_{{ outer_item.item.into | basename }}_tmp
+    state: directory
+
+- debug:
+    var: outer_item.assets
+    verbosity: 1
+
+- name: per extension mapping document
+  include_tasks: per_extensionmap.yml
+  with_items: "{{ outer_item.assets }}"
+  loop_control:
+    loop_var: outer_asset
+
+- name: list extracted files
+  find:
+    paths: /tmp/__export_{{ __ibm_infosvr_impexp_type }}_{{ outer_item.item.into | basename }}_tmp
+    patterns: '*.csv'
+    recurse: yes
+  register: __ibm_infosvr_impexp_xm_unarchived
+
+- name: filter extracted files
+  file:
+    path: "{{ item.path }}"
+    state: absent
+  when: (item.path | replace('/tmp/__export_' + __ibm_infosvr_impexp_type + '_'+ (outer_item.item.into | basename) + '_tmp/', '')) not in (outer_item.assets | json_query('[].file'))
+  with_items: "{{ __ibm_infosvr_impexp_xm_unarchived.files }}"
+  loop_control:
+    label: "{{ item.path }}"
+
+- name: bundle exported files
+  archive:
+    dest: /tmp/__export_{{ __ibm_infosvr_impexp_type }}_{{ outer_item.item.into | basename }}
+    path: /tmp/__export_{{ __ibm_infosvr_impexp_type }}_{{ outer_item.item.into | basename }}_tmp/
+    format: zip
+    remove: yes
+
+- name: remove temporary directory
+  file:
+    path: /tmp/__export_{{ __ibm_infosvr_impexp_type }}_{{ outer_item.item.into | basename }}_tmp
+    state: absent

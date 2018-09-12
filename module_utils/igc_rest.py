@@ -25,6 +25,7 @@ import json
 import logging
 import re
 import copy
+from ansible.module_utils.infosvr_types import get_mapped_value
 
 
 class RestIGC(object):
@@ -43,6 +44,11 @@ class RestIGC(object):
         logging.getLogger("requests").setLevel(logging.ERROR)
         logging.getLogger("urllib3").setLevel(logging.ERROR)
         self.workflow_types = ["category", "term", "information_governance_policy", "information_governance_rule"]
+        self.ctxForTypeCounters = {}
+        self.ctxCacheByRID = {}
+        self.ctxCacheByIdentity = {}
+        self.propertyMapCache = {}
+        self.assetTypeNameCache = {}
 
     '''
     common code for setting up interactivity with IGC REST API
@@ -119,6 +125,31 @@ class RestIGC(object):
         else:
             return ""
 
+    def getPropertyMap(self, asset_type):
+        url = "/ibm/iis/igc-rest/v1/types/" + asset_type
+        url += "?showEditProperties=true"
+        if asset_type in self.propertyMapCache and asset_type in self.assetTypeNameCache:
+            return self.assetTypeNameCache[asset_type], self.propertyMapCache[asset_type]
+        else:
+            r = self.session.request(
+                "GET",
+                self.baseURL + url,
+                auth=(self.username, self.password)
+            )
+            if r.status_code == 200:
+                result = r.json()
+                typeName = result['_name']
+                self.assetTypeNameCache[asset_type] = typeName
+                mapping = {}
+                for prop in result['editInfo']['properties']:
+                    name = prop['name']
+                    display = prop['displayName']
+                    mapping[name] = display
+                self.propertyMapCache[asset_type] = mapping
+                return typeName, mapping
+            else:
+                return asset_type, {}
+
     def takeWorkflowAction(self, rids, action, comment=''):
         payload = {
             "ids": rids,
@@ -132,28 +163,56 @@ class RestIGC(object):
         )
         return (r.status_code == 200)
 
-    def getContextForItem(self, rid, asset_type):
-        q = {
-            "properties": ["name"],
-            "types": [asset_type],
-            "where": {
-                "conditions": [{
-                    "value": rid,
-                    "operator": "=",
-                    "property": "_id"
-                }],
-                "operator": "and"
-            },
-            "pageSize": 2
-        }
-        itemWithCtx = self.search(q)
-        if len(itemWithCtx) == 1:
-            return itemWithCtx[0]['_context']
-        elif len(itemWithCtx) > 1:
-            self.module.warn("Multiple items found when expecting only one -- " + json.dumps(q))
-            return itemWithCtx[0]['_context']
+    def getContextForItem(self, rid, asset_type, batch=100, limit=5, cache=True):
+        # IF we have already bulk-queried and have a cache for this asset
+        # type, just return the details straight from the cache
+        if cache and asset_type in self.ctxCacheByRID:
+            if rid in self.ctxCacheByRID[asset_type]:
+                return self.ctxCacheByRID[asset_type][rid]
+            else:
+                return ""
+        elif asset_type not in self.ctxForTypeCounters:
+            self.ctxForTypeCounters[asset_type] = 1
         else:
-            return ""
+            self.ctxForTypeCounters[asset_type] += 1
+        # If we've had more than the limit of one-off requests for
+        # the context of a particular asset type, bulk-request them
+        # and save as a cache
+        if cache and self.ctxForTypeCounters[asset_type] > limit:
+            q = {
+                "properties": ["name"],
+                "types": [asset_type],
+                "pageSize": batch
+            }
+            allAssetsOfType = self.search(q)
+            self.ctxCacheByRID[asset_type] = {}
+            for asset in allAssetsOfType:
+                asset_rid = asset['_id']
+                self.ctxCacheByRID[asset_type][asset_rid] = asset['_context']
+            return self.getContextForItem(rid, asset_type, batch, limit, cache)
+        # Otherwise, just do a one-off request
+        else:
+            q = {
+                "properties": ["name"],
+                "types": [asset_type],
+                "where": {
+                    "conditions": [{
+                        "value": rid,
+                        "operator": "=",
+                        "property": "_id"
+                    }],
+                    "operator": "and"
+                },
+                "pageSize": 2
+            }
+            itemWithCtx = self.search(q, False)
+            if 'items' in itemWithCtx and len(itemWithCtx['items']) == 1:
+                return itemWithCtx['items'][0]['_context']
+            elif 'items' in itemWithCtx and len(itemWithCtx['items']) > 1:
+                self.module.warn("Multiple items found when expecting only one -- " + json.dumps(q))
+                return itemWithCtx['items'][0]['_context']
+            else:
+                return ""
 
     def _getCtxQueryParamName(self, asset_type, ctx_type):
         new_type = ctx_type
@@ -181,29 +240,22 @@ class RestIGC(object):
 
         return new_type
 
-    def _getMappedValue(self, from_type, from_property, from_value, mappings):
-        # default case: return the originally-provided value
-        mapped_value = from_value
-        for mapping in mappings:
-            # Do not return straight away from a match, as there could be multiple
-            # mappings for a particular type (ensure we either have a match before returning,
-            # or have exhausted all possibilities)
-            if from_type == mapping['type'] and from_property == mapping['property']:
-                mapRE = re.compile(mapping['from'])
-                if mapRE.search(from_value):
-                    # change name based on regex and 'to' provided in mapping, only
-                    # if there was a match (if no match, we might clobber a previous match)
-                    mapped_value = mapRE.sub(mapping['to'], from_value)
-        return mapped_value
+    def _getIdentity(self, aCtx, name, delim='::'):
+        identity = ''
+        for ctx in aCtx:
+            identity += ctx['_name'] + delim
+        identity += name
+        return identity
 
     # Always return an array -- could have up to two items, if an asset is both
     # in the workflow and published; otherwise should be just 1
-    def getMappedItem(self, restItem, mappings, workflow):
+    def getMappedItem(self, restItem, mappings, workflow, batch=100, limit=5, cache=True):
         # Map the item itself (ie. renaming)
-        renamed = self._getMappedValue(restItem['_type'], "name", restItem['_name'], mappings)
+        asset_type = restItem['_type']
+        renamed = get_mapped_value(asset_type, "name", restItem['_name'], mappings)
         q = {
             "properties": ["name"],
-            "types": [restItem['_type']],
+            "types": [asset_type],
             "pageSize": 2,
             "where": {
                 "conditions": [{
@@ -214,6 +266,7 @@ class RestIGC(object):
                 "operator": "and"
             }
         }
+        aMappedCtx = []
         ctx_path = ""
         folder_path = ""
         pre_host_path = ""
@@ -224,10 +277,11 @@ class RestIGC(object):
             if ctx_type == 'data_file_folder':
                 folder_path = ctx_value + "/" + folder_path
             else:
-                ctx_value = self._getMappedValue(ctx_type, 'name', ctx_value, mappings)
-                if ctx_type == 'host_(engine)' and restItem['_type'].startswith("data_file"):
+                ctx_value = get_mapped_value(ctx_type, 'name', ctx_value, mappings)
+                aMappedCtx.insert(0, {"_type": ctx_type, "_name": ctx_value})
+                if ctx_type == 'host_(engine)' and asset_type.startswith("data_file"):
                     pre_host_path = ctx_path
-                ctx_type = self._getCtxQueryParamName(restItem['_type'], ctx_type)
+                ctx_type = self._getCtxQueryParamName(asset_type, ctx_type)
                 if idx == 0:
                     ctx_path = ctx_type
                 else:
@@ -242,35 +296,89 @@ class RestIGC(object):
                     })
         if folder_path != "":
             # Strip off the preceding and trailing '/' of the folder_path
-            mappedPath = self._getMappedValue('data_file', 'path', folder_path[1:-1], mappings)
+            mappedPath = get_mapped_value('data_file', 'path', folder_path[1:-1], mappings)
             q['where']['conditions'].append({
                 "value": mappedPath,
                 "operator": "=",
                 "property": pre_host_path + ".path"
             })
-        mapped_assets = []
-        if workflow and self.isWorkflowType(restItem['_type']):
-            qDev = copy.deepcopy(q)
-            qDev['workflowMode'] = "draft"
-            qDev['properties'].append("workflow_current_state")
-            qDev['where']['conditions'].append({
-                "property": "workflow_current_state",
-                "operator": "isNull",
-                "negated": True
-            })
-            resDev = self.search(qDev)
-            if len(resDev) == 1:
-                mapped_assets.append(resDev[0])
-            elif len(resDev) > 1:
-                self.module.warn("Multiple items found in workflow -- " + json.dumps(qDev))
-                mapped_assets = resDev
-        resSearch = self.search(q)
-        if len(resSearch) == 1:
-            mapped_assets.append(resSearch[0])
-        elif len(resSearch) > 1:
-            self.module.warn("Multiple items found when expecting only one -- " + json.dumps(q))
-            mapped_assets = mapped_assets + resSearch
-        return mapped_assets
+            # Add folder path to identity from 1st position (0 = host)
+            # TODO: anything special to handle for root directory '/' ?
+            for path_component in mappedPath.split('/'):
+                aMappedCtx.insert(1, {"_type": "data_file_folder", "_name": path_component})
+        identity = self._getIdentity(aMappedCtx, renamed)
+        if cache and asset_type in self.ctxCacheByIdentity:
+            if identity in self.ctxCacheByIdentity[asset_type]:
+                return self.ctxCacheByIdentity[asset_type][identity]
+            else:
+                return ""
+        elif asset_type not in self.ctxForTypeCounters:
+            self.ctxForTypeCounters[asset_type] = 1
+        else:
+            self.ctxForTypeCounters[asset_type] += 1
+        # If we've had more than the limit of one-off requests for
+        # the context of a particular asset type, bulk-request them
+        # and save as a cache
+        if cache and self.ctxForTypeCounters[asset_type] > limit:
+            q = {
+                "properties": ["name"],
+                "types": [asset_type],
+                "pageSize": batch
+            }
+            allAssetsOfType = self.search(q)
+            self.ctxCacheByIdentity[asset_type] = {}
+            for asset in allAssetsOfType:
+                asset_identity = self._getIdentity(asset['_context'], asset['_name'])
+                if asset_identity in self.ctxCacheByIdentity[asset_type]:
+                    self.module.warn("Multiple items with same identity: " + asset_identity)
+                else:
+                    self.ctxCacheByIdentity[asset_type][asset_identity] = asset
+            if workflow and self.isWorkflowType(restItem['_type']):
+                qDev = copy.deepcopy(q)
+                qDev['workflowMode'] = "draft"
+                qDev['properties'].append("workflow_current_state")
+                qDev['where']['conditions'].append({
+                    "property": "workflow_current_state",
+                    "operator": "isNull",
+                    "negated": True
+                })
+                allDevAssetsOfType = self.search(qDev)
+                for devAsset in allDevAssetsOfType:
+                    dev_asset_identity = self._getIdentity(devAsset['_context'], devAsset['_name'])
+                    if dev_asset_identity in self.ctxCacheByIdentityDev[asset_type]:
+                        self.module.warn("Multiple dev glossary items with same identity: " + asset_identity)
+                    else:
+                        self.ctxCacheByIdentityDev[asset_type][dev_asset_identity] = devAsset
+            aAssets = []
+            if identity in self.ctxCacheByIdentity[asset_type]:
+                aAssets.append(self.ctxCacheByIdentity[asset_type][identity])
+            if identity in self.ctxCacheByIdentityDev[asset_type]:
+                aAssets.append(self.ctxCacheByIdentityDev[asset_type][identity])
+            return aAssets
+        else:
+            mapped_assets = []
+            if workflow and self.isWorkflowType(restItem['_type']):
+                qDev = copy.deepcopy(q)
+                qDev['workflowMode'] = "draft"
+                qDev['properties'].append("workflow_current_state")
+                qDev['where']['conditions'].append({
+                    "property": "workflow_current_state",
+                    "operator": "isNull",
+                    "negated": True
+                })
+                resDev = self.search(qDev)
+                if len(resDev) == 1:
+                    mapped_assets.append(resDev[0])
+                elif len(resDev) > 1:
+                    self.module.warn("Multiple items found in workflow -- " + json.dumps(qDev))
+                    mapped_assets = resDev
+            resSearch = self.search(q)
+            if len(resSearch) == 1:
+                mapped_assets.append(resSearch[0])
+            elif len(resSearch) > 1:
+                self.module.warn("Multiple items found when expecting only one -- " + json.dumps(q))
+                mapped_assets = mapped_assets + resSearch
+            return mapped_assets
 
     def addRelationshipsToAsset(self,
                                 from_asset,

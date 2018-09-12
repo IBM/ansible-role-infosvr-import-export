@@ -245,6 +245,7 @@ def main():
     if igcrest.isWorkflowEnabled():
         result['workflow_enabled'] = True
     else:
+        igcrest.closeSession()
         module.exit_json(**result)
 
     # Basic query
