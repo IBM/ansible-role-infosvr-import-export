@@ -35,7 +35,7 @@ asset_type_to_properties = {
     "shared_container": ["type"] + common_properties,
     "table_definition": ["data_store", "data_schema", "data_source_name", "data_source_type"] + common_properties,
     "parameter_set": common_properties,
-    "data_class": ["class_code"] + common_properties,
+    "data_class": ["class_code", "provider", "validValueReferenceFile", "parent_data_class.class_code", "parent_data_class.parent_data_class.class_code"] + common_properties,
     "extension_mapping_document": ["file_name", "parent_folder"] + common_properties,
     "application": common_properties,
     "file": common_properties,
@@ -318,8 +318,19 @@ def _getDsParameterSetExtractObjects(rest_result):
 
 
 def _getDataClassExtractObjects(rest_result):
-    if len(rest_result['_context']) == 0:
-        return "/" + rest_result['class_code'] + ".dc"
+    # Per KC, parent data classes include their sub-data classes,
+    # and sub-data classes cannot be exported by themselves
+    # TODO: for now we'll assume no more than 2 levels of nesting of
+    # data classes
+    if rest_result['provider'] != 'IBM':
+        path = ""
+        if rest_result['parent_data_class.parent_data_class.class_code'] != '':
+            path = "/" + rest_result['parent_data_class.parent_data_class.class_code']
+        elif rest_result['parent_data_class.class_code'] != '':
+            path = "/" + rest_result['parent_data_class.class_code']
+        else:
+            path = "/" + rest_result['class_code'] + ".dc"
+        return path
 
 
 def _getExtensionMappingDocumentExtractObjects(rest_result):
