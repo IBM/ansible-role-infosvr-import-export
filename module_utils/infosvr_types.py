@@ -321,7 +321,8 @@ def _getDsParameterSetExtractObjects(rest_result):
     # https://www.ibm.com/support/knowledgecenter/en/SSZJPZ_11.7.0/com.ibm.swg.im.iis.iisinfsv.assetint.doc/topics/depasset.html
     # Note: because parameter sets must be universally unique in naming within a project (irrespective of folder) we can
     # safely ignore the folder altogether (just wildcard it)
-    return rest_result['_context'][0]['_name'] + "/" + rest_result['_context'][1]['_name'] + "/*/" + rest_result['_name'] + ".pst"
+    ctx = rest_result['_context']
+    return ctx[0]['_name'] + "/" + ctx[1]['_name'] + "/*/" + rest_result['_name'] + ".pst"
 
 
 def _getDataClassExtractObjects(rest_result):
@@ -371,10 +372,10 @@ def _getInfoAnalyzerExtractObjects(rest_result):
     objtype = rest_result['_type']
     if objtype.endswith('data_rule_definition'):
         objtype = "data_rule_definition"
-    elif (objtype == 'inv_data_rule_set'
-          or objtype == 'non_published_data_rule_set'
-          or objtype == 'published_data_rule_set'
-          or objtype == 'inv_data_rule_set_definition'):
+    elif (objtype == 'inv_data_rule_set' or
+          objtype == 'non_published_data_rule_set' or
+          objtype == 'published_data_rule_set' or
+          objtype == 'inv_data_rule_set_definition'):
         objtype = "data_rule_set_definition"
     extract = {
         "project": projectName,
