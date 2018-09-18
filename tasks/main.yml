@@ -57,19 +57,6 @@
     - progress
     - validate
 
-- name: retrieve domain tier SSL certificate
-  include_tasks: get_certificate.yml
-  when: >
-          ibm_infosvr_impexp_verify_selfsigned_ssl is defined
-          and ibm_infosvr_impexp_verify_selfsigned_ssl
-          and ('ibm-information-server-domain' in group_names)
-          and (export is defined or ingest is defined or progress is defined or validate is defined)
-  tags:
-    - export
-    - ingest
-    - progress
-    - validate
-
 - name: add SSL certificate
   include_tasks: load_certificate.yml
   when: >

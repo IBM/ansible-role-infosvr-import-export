@@ -17,9 +17,9 @@
 
 - name: push Information Server SSL certificate
   copy:
-    src: "{{ ibm_infosvr_impexp_fetch_location }}/__ibm_infosvr_impexp_cert_root.crt"
-    dest: "/tmp/ibm_infosvr_impexp_cert_root.crt"
+    src: "cache/__ibm_infosvr_cert_root.crt"
+    dest: "/tmp/ibm_infosvr_cert_root.crt"
 
 - name: store SSL certificate location
   set_fact:
-    __ibm_infosvr_impexp_ssl_cert_location: "/tmp/ibm_infosvr_impexp_cert_root.crt"
+    __ibm_infosvr_impexp_ssl_cert_location: "/tmp/ibm_infosvr_cert_root.crt"

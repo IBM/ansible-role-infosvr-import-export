@@ -7,6 +7,7 @@ Ansible role for automating the import and export of content and structures with
 - Ansible v2.4.x
 - `dsadm`-become-able network access to an IBM Information Server environment
 - Inventory group names setup the same as `IBM.infosvr` role
+- (And for ease of use, the `IBM.infosvr` role installed and configured)
 
 The role optionally uses privilege escalation to root to automate very few setup tasks. If your environment does not allow this privilege escalation, please ensure these pre-requisites are already fulfilled manually in your environment and change the `defaults/main.yml` variable `ibm_infosvr_impexp_priv_escalate` to `False` (this will skip any attempts at privilege escalation to root).
 
@@ -22,7 +23,7 @@ In case you set the escalation to false, ensure that the following are done in y
 
 See `defaults/main.yml` for inline documentation, and the example below for the main variables needed. For any clarification on the expected action variables and sub-structures for the various object types, refer to the documentation below.
 
-By default, the role will do SSL verification of self-signed certificates by first retrieving the root certificate directly from the domain tier of the environment. This is controlled by the `ibm_infosvr_impexp_verify_selfsigned_ssl` variable of the role: if you want to only verify against properly signed and trusted SSL certificates, you can set this variable to `False` and any self-signed domain tier certificate will no longer be trusted.
+By default, the role will do SSL verification of self-signed certificates if you have retrieved them using `IBM.infosvr`'s `get_certificate.yml` task (see example playbook below). This is controlled by the `ibm_infosvr_openigc_verify_selfsigned_ssl` variable of the role: if you want to only verify against properly signed and trusted SSL certificates, you can set this variable to `False` and any self-signed domain tier certificate will no longer be trusted.
 
 ## Example Playbook
 
@@ -41,7 +42,18 @@ Any missing variables will simply skip that set of actions.
 For example:
 
 ```yml
-- import_role: name=IBM.infosvr-import-export
+---
+
+- name: setup Information Server vars
+  hosts: all
+  tasks:
+    - import_role: name=IBM.infosvr tasks_from=setup_vars.yml
+    - import_role: name=IBM.infosvr tasks_from=get_certificate.yml
+
+- name: load and validate assets
+  hosts: all
+  roles:
+    - IBM.infosvr-import-export
   vars:
     isx_mappings:
       - { type: "HostSystem", attr: "name", from: "MY_HOST", to "YOUR_HOST" }
