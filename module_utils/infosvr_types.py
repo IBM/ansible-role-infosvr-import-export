@@ -253,7 +253,7 @@ def get_mapped_identity(json_object, mappings=[]):
     for ctx in json_object['_context']:
         _ctx = get_mapped_value(ctx['_type'], 'name', ctx['_name'], mappings)
         new_obj['_context'].append({
-            '_type': ctx['_type']
+            '_type': ctx['_type'],
             '_name': _ctx
         })
     return new_obj
