@@ -22,9 +22,10 @@
     dest: "{{ item.into }}"
     mappings: "{% if item.with_options is defined %}{{ item.with_options.transformed_by | default([]) }}{% else %}[]{% endif %}"
   with_items: "{{ __ibm_infosvr_impexp_items }}"
+  register: __ibm_infosvr_impexp_igc_relns_merge
   loop_control:
     label: "{{ item.into | basename }}"
 
 - debug:
-    var: __ibm_infosvr_impexp_igc_relns_extract
+    var: __ibm_infosvr_impexp_igc_relns_merge
     verbosity: 1
