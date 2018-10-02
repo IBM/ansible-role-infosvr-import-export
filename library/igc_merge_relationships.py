@@ -94,8 +94,12 @@ EXAMPLES = '''
 '''
 
 RETURN = '''
-merge_count:
+merged_asset_count:
   description: A numeric indication of the number of total merged assets
+  type: int
+  returned: always
+merged_relationship_count:
+  description: A numeric indication of the number of total merged relationships
   type: int
   returned: always
 '''
@@ -126,7 +130,8 @@ def main():
 
     result = dict(
         changed=False,
-        merge_count=0
+        merged_asset_count=0,
+        merged_relationship_count=0
     )
 
     # if the user is working with this module in only check mode we do not
@@ -159,6 +164,7 @@ def main():
             asset_id = json.dumps(mapped_asset)
             if asset_id not in mergedAssets:
                 mergedAssets[asset_id] = mapped_asset
+                result['merged_asset_count'] += 1
             for prop in asset:
                 bRelation = isinstance(asset[prop], list)
                 if not prop.startswith('_'):
@@ -175,6 +181,7 @@ def main():
                             if reln_id not in relnsForId[asset_id][prop]:
                                 mergedAssets[asset_id][prop].append(mapped_reln)
                                 relnsForId[asset_id][prop].append(reln_id)
+                                result['merged_relationship_count'] += 1
                     else:
                         mergedAssets[asset_id][prop] = asset[prop]
 
