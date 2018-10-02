@@ -15,6 +15,15 @@
 # limitations under the License.
 ###
 
+- name: ensure any destination paths exist
+  local_action:
+    module: file
+    path: "{{ item.into | dirname }}"
+    state: directory
+  with_items: "{{ __ibm_infosvr_impexp_items }}"
+  loop_control:
+    label: "{{ item.into | dirname }}"
+
 - name: merge IGC metadata relationships
   local_action:
     module: igc_merge_relationships
