@@ -106,7 +106,7 @@ merged_relationship_count:
 
 
 from ansible.module_utils.basic import AnsibleModule
-from ansible.module_utils._text import to_bytes
+from ansible.module_utils._text import to_bytes, to_native
 from ansible.module_utils.infosvr_types import get_mapped_identity
 import os
 import os.path
