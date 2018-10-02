@@ -111,6 +111,13 @@
   tags:
     - export
 
+- name: merge metadata
+  include_tasks: merge.yml
+  when: >
+          merge is defined
+  tags:
+    - merge
+
 - name: ingest metadata
   include_tasks: import.yml
   when: >

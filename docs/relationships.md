@@ -41,6 +41,28 @@ The options under `limited_to` are all optional:
 
 Be aware that all relationships in IGC are bi-directional, so it is usually possible to achieve the extraction of the same relationship in two different ways (depending on the `from_type` and `via_properties` used). For example, the `assigned_assets` on a `term` is also represented by the `assigned_to_terms` on a `database_column`, `database_table`, `data_file_field`, etc. Depending on the intended ingest mode (see below), one of the directions may be significantly more efficient to load than the other.
 
+## Merges
+
+```yml
+merge:
+  relationships:
+    - into: <path>
+      from:
+        - <path>
+        - ...
+      with_options:
+        transformed_by: <list>
+    - ...
+```
+
+The required parameters for the merge are the file `into` which to store the merged results and the list of files `from` which to do the merging.
+
+The options under `with_options` are all optional:
+
+- `transformed_by` specifies a list of mappings that can be used to transform the relationships; if provided, they should use the [REST style](mappings.md#rest-style).
+
+It is important to remember that if you are applying transformations to the ingest, you will want to apply those same transformations to the merge: in order to ensure that the merge is done correctly (post-transformation, rather than pre-transformation).
+
 ## Ingests
 
 ```yml
