@@ -61,7 +61,10 @@ The options under `with_options` are all optional:
 
 - `transformed_by` specifies a list of mappings that can be used to transform the relationships; if provided, they should use the [REST style](mappings.md#rest-style).
 
-It is important to remember that if you are applying transformations to the ingest, you will want to apply those same transformations to the merge: in order to ensure that the merge is done correctly (post-transformation, rather than pre-transformation).
+It is important to remember:
+
+- if you are applying transformations to the ingest, you will want to apply those same transformations to the merge: in order to ensure that the merge is done correctly (post-transformation, rather than pre-transformation)
+- since ingest works optimally against a single relationship property at a time, be aware of whether the files you are merging all use the same relationship property or could result in a merged file with multiple relationship properties
 
 ## Ingests
 
@@ -97,6 +100,8 @@ For example, if you specify `database_column` as the `with_options.replacing_typ
 
 As noted above in the export, be aware of your intended ingest mode. It will be more efficient to export relationships in one direction (eg. `assigned_to_terms` from `database_column`) and use `REPLACE_ALL` then it is to use `REPLACE_SOME` (eg. with `assigned_assets` from `term`).
 
+The intestion will attempt to automatically optimise, to use a batch import mechanism when possible. This is generally only possible for certain relationships, only when the `using_mode` is not `REPLACE_SOME`, when there is only a single relationship property in the file, and when there are no custom relationship properties involved.
+
 ## Examples
 
 ```yml
@@ -124,6 +129,15 @@ export:
 rest_mappings:
   - { type: "host", property: "name", from: "MY", to: "YOUR" }
 
+merge:
+  relationships:
+    - into: cache/merged_terms2assets.json
+      from:
+        - cache/terms2assets_underSomeCategory_changed_in_last48hrs_only_dbcols.json
+        - cache/terms2assets_someOtherFile.json
+      with_options:
+        transformed_by: "{{ rest_mappings }}"
+
 ingest:
   relationships:
     - from: cache/terms2assets_underSomeCategory_changed_in_last48hrs_only_dbcols.json
@@ -137,6 +151,13 @@ ingest:
       using_mode: REPLACE_ALL
       with_options:
         transformed_by: "{{ rest_mappings }}"
+    - from: cache/merged_terms2assets.json
+      using_mode: REPLACE_SOME
+      with_options:
+        transformed_by: "{{ rest_mappings }}"
+        replacing_type: database_column
+        only_with_conditions:
+          - { property: "database_table_or_view.name", operator: "=", value: "MYTABLE" }
 ```
 
 [<- Back to the overview](../README.md)
