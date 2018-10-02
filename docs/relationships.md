@@ -64,7 +64,7 @@ The options under `with_options` are all optional:
 It is important to remember:
 
 - if you are applying transformations to the ingest, you will want to apply those same transformations to the merge: in order to ensure that the merge is done correctly (post-transformation, rather than pre-transformation)
-- since ingest works optimally against a single relationship property at a time, be aware of whether the files you are merging all use the same relationship property or could result in a merged file with multiple relationship properties
+- since ingest works more efficiently in certain circumstances, be aware of whether the files you are merging will result in the optimal set of properties intended for the ingestion
 
 ## Ingests
 
