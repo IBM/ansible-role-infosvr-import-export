@@ -243,6 +243,22 @@ def is_supported_by_import_asset_values(asset_type):
     return asset_type in asset_types_for_import_asset_values
 
 
+def get_mapped_identity(json_object, mappings=[]):
+    new_obj = {}
+    _type = json_object['_type']
+    _name = get_mapped_value(_type, 'name', json_object['_name'], mappings)
+    new_obj['_type'] = _type
+    new_obj['_name'] = _name
+    new_obj['_context'] = []
+    for ctx in json_object['_context']:
+        _ctx = get_mapped_value(ctx['_type'], 'name', ctx['_name'], mappings)
+        new_obj['_context'].append({
+            '_type': ctx['_type'],
+            '_name': _ctx
+        })
+    return new_obj
+
+
 def _getRidOnly(rest_result):
     return rest_result['_id']
 
