@@ -15,11 +15,10 @@
 # limitations under the License.
 ###
 
-- name: push Information Server SSL certificate
-  copy:
-    src: "cache/__ibm_infosvr_cert_root.crt"
-    dest: "/tmp/ibm_infosvr_cert_root.crt"
-
-- name: store SSL certificate location
-  set_fact:
-    __ibm_infosvr_impexp_ssl_cert_location: "/tmp/ibm_infosvr_cert_root.crt"
+- name: merge IGC metadata relationships
+  include_tasks: merges/relationships.yml
+  vars:
+    __ibm_infosvr_impexp_type: relationships
+    __ibm_infosvr_impexp_items: "{{ merge.relationships }}"
+  when: >
+        merge.relationships is defined

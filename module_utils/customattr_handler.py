@@ -65,7 +65,14 @@ class CustomAttrHandler(object):
         seedRid = self._getSeedObjectRids()[0]
         search_path = "./ASCLCustomAttribute:ClassDescriptor[@_xmeta_repos_object_id='" + seedRid + "']"
         root_class = self.root.xpath(search_path, namespaces=ns)[0]
-        return root_class.xpath("./has_CustomAttribute")
+        aAttrs = root_class.xpath("./has_CustomAttribute")
+        # This is necessary for custom attributes defined against multiple types
+        srcOfAttrs = root_class.get("isSourceOf_CustomAttribute")
+        if srcOfAttrs:
+            for src_id in srcOfAttrs.split():
+                custom_attr = self.root.xpath("//has_CustomAttribute[@xmi:id='" + src_id + "']", namespaces=ns)
+                aAttrs = list(set(aAttrs + custom_attr))
+        return aAttrs
 
     def _keepDefinitionSrcClassId(self, e_customattr):
         if "hasSource_ClassDescriptor" in e_customattr.attrib:
@@ -110,6 +117,7 @@ class CustomAttrHandler(object):
             classRid = e_class.get("_xmeta_repos_object_id")
             if classId not in self.classIDs_keep and classRid not in seedRid:
                 self.dropDefinition(e_class)
+                self.result['ca_dropped_classes'].append(e_class.get('className'))
                 self.result['changed'] = True
             else:
                 # Remove references to dropped custom attributes as source
@@ -132,11 +140,19 @@ class CustomAttrHandler(object):
                         e_class.set("isTargetOf_CustomAttribute", " ".join(a_newTargets))
                     else:
                         e_class.attrib.pop("isTargetOf_CustomAttribute")
+        # Drop any unused custom attributes
+        for e_customattr in self.root.xpath("//has_CustomAttribute"):
+            id_ca = self._getElementId(e_customattr)
+            if id_ca not in self.caIDs_keep:
+                self.dropDefinition(e_customattr)
+                self.result['ca_dropped'].append(e_customattr.get('name'))
+                self.result['changed'] = True
         # Drop any unused enumerated valid values
         for e_enum in self._getValidEnumerations():
             enumId = self._getElementId(e_enum)
             if enumId not in self.enumIDs_keep:
                 self.dropDefinition(e_enum)
+                self.result['ca_dropped_enums'].append(e_enum.get('name'))
                 self.result['changed'] = True
 
     def writeCustomizedXML(self, filename):

@@ -7,6 +7,7 @@ Ansible role for automating the import and export of content and structures with
 - Ansible v2.4.x
 - `dsadm`-become-able network access to an IBM Information Server environment
 - Inventory group names setup the same as `IBM.infosvr` role
+- (And for ease of use, the `IBM.infosvr` role installed and configured)
 
 The role optionally uses privilege escalation to root to automate very few setup tasks. If your environment does not allow this privilege escalation, please ensure these pre-requisites are already fulfilled manually in your environment and change the `defaults/main.yml` variable `ibm_infosvr_impexp_priv_escalate` to `False` (this will skip any attempts at privilege escalation to root).
 
@@ -22,7 +23,7 @@ In case you set the escalation to false, ensure that the following are done in y
 
 See `defaults/main.yml` for inline documentation, and the example below for the main variables needed. For any clarification on the expected action variables and sub-structures for the various object types, refer to the documentation below.
 
-By default, the role will do SSL verification of self-signed certificates by first retrieving the root certificate directly from the domain tier of the environment. This is controlled by the `ibm_infosvr_impexp_verify_selfsigned_ssl` variable of the role: if you want to only verify against properly signed and trusted SSL certificates, you can set this variable to `False` and any self-signed domain tier certificate will no longer be trusted.
+By default, the role will do SSL verification of self-signed certificates if you have retrieved them using `IBM.infosvr`'s `get_certificate.yml` task (see example playbook below). This is controlled by the `ibm_infosvr_openigc_verify_selfsigned_ssl` variable of the role: if you want to only verify against properly signed and trusted SSL certificates, you can set this variable to `False` and any self-signed domain tier certificate will no longer be trusted.
 
 ## Example Playbook
 
@@ -32,6 +33,7 @@ The first level of variables provided to the role define the broad actions to ta
 
 1. `gather` - retrieve details about the environment (ie. version numbers)
 1. `export` - extract assets from an environment into file(s)
+1. `merge` - merge multiple asset files into a single file
 1. `ingest` - load assets into an environment from file(s) (`import` is a reserved variable in Ansible, hence `ingest`...)
 1. `progress` - move assets through a workflow (will do nothing if workflow is not enabled)
 1. `validate` - validate an environment is in an expected state using objective asset counts
@@ -41,7 +43,18 @@ Any missing variables will simply skip that set of actions.
 For example:
 
 ```yml
-- import_role: name=IBM.infosvr-import-export
+---
+
+- name: setup Information Server vars
+  hosts: all
+  tasks:
+    - import_role: name=IBM.infosvr tasks_from=setup_vars.yml
+    - import_role: name=IBM.infosvr tasks_from=get_certificate.yml
+
+- name: load and validate assets
+  hosts: all
+  roles:
+    - IBM.infosvr-import-export
   vars:
     isx_mappings:
       - { type: "HostSystem", attr: "name", from: "MY_HOST", to "YOUR_HOST" }
@@ -84,7 +97,7 @@ Finally, the playbook will validate the load has resulted in the expected assets
 The following describes all of the actions and object types currently covered by this role, and their expected structures.
 
 1. `gather` - [environment detail gathering](docs/gather.md)
-1. `export` / `ingest` metadata asset types (as with the actions above, the ordering below defines the order in which these object types will be extracted and loaded -- irrespective of the order in which they appear within an action)
+1. `export` / `merge` / `ingest` metadata asset types (as with the actions above, the ordering below defines the order in which these object types will be extracted and loaded -- irrespective of the order in which they appear within an action)
     1. `customattrs` - [custom attribute definitions](docs/customattrs.md)
     1. `common` - [common metadata](docs/common.md) (should be considered low-level, and where possible avoided by using one of the type-specific options)
     1. `logicalmodel` - [logical model metadata](docs/logicalmodel.md)
@@ -104,7 +117,7 @@ The following describes all of the actions and object types currently covered by
 1. `progress` - [progressing the workflow](docs/progress.md)
 1. `validate` - [validation framework](docs/validate.md)
 
-For the `export` and `ingest`, [mappings](docs/mappings.md) can be applied to transform metadata between environments (eg. renaming, changing containment, etc), and most asset types can also be limited through the use of [conditions](docs/conditions.md).
+For the `export`, `merge` and `ingest`, [mappings](docs/mappings.md) can be applied to transform metadata between environments (eg. renaming, changing containment, etc), and most asset types can also be limited through the use of [conditions](docs/conditions.md).
 
 Note that you can generally write these variable structures using any form supported by Ansible, eg. these are all equivalent and simply up to your personal preference:
 

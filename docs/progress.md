@@ -14,6 +14,7 @@ progress:
         - { property: "<string>", operator: "<string>", value: "<value>" }
         - ...
       with_comment: <string>
+      only_when_compared_to_published: <string>
   - ...
 ```
 
@@ -27,6 +28,7 @@ The options under `with_options` are all optional:
 - `from_state` limits the objects that are progressed based on their current state in the workflow (one of `DRAFT`, `WAITING_APPROVAL`, `APPROVED`, or `ALL`). If not specified the default of `ALL` is used, and assets are progressed potentially multiple states in order to achieve the final state specified by `using_action`.
 - `with_comment` will be used as the workflow comment for each state change that is made.
 - `only_with_conditions` specifies which items within the workflow should be acted upon.  This can be expressed as a matter of one or more [conditions](conditions.md) that are relative to the `assets_of_type` specified. Note that if you specify a RID in any of these, it needs to be a development-glossary-specific RID.
+- `only_when_compared_to_published` must be one of `SAME` or `DIFFERENT`: then first specifies that only workflow entries that are different from their published version should be acted upon, while the latter specifies that only workflow entries that are the same as their published version should be acted upon
 
 ## Examples
 

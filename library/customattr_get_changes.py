@@ -77,7 +77,7 @@ EXAMPLES = '''
               {{ ( (ansible_date_time.epoch | int) * 1000) - (48 * 3600 * 1000) ) | int }}
     to_time: >
               {{ ansible_date_time.epoch * 1000 | int }}
-    model_ver: __ibm_infosvr_impexp_model_versions???
+    model_ver: __ibm_infosvr_impexp_model_versions
   register: customattrs_changed_in_last_48hrs
 '''
 
@@ -88,6 +88,18 @@ ca_count:
   returned: always
 ca_names:
   description: A list of names of the custom attribute definitions that match the provided criteria
+  type: list
+  returned: always
+ca_dropped:
+  description: A list of the names of custom attribute definitions that were dropped
+  type: list
+  returned: always
+ca_dropped_classes:
+  description: A list of the names of classes that were dropped
+  type: list
+  returned: always
+ca_dropped_enums:
+  description: A list of the names of enumerations that were dropped
   type: list
   returned: always
 '''
@@ -114,7 +126,10 @@ def main():
     result = dict(
         changed=False,
         ca_count=0,
-        ca_names=[]
+        ca_names=[],
+        ca_dropped=[],
+        ca_dropped_classes=[],
+        ca_dropped_enums=[]
     )
 
     # if the user is working with this module in only check mode we do not
@@ -143,12 +158,6 @@ def main():
                 result['ca_count'] += 1
                 result['ca_names'].append(attr_name)
                 ca_xml.keepDefinition(attr_defn)
-            else:
-                ca_xml.dropDefinition(attr_defn)
-                result['changed'] = True
-        else:
-            ca_xml.dropDefinition(attr_defn)
-            result['changed'] = True
 
     ca_xml.writeCustomizedXML(ca_src)
 

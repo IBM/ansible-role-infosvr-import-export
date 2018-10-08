@@ -23,7 +23,6 @@ __metaclass__ = type
 import requests
 import json
 import logging
-import re
 import copy
 from ansible.module_utils.infosvr_types import get_mapped_value
 

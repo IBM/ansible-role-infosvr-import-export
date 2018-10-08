@@ -35,7 +35,14 @@ asset_type_to_properties = {
     "shared_container": ["type"] + common_properties,
     "table_definition": ["data_store", "data_schema", "data_source_name", "data_source_type"] + common_properties,
     "parameter_set": common_properties,
-    "data_class": ["class_code"] + common_properties,
+    "data_class": [
+        "class_code",
+        "provider",
+        "parent_data_class.class_code",
+        "parent_data_class.provider",
+        "parent_data_class.parent_data_class.class_code",
+        "parent_data_class.parent_data_class.provider"
+    ] + common_properties,
     "extension_mapping_document": ["file_name", "parent_folder"] + common_properties,
     "application": common_properties,
     "file": common_properties,
@@ -236,6 +243,22 @@ def is_supported_by_import_asset_values(asset_type):
     return asset_type in asset_types_for_import_asset_values
 
 
+def get_mapped_identity(json_object, mappings=[]):
+    new_obj = {}
+    _type = json_object['_type']
+    _name = get_mapped_value(_type, 'name', json_object['_name'], mappings)
+    new_obj['_type'] = _type
+    new_obj['_name'] = _name
+    new_obj['_context'] = []
+    for ctx in json_object['_context']:
+        _ctx = get_mapped_value(ctx['_type'], 'name', ctx['_name'], mappings)
+        new_obj['_context'].append({
+            '_type': ctx['_type'],
+            '_name': _ctx
+        })
+    return new_obj
+
+
 def _getRidOnly(rest_result):
     return rest_result['_id']
 
@@ -314,11 +337,23 @@ def _getDsParameterSetExtractObjects(rest_result):
     # https://www.ibm.com/support/knowledgecenter/en/SSZJPZ_11.7.0/com.ibm.swg.im.iis.iisinfsv.assetint.doc/topics/depasset.html
     # Note: because parameter sets must be universally unique in naming within a project (irrespective of folder) we can
     # safely ignore the folder altogether (just wildcard it)
-    return rest_result['_context'][0]['_name'] + "/" + rest_result['_context'][1]['_name'] + "/*/" + rest_result['_name'] + ".pst"
+    ctx = rest_result['_context']
+    return ctx[0]['_name'] + "/" + ctx[1]['_name'] + "/*/" + rest_result['_name'] + ".pst"
 
 
 def _getDataClassExtractObjects(rest_result):
-    if len(rest_result['_context']) == 0:
+    # Per KC, parent data classes include their sub-data classes,
+    # and sub-data classes cannot be exported by themselves
+    # TODO: for now we'll assume no more than 2 levels of nesting of
+    # data classes
+    if (rest_result['parent_data_class.parent_data_class.class_code'] != '' and
+            rest_result['parent_data_class.parent_data_class.provider'] != 'IBM'):
+        return "/" + rest_result['parent_data_class.parent_data_class.class_code'] + ".dc"
+    elif (rest_result['parent_data_class.class_code'] != '' and
+          rest_result['parent_data_class.provider'] != 'IBM'):
+        return "/" + rest_result['parent_data_class.class_code'] + ".dc"
+    elif (rest_result['parent_data_class.class_code'] == '' and
+          rest_result['provider'] != 'IBM'):
         return "/" + rest_result['class_code'] + ".dc"
 
 
@@ -353,10 +388,10 @@ def _getInfoAnalyzerExtractObjects(rest_result):
     objtype = rest_result['_type']
     if objtype.endswith('data_rule_definition'):
         objtype = "data_rule_definition"
-    elif (objtype == 'inv_data_rule_set'
-          or objtype == 'non_published_data_rule_set'
-          or objtype == 'published_data_rule_set'
-          or objtype == 'inv_data_rule_set_definition'):
+    elif (objtype == 'inv_data_rule_set' or
+          objtype == 'non_published_data_rule_set' or
+          objtype == 'published_data_rule_set' or
+          objtype == 'inv_data_rule_set_definition'):
         objtype = "data_rule_set_definition"
     extract = {
         "project": projectName,

@@ -23,6 +23,8 @@ The options under `limited_to` are all optional:
 - `only_with_conditions` defines [conditions](conditions.md) that are currently always AND'd (all conditions must be met).
 - `changes_in_last_hours` specifies the number of hours prior to the playbook running from which to identify (and extract) any changes.
 
+**Important note**: data classes whose provider is specified as `IBM` will _not_ be included in the export. These data classes are owned by the Information Server product team -- if you want to modify them, you should most likely create your own copy (with a different name) and make your changes there. At an absolute minimum, you should remove the provider value (or replace it with your own organisation name), and change the class code of the data class.
+
 ## Ingests
 
 ```yml
