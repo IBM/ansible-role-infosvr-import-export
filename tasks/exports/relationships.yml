@@ -34,6 +34,12 @@
               {{ __ibm_infosvr_impexp_to_epoch | int }}
     limit: "{% if item.limited_to is defined %}{{ item.limited_to.only_including_related_types | default([]) }}{% else %}[]{% endif %}"
     conditions: "{% if item.limited_to is defined %}{{ item.limited_to.only_with_conditions | default([]) }}{% else %}[]{% endif %}"
+    dev_glossary: >
+              {% if item.limited_to is defined %}
+              {{ item.limited_to.dev_glossary_entries | default(False) }}
+              {% else %}
+              False
+              {% endif %}
     cert: "{{ __ibm_infosvr_impexp_ssl_cert_location | default(omit) }}"
   register: __ibm_infosvr_impexp_igc_relns_extract
   with_items: "{{ __ibm_infosvr_impexp_items }}"
