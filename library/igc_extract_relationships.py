@@ -259,6 +259,7 @@ def main():
     batch = module.params['batch']
     dev_glossary = module.params['dev_glossary']
     asset_type = module.params['asset_type']
+    wfl_enabled = igcrest.isWorkflowEnabled()
 
     # Basic query
     reqJSON = {
@@ -285,7 +286,7 @@ def main():
             "property": "modified_on",
             "operator": "between"
         })
-    if dev_glossary and igcrest.isWorkflowType(asset_type):
+    if dev_glossary and wfl_enabled and igcrest.isWorkflowType(asset_type):
         reqJSON['workflowMode'] = "draft"
 
     # Execute the search
@@ -310,7 +311,7 @@ def main():
                 if (len(limit) > 0) and not (relation['_type'] in limit):
                     aRemoveIndices.append(iIdx)
                 else:
-                    relnCtx = igcrest.getContextForItem(relation, dev_glossary, batch=batch)
+                    relnCtx = igcrest.getContextForItem(relation, (dev_glossary and wfl_enabled), batch=batch)
                     if relnCtx == '':
                         module.fail_json(msg='Unable to retieve context for search result', **result)
                     else:
