@@ -22,6 +22,7 @@ export:
         only_including_related_types:
           - <string>
           - ...
+        dev_glossary_entries: <boolean>
     - ...
 ```
 
@@ -38,6 +39,7 @@ The options under `limited_to` are all optional:
 - `only_with_conditions` defines [conditions](conditions.md) that are currently always AND'd (all conditions must be met) and are relative to the `from_type` specified.
 - `changes_in_last_hours` specifies the number of hours prior to the playbook running from which to identify (and extract) any changes.
 - `only_including_related_types` provides a list of the related asset types to retain as relationships.
+- `dev_glossary_entries` determines whether to extract only relationships to assets currently in the development glossary (True) or only relationships to assets that are in the published glossary (False)
 
 Be aware that all relationships in IGC are bi-directional, so it is usually possible to achieve the extraction of the same relationship in two different ways (depending on the `from_type` and `via_properties` used). For example, the `assigned_assets` on a `term` is also represented by the `assigned_to_terms` on a `database_column`, `database_table`, `data_file_field`, etc. Depending on the intended ingest mode (see below), one of the directions may be significantly more efficient to load than the other.
 

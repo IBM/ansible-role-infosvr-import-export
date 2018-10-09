@@ -120,6 +120,12 @@ options:
     required: false
     type: list
     default: []
+  dev_glossary:
+    description:
+      - Indicates only to extract development glossary entries (not published).
+    required: false
+    type: bool
+    default: false
   batch:
     description:
       - The number of assets / relationships to retrieve per REST API call
@@ -213,6 +219,7 @@ def main():
         to_time=dict(type='int', required=False),
         conditions=dict(type='list', required=False, default=[]),
         limit=dict(type='list', required=False, default=[]),
+        dev_glossary=dict(type='bool', required=False, default=False),
         batch=dict(type='int', required=False, default=100),
         cert=dict(type='path', required=False),
         unsafe_writes=dict(type='bool', required=False, default=False)
@@ -249,12 +256,15 @@ def main():
 
     relnprops = module.params['relationships']
     limit = module.params['limit']
+    batch = module.params['batch']
+    dev_glossary = module.params['dev_glossary']
+    asset_type = module.params['asset_type']
 
     # Basic query
     reqJSON = {
         "properties": relnprops,
-        "types": [module.params['asset_type']],
-        "pageSize": module.params['batch']
+        "types": [asset_type],
+        "pageSize": batch
     }
 
     # Extend basic query with any optional conditions
@@ -275,8 +285,8 @@ def main():
             "property": "modified_on",
             "operator": "between"
         })
-
-    result['queries'].append(reqJSON)
+    if dev_glossary and igcrest.isWorkflowType(asset_type):
+        reqJSON['workflowMode'] = "draft"
 
     # Execute the search
     jsonResults = igcrest.search(reqJSON)
@@ -300,7 +310,7 @@ def main():
                 if (len(limit) > 0) and not (relation['_type'] in limit):
                     aRemoveIndices.append(iIdx)
                 else:
-                    relnCtx = igcrest.getContextForItem(relation['_id'], relation['_type'])
+                    relnCtx = igcrest.getContextForItem(relation, dev_glossary, batch=batch)
                     if relnCtx == '':
                         module.fail_json(msg='Unable to retieve context for search result', **result)
                     else:
