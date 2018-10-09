@@ -254,6 +254,7 @@ def main():
 
     mappings = module.params['mappings']
     src = module.params['src']
+    batch = module.params['batch']
 
     if os.path.isdir(src):
         module.fail_json(rc=256, msg='Src %s is a directory !' % src)
@@ -269,8 +270,8 @@ def main():
     wfl_enabled = igcrest.isWorkflowEnabled()
 
     for asset in allAssets:
-        a_mappedItems = igcrest.getMappedItem(asset, mappings, wfl_enabled)
-        if len(a_mappedItems) == 0:
+        mappedItem = igcrest.getMappedItem(asset, mappings, wfl_enabled, batch=batch)
+        if mappedItem == "":
             result['unmapped_assets'].append(asset)
             continue
         # Automatically detect the relationship properties, should be the only
@@ -281,12 +282,11 @@ def main():
                 aMappedRelnRIDs = []
                 for reln in aRelns:
                     if '_type' in reln:
-                        a_mappedRelns = igcrest.getMappedItem(reln, mappings, wfl_enabled)
-                        if len(a_mappedRelns) == 0:
+                        mappedReln = igcrest.getMappedItem(reln, mappings, wfl_enabled, batch=batch)
+                        if mappedReln == "":
                             result['unmapped_relations'].append(reln)
                             continue
-                for mappedItem in a_mappedItems:
-                    aMappedRelnRIDs.append(mappedReln['_id'])
+                        aMappedRelnRIDs.append(mappedReln['_id'])
                 if len(aMappedRelnRIDs) > 0:
                     update_rc, update_msg = igcrest.addRelationshipsToAsset(
                         mappedItem,
