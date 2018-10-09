@@ -27,6 +27,7 @@
     comment: "{% if item.with_options is defined %}{{ item.with_options.with_comment | default('') }}{% endif %}"
     conditions: "{% if item.with_options is defined %}{{ item.with_options.only_with_conditions | default([]) }}{% else %}[]{% endif %}"
     condition_join: "{% if item.with_options is defined %}{{ item.with_options.condition_join | default('AND') }}{% else %}AND{% endif %}"
+    compared_to_published: "{% if item.with_options is defined %}{{ item.with_options.only_when_compared_to_published | default('') }}{% endif %}"
     batch: "{% if item.with_options is defined %}{{ item.with_options.batch | default('100') }}{% else %}100{% endif %}"
     cert: "{{ __ibm_infosvr_impexp_ssl_cert_location | default(omit) }}"
   register: __ibm_infosvr_impexp_workflow_updates
