@@ -283,7 +283,12 @@ def main():
                 for reln in aRelns:
                     if '_type' in reln:
                         mappedReln = igcrest.getMappedItem(reln, mappings, wfl_enabled, batch=batch)
-                        if mappedReln == "":
+                        reln_editable = True
+                        # Need to ensure that any relationship to other business metadata
+                        # is in an editable state in the workflow
+                        if wfl_enabled and igcrest.isWorkflowType(mappedReln['_type']):
+                            reln_editable = igcrest._returnToEditableState(mappedReln)
+                        if mappedReln == "" or not reln_editable:
                             result['unmapped_relations'].append(reln)
                             continue
                         aMappedRelnRIDs.append(mappedReln['_id'])

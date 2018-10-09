@@ -321,6 +321,7 @@ class RestIGC(object):
 
     def _getMappedItemDevelopment(self, asset_type, identity, query, workflow, batch=100, limit=5, cache=True):
         qDev = copy.deepcopy(query)
+        qDev['properties'].append('workflow_current_state')
         mappedAsset = ""
         # If it is already cached, return it directly
         if cache and asset_type in self.ctxCacheByIdentityDev:
@@ -528,6 +529,15 @@ class RestIGC(object):
                 self._getAllRelationshipsForAsset(fullAsset)
         return fullAsset
 
+    # Ensure the asset is put into an editable state
+    # (ie. if it is in the workflow and not in DRAFT status, return it to
+    # draft status)
+    def _returnToEditableState(self, asset):
+        if 'workflow_current_state' in asset and 'DRAFT' not in asset['workflow_current_state']:
+            return self.takeWorkflowAction([asset['_id']], 'return', 'Returning to draft to update relationships')
+        else:
+            return True
+
     def addRelationshipsToAsset(self,
                                 from_asset,
                                 to_asset_rids,
@@ -586,7 +596,10 @@ class RestIGC(object):
                     }
                     aRidsToDrop = [x["_id"] for x in allReplacementsForAsset]
                     u[reln_property]['items'] = set(aAllRelnRIDs) - set(aRidsToDrop)
-                    return self.update(from_asset['_id'], u)
+                    if self._returnToEditableState(from_asset):
+                        return self.update(from_asset['_id'], u)
+                    else:
+                        403, "Cannot update asset to add relationships: " + json.dumps(from_asset)
                 elif len(to_asset_rids) > 0:
                     # No relationships to replace, we should just add these
                     u = {}
@@ -594,7 +607,10 @@ class RestIGC(object):
                         "items": to_asset_rids,
                         "mode": 'append'
                     }
-                    return self.update(from_asset['_id'], u)
+                    if self._returnToEditableState(from_asset):
+                        return self.update(from_asset['_id'], u)
+                    else:
+                        403, "Cannot update asset to add relationships: " + json.dumps(from_asset)
                 else:
                     return 200, "No relationships to add"
             elif len(to_asset_rids) > 0:
@@ -604,7 +620,10 @@ class RestIGC(object):
                     "items": to_asset_rids,
                     "mode": 'append'
                 }
-                return self.update(from_asset['_id'], u)
+                if self._returnToEditableState(from_asset):
+                    return self.update(from_asset['_id'], u)
+                else:
+                    403, "Cannot update asset to add relationships: " + json.dumps(from_asset)
             else:
                 return 200, "No relationships to add"
         elif mode == 'REPLACE_ALL':
@@ -615,16 +634,22 @@ class RestIGC(object):
                 "items": to_asset_rids,
                 "mode": 'replace'
             }
-            return self.update(from_asset['_id'], u)
+            if self._returnToEditableState(from_asset):
+                return self.update(from_asset['_id'], u)
+            else:
+                403, "Cannot update asset to add relationships: " + json.dumps(from_asset)
         elif len(to_asset_rids) > 0:
-            # If a simple append, just do the update directly (only if there)
-            # are actually any RIDs to append
+            # If a simple append, just do the update directly (only if there
+            # are actually any RIDs to append)
             u = {}
             u[reln_property] = {
                 "items": to_asset_rids,
                 "mode": ('replace' if mode == 'REPLACE_ALL' else 'append')
             }
-            return self.update(from_asset['_id'], u)
+            if self._returnToEditableState(from_asset):
+                return self.update(from_asset['_id'], u)
+            else:
+                403, "Cannot update asset to add relationships: " + json.dumps(from_asset)
         else:
             # Otherwise it's an append, with no assets, so it is a NOOP
             return 200, "No relationships to add"
