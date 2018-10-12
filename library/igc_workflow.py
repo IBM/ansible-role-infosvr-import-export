@@ -512,10 +512,16 @@ def _sameList(igcrest, module, result, l1, l2):
             module.fail_json(msg="Never expected to reach here -- double-nested list?" + json.dumps(l1), **result)
         if isinstance(l1[0], dict):
             if '_type' not in l1[0] or '_name' not in l1[0]:
-                module.fail_json(msg="Never expected to reach here -- dict without _type or _name?" + json.dumps(l1), **result)
-            # Sort the sub-objects by concatenation of _type, _name and _id
-            sorted_list_l1 = sorted(l1, key=lambda x: (x['_type'] + "::" + x['_name'] + "::" + x['_id']))
-            sorted_list_l2 = sorted(l2, key=lambda x: (x['_type'] + "::" + x['_name'] + "::" + x['_id']))
+                if 'subject' in l1[0]:
+                    # Sort the notes by concatenation of subject and _id
+                    sorted_list_l1 = sorted(l1, key=lambda x: (x['subject'] + "::" + x['_id']))
+                    sorted_list_l2 = sorted(l2, key=lambda x: (x['subject'] + "::" + x['_id']))
+                else:
+                    module.fail_json(msg="Never expected to reach here -- non-note dict without _type or _name: " + json.dumps(l1), **result)
+            else:
+                # Sort the sub-objects by concatenation of _type, _name and _id
+                sorted_list_l1 = sorted(l1, key=lambda x: (x['_type'] + "::" + x['_name'] + "::" + x['_id']))
+                sorted_list_l2 = sorted(l2, key=lambda x: (x['_type'] + "::" + x['_name'] + "::" + x['_id']))
         for idx, l1_val in enumerate(sorted_list_l1):
             l2_val = sorted_list_l2[idx]
             # If a simple type, just directly compare for equality
