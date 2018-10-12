@@ -186,6 +186,10 @@ relationship_update_count:
   description: A numeric indication of the number of relationships that were set
   type: int
   returned: always
+unupdated_assets:
+  description: A list of the assets that were not updated (ie. were marked for deletion in workflow)
+  type: list
+  returned: always
 unmapped_assets:
   description: A list of the assets for which no mapped item could be found
   returned: always
@@ -231,6 +235,7 @@ def main():
         updates=[],
         asset_update_count=0,
         relationship_update_count=0,
+        unupdated_assets=[],
         unmapped_assets=[],
         unmapped_relations=[]
     )
@@ -300,14 +305,14 @@ def main():
                         module.params['mode'],
                         replace_type=module.params['replace_type'],
                         conditions=module.params['conditions'],
-                        batch=module.params['batch']
+                        batch=batch
                     )
                     if update_rc != 200:
-                        module.fail_json(rc=update_rc, msg='Update failed: %s' % json.dumps(update_msg), **result)
+                        result['unupdated_assets'].append(mappedItem)
                     else:
                         result['changed'] = True
-                    result['asset_update_count'] += 1
-                    result['relationship_update_count'] += len(aMappedRelnRIDs)
+                        result['asset_update_count'] += 1
+                        result['relationship_update_count'] += len(aMappedRelnRIDs)
 
     # Close the IGC REST API session
     igcrest.closeSession()
