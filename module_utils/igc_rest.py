@@ -107,7 +107,10 @@ class RestIGC(object):
             json=value,
             auth=(self.username, self.password)
         )
-        return r.status_code, r.json()
+        if r.status_code == 200:
+            return r.status_code, r.json()
+        else:
+            return r.status_code, ""
 
     def search(self, query, get_all=True):
         self.result['queries'].append(query)
@@ -123,6 +126,17 @@ class RestIGC(object):
                 return self.getAllPages(first_results['items'], first_results['paging'])
             else:
                 return first_results
+        else:
+            return ""
+
+    def getFullAssetById(self, rid):
+        r = self.session.request(
+            "GET",
+            self.baseURL + "/ibm/iis/igc-rest/v1/assets/" + rid,
+            auth=(self.username, self.password)
+        )
+        if r.status_code == 200:
+            return r.json()
         else:
             return ""
 
