@@ -77,11 +77,14 @@ class RestIGC(object):
             auth=(self.username, self.password)
         )
 
-    def getNextPage(self, paging):
+    def getNextPage(self, paging, workflow=False):
         if 'next' in paging:
+            nextPage = paging['next']
+            if workflow and 'workflowMode=draft' not in nextPage:
+                nextPage += "&workflowMode=draft"
             r = self.session.request(
                 "GET",
-                paging['next'],
+                nextPage,
                 auth=(self.username, self.password)
             )
             if r.status_code == 200:
@@ -92,10 +95,10 @@ class RestIGC(object):
         else:
             return {'items': []}
 
-    def getAllPages(self, items, paging):
-        results = self.getNextPage(paging)
+    def getAllPages(self, items, paging, workflow=False):
+        results = self.getNextPage(paging, workflow)
         if len(results['items']) > 0:
-            return self.getAllPages(items + results['items'], results['paging'])
+            return self.getAllPages(items + results['items'], results['paging'], workflow)
         else:
             return items
 
@@ -123,7 +126,8 @@ class RestIGC(object):
         if r.status_code == 200:
             first_results = r.json()
             if get_all:
-                return self.getAllPages(first_results['items'], first_results['paging'])
+                wfl = ('workflowMode' in query)
+                return self.getAllPages(first_results['items'], first_results['paging'], wfl)
             else:
                 return first_results
         else:
@@ -476,10 +480,10 @@ class RestIGC(object):
     # Retrieve all pages of relationships for an asset
     # - should only call this for assets we need to look at;
     #   not any benefit to trying to cache this (will be potential unnecessary work)
-    def _getAllRelationshipsForAsset(self, assetObj):
+    def _getAllRelationshipsForAsset(self, assetObj, workflow=False):
         for prop in assetObj:
             if isinstance(assetObj[prop], dict) and 'paging' in assetObj[prop]:
-                assetObj[prop]['items'] = self.getAllPages(assetObj[prop]['items'], assetObj[prop]['paging'])
+                assetObj[prop]['items'] = self.getAllPages(assetObj[prop]['items'], assetObj[prop]['paging'], workflow)
 
     # Retrieves the full definition of an asset
     # (ie. ALL of its properties and relationships)
@@ -490,7 +494,7 @@ class RestIGC(object):
         # If it is already cached, return it directly
         if cache and asset_rid in self.fullCacheByRID:
             fullAsset = self.fullCacheByRID[asset_rid]
-            self._getAllRelationshipsForAsset(fullAsset)
+            self._getAllRelationshipsForAsset(fullAsset, workflow)
             return fullAsset
         # Otherwise increase the counters that will trigger caching
         elif asset_type not in self.ctxForTypeCounters:
@@ -502,7 +506,7 @@ class RestIGC(object):
             self._cacheFullAssets(self.fullCacheByRID, asset_type, workflow, batch)
             if asset_rid in self.fullCacheByRID:
                 fullAsset = self.fullCacheByRID[asset_rid]
-                self._getAllRelationshipsForAsset(fullAsset)
+                self._getAllRelationshipsForAsset(fullAsset, workflow)
         # Otherwise do a one-off query for the asset
         else:
             # Note that this propertyMap includes only editable attributes;
@@ -536,11 +540,11 @@ class RestIGC(object):
             res = self.search(q)
             if len(res) == 1:
                 fullAsset = res[0]
-                self._getAllRelationshipsForAsset(fullAsset)
+                self._getAllRelationshipsForAsset(fullAsset, workflow)
             elif len(res) > 1:
                 self.module.warn("Multiple items found in workflow -- " + json.dumps(q))
                 fullAsset = res[0]
-                self._getAllRelationshipsForAsset(fullAsset)
+                self._getAllRelationshipsForAsset(fullAsset, workflow)
         return fullAsset
 
     # Ensure the asset is put into an editable state

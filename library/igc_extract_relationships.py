@@ -303,7 +303,7 @@ def main():
         for itmCtx in item['_context']:
             minifyItem(itmCtx)
         for relnprop in relnprops:
-            item[relnprop] = igcrest.getAllPages(item[relnprop]['items'], item[relnprop]['paging'])
+            item[relnprop] = igcrest.getAllPages(item[relnprop]['items'], item[relnprop]['paging'], (dev_glossary and wfl_enabled))
             aRemoveIndices = []
             iIdx = 0
             for relation in item[relnprop]:
