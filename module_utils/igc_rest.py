@@ -483,6 +483,9 @@ class RestIGC(object):
     def _getAllRelationshipsForAsset(self, assetObj, workflow=False):
         for prop in assetObj:
             if isinstance(assetObj[prop], dict) and 'paging' in assetObj[prop]:
+                # The pass-through of workflow here should be fine, it is
+                # just ignored if the type of asset does not participate in
+                # the workflow
                 assetObj[prop]['items'] = self.getAllPages(assetObj[prop]['items'], assetObj[prop]['paging'], workflow)
 
     # Retrieves the full definition of an asset
