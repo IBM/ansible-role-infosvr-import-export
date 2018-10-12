@@ -123,7 +123,7 @@ options:
       - Take action only when the the development is the SAME as or DIFFERENT to the published asset.
     required: false
     type: str
-    choices: [ "SAME", "DIFFERENT" ]
+    choices: [ "NEW", "SAME", "SAME_OR_NEW", "DIFFERENT" ]
   cert:
     description:
       - The path to a certificate file to use for SSL verification against the server.
@@ -312,6 +312,7 @@ def main():
         "APPROVED": []
     }
 
+    new_assets = []
     same_assets = []
     changed_assets = []
 
@@ -321,117 +322,102 @@ def main():
         current_state = asset['workflow_current_state'][0]
         assets_by_state[current_state].append(asset['_id'])
         if compared_to_published != '':
-            if sameAsPublishedAsset(igcrest, module, incomparable_keys, asset, batch):
-                same_assets.append(asset['_id'])
-            else:
-                changed_assets.append(asset['_id'])
+            calculateAssetDelta(igcrest,
+                                module,
+                                result,
+                                incomparable_keys,
+                                asset,
+                                batch,
+                                new_assets,
+                                same_assets,
+                                changed_assets)
 
     # Easy case: we're only moving from a particular state
     if from_state != 'ALL':
         assets_to_move = assets_by_state[from_state]
         action_to_take = getNextAction(action,
                                        from_state)
-        if compared_to_published == '':
-            moveToNextState(igcrest,
-                            result,
-                            assets_to_move,
-                            from_state,
-                            action_to_take,
-                            action,
-                            comment)
-        else:
-            intersected_assets = []
-            if compared_to_published == 'SAME':
-                intersected_assets = list(set(assets_to_move) & set(same_assets))
-            elif compared_to_published == 'DIFFERENT':
-                intersected_assets = list(set(assets_to_move) & set(changed_assets))
-            moveToNextState(igcrest,
-                            result,
-                            intersected_assets,
-                            from_state,
-                            action_to_take,
-                            action,
-                            comment)
+        assets_to_act = getAssetsToActUpon(assets_to_move,
+                                           compared_to_published,
+                                           new_assets,
+                                           same_assets,
+                                           changed_assets)
+        moveToNextState(igcrest,
+                        result,
+                        assets_to_act,
+                        from_state,
+                        action_to_take,
+                        action,
+                        comment)
     # More complicated case: we want to move from all states
     else:
         # Need to iterate state-by-state...
         draft_assets = assets_by_state['DRAFT']
         if len(draft_assets) > 0:
             action_to_take = getNextAction(action, 'DRAFT')
-            if compared_to_published == '':
-                moveToNextState(igcrest,
-                                result,
-                                draft_assets,
-                                'DRAFT',
-                                action_to_take,
-                                action,
-                                comment)
-            else:
-                intersected_assets = []
-                if compared_to_published == 'SAME':
-                    intersected_assets = list(set(draft_assets) & set(same_assets))
-                elif compared_to_published == 'DIFFERENT':
-                    intersected_assets = list(set(draft_assets) & set(changed_assets))
-                moveToNextState(igcrest,
-                                result,
-                                intersected_assets,
-                                'DRAFT',
-                                action_to_take,
-                                action,
-                                comment)
+            assets_to_act = getAssetsToActUpon(draft_assets,
+                                               compared_to_published,
+                                               new_assets,
+                                               same_assets,
+                                               changed_assets)
+            moveToNextState(igcrest,
+                            result,
+                            assets_to_act,
+                            'DRAFT',
+                            action_to_take,
+                            action,
+                            comment)
         waiting_assets = assets_by_state['WAITING_APPROVAL']
         if len(waiting_assets) > 0:
             action_to_take = getNextAction(action, 'WAITING_APPROVAL')
-            if compared_to_published == '':
-                moveToNextState(igcrest,
-                                result,
-                                waiting_assets,
-                                'WAITING_APPROVAL',
-                                action_to_take,
-                                action,
-                                comment)
-            else:
-                intersected_assets = []
-                if compared_to_published == 'SAME':
-                    intersected_assets = list(set(waiting_assets) & set(same_assets))
-                elif compared_to_published == 'DIFFERENT':
-                    intersected_assets = list(set(waiting_assets) & set(changed_assets))
-                moveToNextState(igcrest,
-                                result,
-                                intersected_assets,
-                                'WAITING_APPROVAL',
-                                action_to_take,
-                                action,
-                                comment)
+            assets_to_act = getAssetsToActUpon(waiting_assets,
+                                               compared_to_published,
+                                               new_assets,
+                                               same_assets,
+                                               changed_assets)
+            moveToNextState(igcrest,
+                            result,
+                            assets_to_act,
+                            'WAITING_APPROVAL',
+                            action_to_take,
+                            action,
+                            comment)
         approved_assets = assets_by_state['APPROVED']
         if len(approved_assets) > 0:
             action_to_take = getNextAction(action, 'APPROVED')
-            if compared_to_published == '':
-                moveToNextState(igcrest,
-                                result,
-                                approved_assets,
-                                'APPROVED',
-                                action_to_take,
-                                action,
-                                comment)
-            else:
-                intersected_assets = []
-                if compared_to_published == 'SAME':
-                    intersected_assets = list(set(approved_assets) & set(same_assets))
-                elif compared_to_published == 'DIFFERENT':
-                    intersected_assets = list(set(approved_assets) & set(changed_assets))
-                moveToNextState(igcrest,
-                                result,
-                                intersected_assets,
-                                'APPROVED',
-                                action_to_take,
-                                action,
-                                comment)
+            assets_to_act = getAssetsToActUpon(approved_assets,
+                                               compared_to_published,
+                                               new_assets,
+                                               same_assets,
+                                               changed_assets)
+            moveToNextState(igcrest,
+                            result,
+                            assets_to_act,
+                            'APPROVED',
+                            action_to_take,
+                            action,
+                            comment)
 
     # Close the IGC REST API session
     igcrest.closeSession()
 
     module.exit_json(**result)
+
+
+def getAssetsToActUpon(candidates, act_condition, a_new, a_same, a_changed):
+    intersected_assets = []
+    if act_condition == 'NEW':
+        intersected_assets = list(set(candidates) & set(a_new))
+    elif act_condition == 'SAME':
+        intersected_assets = list(set(candidates) & set(a_same))
+    elif act_condition == 'SAME_OR_NEW':
+        new_and_same = a_new + a_same
+        intersected_assets = list(set(candidates) & set(new_and_same))
+    elif act_condition == 'DIFFERENT':
+        intersected_assets = list(set(candidates) & set(a_changed))
+    else:
+        intersected_assets = candidates
+    return intersected_assets
 
 
 def getNextAction(final_action,
@@ -485,7 +471,7 @@ def moveToNextState(igcrest,
                             comment)
 
 
-def _sameDict(igcrest, module, d1, d2):
+def _sameDict(igcrest, module, result, d1, d2):
     same = (list(d1.keys()).sort() == list(d2.keys()).sort())
     if same:
         # If it's an IGC type and not business metadata, we can simply
@@ -501,9 +487,9 @@ def _sameDict(igcrest, module, d1, d2):
                     if isinstance(d1_val, (six.string_types, bool, int, long, float)):
                         same = (d1_val == d2_val)
                     elif isinstance(d1_val, list):
-                        same = _sameList(igcrest, module, d1_val, d2_val)
+                        same = _sameList(igcrest, module, result, d1_val, d2_val)
                     elif isinstance(d1_val, dict):
-                        same = _sameDict(igcrest, module, d1_val, d2_val)
+                        same = _sameDict(igcrest, module, result, d1_val, d2_val)
                 # Short-circuit the checks if we found a difference
                 if not same:
                     break
@@ -513,7 +499,7 @@ def _sameDict(igcrest, module, d1, d2):
 # Assumptions:
 # - order shouldn't be directly relevant to lists -- so we will
 #   sort them prior to comparison
-def _sameList(igcrest, module, l1, l2):
+def _sameList(igcrest, module, result, l1, l2):
     same = (len(l1) == len(l2))
     if same and len(l1) > 0:
         sorted_list_l1 = l1
@@ -523,8 +509,10 @@ def _sameList(igcrest, module, l1, l2):
             sorted_list_l1 = sorted(l1)
             sorted_list_l2 = sorted(l2)
         if isinstance(l1[0], list):
-            module.warn("Never expected to reach here -- double-nested list?" + json.dumps(l1))
+            module.fail_json(msg="Never expected to reach here -- double-nested list?" + json.dumps(l1), **result)
         if isinstance(l1[0], dict):
+            if '_type' not in l1[0] or '_name' not in l1[0]:
+                module.fail_json(msg="Never expected to reach here -- dict without _type or _name?" + json.dumps(l1), **result)
             # Sort the sub-objects by concatenation of _type, _name and _id
             sorted_list_l1 = sorted(l1, key=lambda x: (x['_type'] + "::" + x['_name'] + "::" + x['_id']))
             sorted_list_l2 = sorted(l2, key=lambda x: (x['_type'] + "::" + x['_name'] + "::" + x['_id']))
@@ -534,9 +522,9 @@ def _sameList(igcrest, module, l1, l2):
             if isinstance(l1_val, (six.string_types, bool, int, long, float)):
                 same = (l1_val == l2_val)
             elif isinstance(l1_val, list):
-                same = _sameList(igcrest, module, l1_val, l2_val)
+                same = _sameList(igcrest, module, result, l1_val, l2_val)
             elif isinstance(l1_val, dict):
-                same = _sameDict(igcrest, module, l1_val, l2_val)
+                same = _sameDict(igcrest, module, result, l1_val, l2_val)
             # Short-circuit the checks if we found a difference
             if not same:
                 break
@@ -545,27 +533,43 @@ def _sameList(igcrest, module, l1, l2):
 
 # Assumptions:
 # - dev_asset is a development glossary asset (workflow participant)
-def sameAsPublishedAsset(igcrest, module, rm_keys, dev_asset, batch):
+def calculateAssetDelta(igcrest,
+                        module,
+                        result,
+                        rm_keys,
+                        dev_asset,
+                        batch,
+                        a_new,
+                        a_same,
+                        a_changed):
 
-    bSame = True
-
-    full_dev_asset = igcrest.getFullAsset(dev_asset, True, batch)
     pub_asset = igcrest.getMappedItem(dev_asset, [], False, batch)
-    full_pub_asset = igcrest.getFullAsset(pub_asset, False, batch)
+    if pub_asset == "":
+        a_new.append(dev_asset['_id'])
+    else:
+        full_dev_asset = igcrest.getFullAsset(dev_asset, True, batch)
+        full_pub_asset = igcrest.getFullAsset(pub_asset, False, batch)
 
-    # Remove any attributes that will never be comparable
-    for attr in rm_keys:
-        if attr in pub_asset:
-            del pub_asset[attr]
-        if attr in dev_asset:
-            del dev_asset[attr]
+        # Remove any attributes that will never be comparable
+        for attr in rm_keys:
+            if attr in pub_asset:
+                del pub_asset[attr]
+            if attr in dev_asset:
+                del dev_asset[attr]
 
-    # Initial check: set of sorted keys is identical between the two
-    # ... and if we pass this point, we know the keys are identical so
-    # we only ever need to loop over one set of keys (not both)
-    bSame = _sameDict(igcrest, module, full_dev_asset, full_pub_asset)
+        # Initial check: set of sorted keys is identical between the two
+        # ... and if we pass this point, we know the keys are identical so
+        # we only ever need to loop over one set of keys (not both)
+        bSame = _sameDict(igcrest,
+                          module,
+                          result,
+                          full_dev_asset,
+                          full_pub_asset)
 
-    return bSame
+        if bSame:
+            a_same.append(dev_asset['_id'])
+        else:
+            a_changed.append(dev_asset['_id'])
 
 
 if __name__ == '__main__':
