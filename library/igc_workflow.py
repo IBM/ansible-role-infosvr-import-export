@@ -469,6 +469,7 @@ def moveToNextState(igcrest,
         if igcrest.takeWorkflowAction(assets_to_act_upon, action_to_take, comment):
             result['workflow_actions'].append({"items": assets_to_act_upon,
                                                "action": action_to_take})
+            result['changed'] = True
         else:
             result['workflow_failed'].append({"items": assets_to_act_upon,
                                               "action": action_to_take})
