@@ -118,6 +118,12 @@ options:
     required: false
     type: str
     choices: [ "AND", "OR" ]
+  compared_to_published:
+    description:
+      - Take action only when the the development is the SAME as or DIFFERENT to the published asset.
+    required: false
+    type: str
+    choices: [ "NEW", "SAME", "SAME_OR_NEW", "DIFFERENT" ]
   cert:
     description:
       - The path to a certificate file to use for SSL verification against the server.
@@ -184,6 +190,8 @@ workflow_enabled:
 
 from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.igc_rest import RestIGC
+import six
+import json
 
 
 def main():
@@ -199,6 +207,7 @@ def main():
         comment=dict(type='str', required=False, default=''),
         conditions=dict(type='list', required=False, default=[]),
         condition_join=dict(type='str', required=False, default='AND'),
+        compared_to_published=dict(type='str', required=False, default=''),
         cert=dict(type='path', required=False),
         batch=dict(type='int', required=False, default=100)
     )
@@ -240,30 +249,30 @@ def main():
     from_state = module.params['from_state']
     action = module.params['action']
     comment = module.params['comment']
+    compared_to_published = module.params['compared_to_published']
+    batch = module.params['batch']
 
     # First check whether workflow is even enabled
-    wflCheck = {
-        "pageSize": 1,
-        "workflowMode": "draft",
-        "properties": ["name"],
-        "types": [asset_type]
-    }
-
-    wflResults = igcrest.search(wflCheck, False)
-
-    # Ensure search worked before proceeding
-    if wflResults == '':
-        module.fail_json(msg='IGC workflow status check failed', **result)
-    # Ensure workflow is enabled before proceeding (if not, return immediately)
-    elif wflResults['paging']['numTotal'] == 0:
+    # (if not, we can return immediately as this module becomes a NOOP)
+    if igcrest.isWorkflowEnabled():
+        result['workflow_enabled'] = True
+    else:
         igcrest.closeSession()
         module.exit_json(**result)
-    else:
-        result['workflow_enabled'] = True
+
+    incomparable_keys = [
+        'history',
+        'development_log',
+        'modified_by',
+        'modified_on',
+        'created_by',
+        'created_on',
+        '_url'
+    ]
 
     # Basic query
     reqJSON = {
-        "pageSize": module.params['batch'],
+        "pageSize": batch,
         "workflowMode": "draft",
         "properties": ['name', 'workflow_current_state'],
         "types": [asset_type],
@@ -303,20 +312,39 @@ def main():
         "APPROVED": []
     }
 
-    for item in jsonResults:
+    new_assets = []
+    same_assets = []
+    changed_assets = []
+
+    for asset in jsonResults:
         # For some reason 'workflow_current_state' is an array
-        # (but should only ever have one item, so always take first?)
-        current_state = item['workflow_current_state'][0]
-        assets_by_state[current_state].append(item['_id'])
+        # (but should only ever have one entry, so always take first?)
+        current_state = asset['workflow_current_state'][0]
+        assets_by_state[current_state].append(asset['_id'])
+        if compared_to_published != '':
+            calculateAssetDelta(igcrest,
+                                module,
+                                result,
+                                incomparable_keys,
+                                asset,
+                                batch,
+                                new_assets,
+                                same_assets,
+                                changed_assets)
 
     # Easy case: we're only moving from a particular state
     if from_state != 'ALL':
         assets_to_move = assets_by_state[from_state]
         action_to_take = getNextAction(action,
                                        from_state)
+        assets_to_act = getAssetsToActUpon(assets_to_move,
+                                           compared_to_published,
+                                           new_assets,
+                                           same_assets,
+                                           changed_assets)
         moveToNextState(igcrest,
                         result,
-                        assets_to_move,
+                        assets_to_act,
                         from_state,
                         action_to_take,
                         action,
@@ -327,9 +355,14 @@ def main():
         draft_assets = assets_by_state['DRAFT']
         if len(draft_assets) > 0:
             action_to_take = getNextAction(action, 'DRAFT')
+            assets_to_act = getAssetsToActUpon(draft_assets,
+                                               compared_to_published,
+                                               new_assets,
+                                               same_assets,
+                                               changed_assets)
             moveToNextState(igcrest,
                             result,
-                            draft_assets,
+                            assets_to_act,
                             'DRAFT',
                             action_to_take,
                             action,
@@ -337,9 +370,14 @@ def main():
         waiting_assets = assets_by_state['WAITING_APPROVAL']
         if len(waiting_assets) > 0:
             action_to_take = getNextAction(action, 'WAITING_APPROVAL')
+            assets_to_act = getAssetsToActUpon(waiting_assets,
+                                               compared_to_published,
+                                               new_assets,
+                                               same_assets,
+                                               changed_assets)
             moveToNextState(igcrest,
                             result,
-                            waiting_assets,
+                            assets_to_act,
                             'WAITING_APPROVAL',
                             action_to_take,
                             action,
@@ -347,9 +385,14 @@ def main():
         approved_assets = assets_by_state['APPROVED']
         if len(approved_assets) > 0:
             action_to_take = getNextAction(action, 'APPROVED')
+            assets_to_act = getAssetsToActUpon(approved_assets,
+                                               compared_to_published,
+                                               new_assets,
+                                               same_assets,
+                                               changed_assets)
             moveToNextState(igcrest,
                             result,
-                            waiting_assets,
+                            assets_to_act,
                             'APPROVED',
                             action_to_take,
                             action,
@@ -359,6 +402,22 @@ def main():
     igcrest.closeSession()
 
     module.exit_json(**result)
+
+
+def getAssetsToActUpon(candidates, act_condition, a_new, a_same, a_changed):
+    intersected_assets = []
+    if act_condition == 'NEW':
+        intersected_assets = list(set(candidates) & set(a_new))
+    elif act_condition == 'SAME':
+        intersected_assets = list(set(candidates) & set(a_same))
+    elif act_condition == 'SAME_OR_NEW':
+        new_and_same = a_new + a_same
+        intersected_assets = list(set(candidates) & set(new_and_same))
+    elif act_condition == 'DIFFERENT':
+        intersected_assets = list(set(candidates) & set(a_changed))
+    else:
+        intersected_assets = candidates
+    return intersected_assets
 
 
 def getNextAction(final_action,
@@ -396,6 +455,7 @@ def moveToNextState(igcrest,
         if igcrest.takeWorkflowAction(assets_to_act_upon, action_to_take, comment):
             result['workflow_actions'].append({"items": assets_to_act_upon,
                                                "action": action_to_take})
+            result['changed'] = True
         else:
             result['workflow_failed'].append({"items": assets_to_act_upon,
                                               "action": action_to_take})
@@ -409,6 +469,113 @@ def moveToNextState(igcrest,
                             next_action,
                             final_action,
                             comment)
+
+
+def _sameDict(igcrest, module, result, d1, d2):
+    same = (list(d1.keys()).sort() == list(d2.keys()).sort())
+    if same:
+        # If it's an IGC type and not business metadata, we can simply
+        # directly compare the RIDs to test for equality
+        if '_type' in d1 and not igcrest.isWorkflowType(d1['_type']):
+            same = (d1['_id'] == d2['_id'])
+        else:
+            for prop in d1:
+                if prop not in ['_id', '_url']:
+                    d1_val = d1[prop]
+                    d2_val = d2[prop]
+                    # If a simple type, just directly compare for equality
+                    if isinstance(d1_val, (six.string_types, bool, int, long, float)):
+                        same = (d1_val == d2_val)
+                    elif isinstance(d1_val, list):
+                        same = _sameList(igcrest, module, result, d1_val, d2_val)
+                    elif isinstance(d1_val, dict):
+                        same = _sameDict(igcrest, module, result, d1_val, d2_val)
+                # Short-circuit the checks if we found a difference
+                if not same:
+                    break
+    return same
+
+
+# Assumptions:
+# - order shouldn't be directly relevant to lists -- so we will
+#   sort them prior to comparison
+def _sameList(igcrest, module, result, l1, l2):
+    same = (len(l1) == len(l2))
+    if same and len(l1) > 0:
+        sorted_list_l1 = l1
+        sorted_list_l2 = l2
+        # Check the types in the list based on the first entry...
+        if isinstance(l1[0], (six.string_types, bool, int, long, float)):
+            sorted_list_l1 = sorted(l1)
+            sorted_list_l2 = sorted(l2)
+        if isinstance(l1[0], list):
+            module.fail_json(msg="Never expected to reach here -- double-nested list?" + json.dumps(l1), **result)
+        if isinstance(l1[0], dict):
+            if '_type' not in l1[0] or '_name' not in l1[0]:
+                if 'subject' in l1[0]:
+                    # Sort the notes by concatenation of subject and _id
+                    sorted_list_l1 = sorted(l1, key=lambda x: (x['subject'] + "::" + x['_id']))
+                    sorted_list_l2 = sorted(l2, key=lambda x: (x['subject'] + "::" + x['_id']))
+                else:
+                    module.fail_json(msg="Never expected to reach here -- non-note dict without _type or _name: " + json.dumps(l1), **result)
+            else:
+                # Sort the sub-objects by concatenation of _type, _name and _id
+                sorted_list_l1 = sorted(l1, key=lambda x: (x['_type'] + "::" + x['_name'] + "::" + x['_id']))
+                sorted_list_l2 = sorted(l2, key=lambda x: (x['_type'] + "::" + x['_name'] + "::" + x['_id']))
+        for idx, l1_val in enumerate(sorted_list_l1):
+            l2_val = sorted_list_l2[idx]
+            # If a simple type, just directly compare for equality
+            if isinstance(l1_val, (six.string_types, bool, int, long, float)):
+                same = (l1_val == l2_val)
+            elif isinstance(l1_val, list):
+                same = _sameList(igcrest, module, result, l1_val, l2_val)
+            elif isinstance(l1_val, dict):
+                same = _sameDict(igcrest, module, result, l1_val, l2_val)
+            # Short-circuit the checks if we found a difference
+            if not same:
+                break
+    return same
+
+
+# Assumptions:
+# - dev_asset is a development glossary asset (workflow participant)
+def calculateAssetDelta(igcrest,
+                        module,
+                        result,
+                        rm_keys,
+                        dev_asset,
+                        batch,
+                        a_new,
+                        a_same,
+                        a_changed):
+
+    pub_asset = igcrest.getMappedItem(dev_asset, [], False, batch)
+    if pub_asset == "":
+        a_new.append(dev_asset['_id'])
+    else:
+        full_dev_asset = igcrest.getFullAsset(dev_asset, True, batch)
+        full_pub_asset = igcrest.getFullAsset(pub_asset, False, batch)
+
+        # Remove any attributes that will never be comparable
+        for attr in rm_keys:
+            if attr in pub_asset:
+                del pub_asset[attr]
+            if attr in dev_asset:
+                del dev_asset[attr]
+
+        # Initial check: set of sorted keys is identical between the two
+        # ... and if we pass this point, we know the keys are identical so
+        # we only ever need to loop over one set of keys (not both)
+        bSame = _sameDict(igcrest,
+                          module,
+                          result,
+                          full_dev_asset,
+                          full_pub_asset)
+
+        if bSame:
+            a_same.append(dev_asset['_id'])
+        else:
+            a_changed.append(dev_asset['_id'])
 
 
 if __name__ == '__main__':
