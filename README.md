@@ -8,6 +8,7 @@ Ansible role for automating the import and export of content and structures with
 - `dsadm`-become-able network access to an IBM Information Server environment
 - Inventory group names setup the same as `IBM.infosvr` role
 - (And for ease of use, the `IBM.infosvr` role installed and configured)
+- `jmespath` installed on your control machine (this role makes use of the `json_query` module, which depends on this library)
 
 The role optionally uses privilege escalation to root to automate very few setup tasks. If your environment does not allow this privilege escalation, please ensure these pre-requisites are already fulfilled manually in your environment and change the `defaults/main.yml` variable `ibm_infosvr_impexp_priv_escalate` to `False` (this will skip any attempts at privilege escalation to root).
 

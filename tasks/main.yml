@@ -46,9 +46,7 @@
     - envdetails
 
 - name: install prerequisite packages
-  yum: state=latest name={{ item }}
-  with_items:
-    - python-requests
+  yum: name=python-requests state=latest
   become: yes
   when: >
           ibm_infosvr_impexp_priv_escalate
