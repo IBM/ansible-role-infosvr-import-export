@@ -26,6 +26,8 @@
     src: /tmp/__load_{{ __ibm_infosvr_impexp_type }}_{{ item.from | basename }}
   with_items: "{{ __ibm_infosvr_impexp_items }}"
   register: __ibm_infosvr_impexp_igc_relns_includes
+  loop_control:
+    label: "{{ item.from | basename }}"
 
 - debug:
     var: __ibm_infosvr_impexp_igc_relns_includes.results
