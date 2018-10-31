@@ -83,7 +83,7 @@ class OpenIGCHandler(object):
         e_asset = self.getAssetById(rid)
         if e_asset is not None:
             e_parent = self.getReferencedAsset(e_asset)
-            if e_parent:
+            if e_parent is not None:
                 parent_rid = self.getRid(e_parent)
                 return self.getAncestralAssetRids(parent_rid).append(parent_rid)
             else:
