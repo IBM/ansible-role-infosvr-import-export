@@ -30,7 +30,7 @@
               {% endif %}
     to_time: >
               {{ __ibm_infosvr_impexp_to_epoch | int }}
-    conditions: "{% if outer_item.limited_to is defined %}{{ outer_item.limited_to.only_with_conditions | default([]){% else %}[]{% endif %}"
+    conditions: "{% if outer_item.limited_to is defined %}{{ outer_item.limited_to.only_with_conditions | default([]) }}{% else %}[]{% endif %}"
     cert: "{{ __ibm_infosvr_impexp_ssl_cert_location | default(omit) }}"
   register: __ibm_infosvr_impexp_oigc_asset_changes
   loop_control:
