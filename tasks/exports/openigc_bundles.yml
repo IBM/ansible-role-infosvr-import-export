@@ -22,7 +22,7 @@
     user: "{{ ibm_infosvr_impexp_infosvr_admin_user }}"
     password: "{{ ibm_infosvr_impexp_infosvr_admin_user_pwd }}"
     bundle_name: "{{ outer_item.name }}"
-    dest: "{{ outer_item.into }}"
+    dest: "/tmp/__export_{{ __ibm_infosvr_impexp_type }}_{{ outer_item.into | basename }}"
     cert: "{{ __ibm_infosvr_impexp_ssl_cert_location | default(omit) }}"
   loop_control:
     label: "{{ outer_item.name }} - {{ outer_item.into | basename }}"
