@@ -55,12 +55,10 @@
 
 - name: transfer files
   fetch: src=/tmp/__export_{{ __ibm_infosvr_impexp_type }}_{{ outer_item.into | basename }} dest={{ outer_item.into }} flat=yes
-  with_items: "{{ __ibm_infosvr_impexp_items }}"
   loop_control:
     label: "{{ outer_item.into | basename }}"
 
 - name: cleanup exported files
   file: path=/tmp/__export_{{ __ibm_infosvr_impexp_type }}_{{ outer_item.into | basename }} state=absent
-  with_items: "{{ __ibm_infosvr_impexp_items }}"
   loop_control:
     label: "{{ outer_item.into | basename }}"
