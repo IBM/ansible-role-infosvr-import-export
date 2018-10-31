@@ -109,7 +109,7 @@ asset_count:
 
 from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils._text import to_bytes, to_native
-from ansible.module_utils.ia_rest import RestIA
+from ansible.module_utils.igc_rest import RestIGC
 from ansible.module_utils.openigc_handler import OpenIGCHandler
 import os
 import os.path
