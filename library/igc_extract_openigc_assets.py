@@ -193,7 +193,8 @@ def main():
     for e_asset in oigc_xml.getAssets():
         rid = oigc_xml.getRid(e_asset)
         if rid not in all_assets_to_keep:
-            oigc_xml.dropAsset(e_asset)
+            if rid is not None:
+                oigc_xml.dropAsset(e_asset)
         else:
             result['asset_count'] += 1
 

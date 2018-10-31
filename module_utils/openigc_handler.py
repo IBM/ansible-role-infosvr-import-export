@@ -45,7 +45,15 @@ class OpenIGCHandler(object):
 
     def getRid(self, e_asset):
         # Trim off the 'ID_' portion of the id to get the rid
-        return e_asset.xpath("./@ID", namespaces=ns)[0][3:]
+        attr_id = e_asset.xpath("./@ID", namespaces=ns)
+        if len(attr_id) == 1:
+            return attr_id[0][3:]
+        elif len(attr_id) > 1:
+            self.module.warn("Found multiple ID attributes!")
+            return attr_id[0][3:]
+        else:
+            self.module.warn("No ID attribute found: " + e_asset)
+            return None
 
     def getAssetById(self, rid):
         asset_list = self.root.xpath("./x:assets/x:asset[@ID='ID_" + rid + "']", namespaces=ns)
