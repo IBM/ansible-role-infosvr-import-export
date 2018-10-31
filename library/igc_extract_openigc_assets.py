@@ -197,6 +197,8 @@ def main():
         else:
             result['asset_count'] += 1
 
+    oigc_xml.setImportActionPartials(all_assets_to_keep)
+
     # Remove the interim temporary file
     os.unlink(tmpfile_full)
 
