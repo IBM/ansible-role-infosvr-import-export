@@ -45,7 +45,7 @@ class OpenIGCHandler(object):
 
     def getRid(self, e_asset):
         # Trim off the 'ID_' portion of the id to get the rid
-        return e_asset.xpath("./@ID", namespaces=ns)[0][2:]
+        return e_asset.xpath("./@ID", namespaces=ns)[0][3:]
 
     def getAssetById(self, rid):
         asset_list = self.root.xpath("./x:assets/x:asset[@ID='ID_" + rid + "']", namespaces=ns)
@@ -67,7 +67,7 @@ class OpenIGCHandler(object):
             self.module.warn("Multiple references found for: " + self.getRid(e_asset))
             asset_ids = e_ref[0].xpath("./@assetIDs", namespaces=ns)[0]
         if asset_ids is not None:
-            return self.getAssetById(asset_ids[2:])
+            return self.getAssetById(asset_ids[3:])
         else:
             return None
 
