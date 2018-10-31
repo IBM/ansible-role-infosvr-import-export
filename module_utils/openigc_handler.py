@@ -59,7 +59,7 @@ class OpenIGCHandler(object):
             return None
 
     def getReferencedAsset(self, e_asset):
-        e_ref = e_asset.xpath("./x:reference")
+        e_ref = e_asset.xpath("./x:reference", namespaces=ns)
         asset_ids = None
         if len(e_ref) == 1:
             asset_ids = e_ref[0].xpath("./@assetIDs", namespaces=ns)[0]
