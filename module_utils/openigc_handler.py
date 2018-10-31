@@ -66,7 +66,10 @@ class OpenIGCHandler(object):
         elif len(e_ref) > 1:
             self.module.warn("Multiple references found for: " + self.getRid(e_asset))
             asset_ids = e_ref[0].xpath("./@assetIDs", namespaces=ns)[0]
-        return asset_ids
+        if asset_ids is not None:
+            return self.getAssetById(asset_ids[2:])
+        else:
+            return None
 
     def getAncestralAssetRids(self, rid):
         e_asset = self.getAssetById(rid)
