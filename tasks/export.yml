@@ -142,7 +142,9 @@
   include_tasks: exports/openigc_assets.yml
   vars:
     __ibm_infosvr_impexp_type: openigc_assets
-    __ibm_infosvr_impexp_items: "{{ export.openigc.assets }}"
+  with_items: "{{ export.openigc.assets }}"
+  loop_control:
+    loop_var: outer_item
   when: >
         export.openigc is defined
         and export.openigc.assets is defined
