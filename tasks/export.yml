@@ -126,6 +126,28 @@
         export.infoanalyzer is defined
         and ('ibm-information-server-engine' in group_names)
 
+- name: export OpenIGC bundles
+  include_tasks: exports/openigc_bundles.yml
+  vars:
+    __ibm_infosvr_impexp_type: openigc_bundles
+  with_items: "{{ export.openigc.bundles }}"
+  loop_control:
+    loop_var: outer_item
+  when: >
+        export.openigc is defined
+        and export.openigc.bundles is defined
+        and ('ibm-information-server-engine' in group_names)
+
+- name: export OpenIGC assets
+  include_tasks: exports/openigc_assets.yml
+  vars:
+    __ibm_infosvr_impexp_type: openigc_assets
+    __ibm_infosvr_impexp_items: "{{ export.openigc.assets }}"
+  when: >
+        export.openigc is defined
+        and export.openigc.assets is defined
+        and ('ibm-information-server-engine' in group_names)
+
 ## FastTrack (-fasttrack)
 
 - name: export extended data sources
