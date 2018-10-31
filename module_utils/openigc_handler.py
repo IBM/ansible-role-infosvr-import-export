@@ -45,7 +45,7 @@ class OpenIGCHandler(object):
 
     def getRid(self, e_asset):
         # Trim off the 'ID_' portion of the id to get the rid
-        return e_asset.get("ID")[2:]
+        return e_asset.xpath("./@ID", namespaces=ns)[0][2:]
 
     def getAssetById(self, rid):
         asset_list = self.root.xpath("./x:assets/x:asset[@ID='ID_" + rid + "']", namespaces=ns)
@@ -62,15 +62,15 @@ class OpenIGCHandler(object):
         e_ref = e_asset.xpath("./x:reference")
         asset_ids = None
         if len(e_ref) == 1:
-            asset_ids = e_ref[0].get("assetIDs")
+            asset_ids = e_ref[0].xpath("./@assetIDs", namespaces=ns)[0]
         elif len(e_ref) > 1:
             self.module.warn("Multiple references found for: " + self.getRid(e_asset))
-            asset_ids = e_ref[0].get("assetIDs")
+            asset_ids = e_ref[0].xpath("./@assetIDs", namespaces=ns)[0]
         return asset_ids
 
     def getAncestralAssetRids(self, rid):
         e_asset = self.getAssetById(rid)
-        if e_asset:
+        if e_asset is not None:
             e_parent = self.getReferencedAsset(e_asset)
             if e_parent:
                 parent_rid = self.getRid(e_parent)
@@ -89,7 +89,7 @@ class OpenIGCHandler(object):
 
     def getImportActions(self):
         e_importAction = self.root.xpath("./x:importAction", namespaces=ns)
-        return e_importAction[0].get("partialAssetIDs").split(" ")
+        return e_importAction[0].xpath("./@partialAssetIDs", namespaces=ns)[0].split(" ")
 
     def setImportActionPartials(self, asset_rids):
         e_importAction = self.root.xpath("./x:importAction", namespaces=ns)
