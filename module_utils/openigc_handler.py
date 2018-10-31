@@ -48,14 +48,25 @@ class OpenIGCHandler(object):
         return e_asset.get("ID")[2:]
 
     def getAssetById(self, rid):
-        return self.root.xpath("./assets/asset[@ID='ID_" + rid + "']", namespaces=ns)
+        asset_list = self.root.xpath("./assets/asset[@ID='ID_" + rid + "']", namespaces=ns)
+        if len(asset_list) == 1:
+            return asset_list[0]
+        elif len(asset_list) > 1:
+            self.module.warn("Multiple assets with same RID found: " + rid)
+            return asset_list[0]
+        else:
+            self.module.warn("Asset not found with RID: " + rid)
+            return None
 
     def getReferencedAsset(self, e_asset):
-        asset_ids = e_asset.xpath("./reference").get("assetIDs")
-        if asset_ids:
-            return self.getAssetById(asset_ids)
-        else:
-            return None
+        e_ref = e_asset.xpath("./reference")
+        asset_ids = None
+        if len(e_ref) == 1:
+            asset_ids = e_ref[0].get("assetIDs")
+        elif len(e_ref) > 1:
+            self.module.warn("Multiple references found for: " + self.getRid(e_asset))
+            asset_ids = e_ref[0].get("assetIDs")
+        return asset_ids
 
     def getAncestralAssetRids(self, rid):
         e_asset = self.getAssetById(rid)
