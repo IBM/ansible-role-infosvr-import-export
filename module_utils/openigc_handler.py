@@ -104,7 +104,9 @@ class OpenIGCHandler(object):
 
     def setImportActionPartials(self, asset_rids):
         e_importAction = self.root.xpath("./x:importAction", namespaces=ns)
-        e_importAction[0].set("partialAssetIDs", " ID_".join(asset_rids))
+        # Put the 'ID_' prefix back onto all of the assets that are left
+        partial_ids = "ID_" + (" ID_".join(asset_rids))
+        e_importAction[0].set("partialAssetIDs", partial_ids)
 
     def dropAsset(self, e_asset):
         parent = e_asset.getparent()
