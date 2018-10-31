@@ -200,7 +200,8 @@ def get_asset_extract_object(asset_type, rest_result):
           asset_type == 'term' or
           asset_type == 'information_governance_policy' or
           asset_type == 'information_governance_rule' or
-          asset_type == 'label'):
+          asset_type == 'label' or
+          asset_type.startswith('$')):
         return _getRidOnly(rest_result)
     elif (asset_type == 'data_rule_definition' or
           asset_type == 'data_rule_set_definition' or

@@ -1,0 +1,66 @@
+---
+###
+# Copyright 2018 IBM Corp. All Rights Reserved.
+# 
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+# 
+#      http://www.apache.org/licenses/LICENSE-2.0
+# 
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+###
+
+- name: "{{ __ibm_infosvr_impexp_type }} - get changed assets"
+  igc_get_changed_assets:
+    host: "{{ ibm_infosvr_impexp_services_host }}"
+    port: "{{ ibm_infosvr_impexp_services_console_port }}"
+    user: "{{ ibm_infosvr_impexp_infosvr_admin_user }}"
+    password: "{{ ibm_infosvr_impexp_infosvr_admin_user_pwd }}"
+    asset_type: "${{ outer_item.from_bundle }}"
+    from_time: >
+              {% if outer_item.limited_to is defined and outer_item.limited_to.changes_in_last_hours is defined %}
+              {{ (__ibm_infosvr_impexp_to_epoch | int) - ((outer_item.limited_to.changes_in_last_hours | int) * 3600 * 1000) }}
+              {% else %}
+              -1
+              {% endif %}
+    to_time: >
+              {{ __ibm_infosvr_impexp_to_epoch | int }}
+    conditions: "{% if outer_item.limited_to is defined %}{{ outer_item.limited_to.only_with_conditions | default([]){% else %}[]{% endif %}"
+    cert: "{{ __ibm_infosvr_impexp_ssl_cert_location | default(omit) }}"
+  register: __ibm_infosvr_impexp_oigc_asset_changes
+  loop_control:
+    label: "{{ outer_item.from_bundle }} - {{ outer_item.into | basename }}"
+
+- debug:
+    var: __ibm_infosvr_impexp_oigc_asset_changes
+    verbosity: 1
+
+- name: "{{ __ibm_infosvr_impexp_type }} - export"
+  igc_extract_openigc_assets:
+    host: "{{ ibm_infosvr_impexp_services_host }}"
+    port: "{{ ibm_infosvr_impexp_services_console_port }}"
+    user: "{{ ibm_infosvr_impexp_infosvr_admin_user }}"
+    password: "{{ ibm_infosvr_impexp_infosvr_admin_user_pwd }}"
+    bundle_name: "{{ outer_item.from_bundle }}"
+    dest: /tmp/__export_{{ __ibm_infosvr_impexp_type }}_{{ outer_item.into | basename }}
+    assets_to_keep: "{{ __ibm_infosvr_impexp_oigc_asset_changes.assets }}"
+    cert: "{{ __ibm_infosvr_impexp_ssl_cert_location | default(omit) }}"
+  loop_control:
+    label: "{{ outer_item.from_bundle }} - {{ outer_item.into | basename }}"
+
+- name: transfer files
+  fetch: src=/tmp/__export_{{ __ibm_infosvr_impexp_type }}_{{ outer_item.into | basename }} dest={{ outer_item.into }} flat=yes
+  with_items: "{{ __ibm_infosvr_impexp_items }}"
+  loop_control:
+    label: "{{ outer_item.into | basename }}"
+
+- name: cleanup exported files
+  file: path=/tmp/__export_{{ __ibm_infosvr_impexp_type }}_{{ outer_item.into | basename }} state=absent
+  with_items: "{{ __ibm_infosvr_impexp_items }}"
+  loop_control:
+    label: "{{ outer_item.into | basename }}"

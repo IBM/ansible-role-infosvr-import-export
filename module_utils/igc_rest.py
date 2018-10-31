@@ -181,6 +181,36 @@ class RestIGC(object):
         else:
             return None
 
+    def getOpenIGCAssets(self, bundle_name):
+        url = "/ibm/iis/igc-rest/v1/bundles/assets?family=" + bundle_name
+        r = self.session.request(
+            "GET",
+            self.baseURL + url,
+            auth=(self.username, self.password)
+        )
+        if r.status_code == 200:
+            return r.text
+        else:
+            return None
+
+    def getTypesForOpenIGCBundle(self, bundle_id):
+        url = "/ibm/iis/igc-rest/v1/types"
+        r = self.session.request(
+            "GET",
+            self.baseURL + url,
+            auth=(self.username, self.password)
+        )
+        if r.status_code == 200:
+            a_subtypes = []
+            all_types = r.json()
+            for igc_type in all_types:
+                typeId = igc_type['_id']
+                if typeId.startswith(bundle_id):
+                    a_subtypes.append(typeId)
+            return a_subtypes
+        else:
+            return None
+
     def takeWorkflowAction(self, rids, action, comment=''):
         payload = {
             "ids": rids,
