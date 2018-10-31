@@ -181,7 +181,7 @@ def main():
 
     for rid in assets_to_keep:
         all_assets_to_keep.append(rid)
-        a_ancestors = oigc_xml.getAncestralAssetRids(e_asset)
+        a_ancestors = oigc_xml.getAncestralAssetRids(rid)
         for ancenstor in a_ancestors:
             if ancenstor not in all_assets_to_keep:
                 all_assets_to_keep.append(ancenstor)

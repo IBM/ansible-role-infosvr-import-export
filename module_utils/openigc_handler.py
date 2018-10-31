@@ -57,7 +57,8 @@ class OpenIGCHandler(object):
         else:
             return None
 
-    def getAncestralAssetRids(self, e_asset):
+    def getAncestralAssetRids(self, rid):
+        e_asset = self.getAssetById(rid)
         e_parent = self.getReferencedAsset(e_asset)
         if e_parent:
             return getAncestralAssetRids(e_asset).append(self.getRid(e_parent))
