@@ -82,7 +82,7 @@ class OpenIGCHandler(object):
 
     def getAssetChildrenRids(self, rid):
         a_references = []
-        references = self.root.xpath("./assets/asset/reference[@assetIDs=['ID_" + rid + "']", namespaces=ns)
+        references = self.root.xpath("./assets/asset/reference[@assetIDs='ID_" + rid + "']", namespaces=ns)
         for reference in references:
             a_references.append(self.getRid(reference.getparent()))
         return a_references
