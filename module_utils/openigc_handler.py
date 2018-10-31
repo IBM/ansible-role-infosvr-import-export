@@ -87,6 +87,14 @@ class OpenIGCHandler(object):
             a_references.append(self.getRid(reference.getparent()))
         return a_references
 
+    def getImportActions(self):
+        e_importAction = self.root.xpath("./x:importAction", namespaces=ns)
+        return e_importAction[0].get("partialAssetIDs").split(" ")
+
+    def setImportActionPartials(self, asset_rids):
+        e_importAction = self.root.xpath("./x:importAction", namespaces=ns)
+        e_importAction[0].set("partialAssetIDs", " ID_".join(asset_rids))
+
     def dropAsset(self, e_asset):
         parent = e_asset.getparent()
         parent.remove(e_asset)
