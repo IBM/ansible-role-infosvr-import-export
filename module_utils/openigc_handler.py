@@ -25,7 +25,7 @@ import re
 
 
 ns = {
-    'oigc': 'http://www.ibm.com/iis/flow-doc'
+    'x': 'http://www.ibm.com/iis/flow-doc'
 }
 # Note we exlude TZ offset as this isn't supported on Python 2 without a non-standard library
 t_format = "%Y-%m-%dT%H:%M:%S"
@@ -41,14 +41,14 @@ class OpenIGCHandler(object):
         self.root = self.tree.getroot()
 
     def getAssets(self):
-        return self.root.xpath("./assets/asset", namespaces=ns)
+        return self.root.xpath("./x:assets/x:asset", namespaces=ns)
 
     def getRid(self, e_asset):
         # Trim off the 'ID_' portion of the id to get the rid
         return e_asset.get("ID")[2:]
 
     def getAssetById(self, rid):
-        asset_list = self.root.xpath("./assets/asset[@ID='ID_" + rid + "']", namespaces=ns)
+        asset_list = self.root.xpath("./x:assets/x:asset[@ID='ID_" + rid + "']", namespaces=ns)
         if len(asset_list) == 1:
             return asset_list[0]
         elif len(asset_list) > 1:
@@ -59,7 +59,7 @@ class OpenIGCHandler(object):
             return None
 
     def getReferencedAsset(self, e_asset):
-        e_ref = e_asset.xpath("./reference")
+        e_ref = e_asset.xpath("./x:reference")
         asset_ids = None
         if len(e_ref) == 1:
             asset_ids = e_ref[0].get("assetIDs")
@@ -82,7 +82,7 @@ class OpenIGCHandler(object):
 
     def getAssetChildrenRids(self, rid):
         a_references = []
-        references = self.root.xpath("./assets/asset/reference[@assetIDs='ID_" + rid + "']", namespaces=ns)
+        references = self.root.xpath("./x:assets/x:asset/x:reference[@assetIDs='ID_" + rid + "']", namespaces=ns)
         for reference in references:
             a_references.append(self.getRid(reference.getparent()))
         return a_references
