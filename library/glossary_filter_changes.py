@@ -58,8 +58,8 @@ EXAMPLES = '''
   glossary_filter_changes:
     src: "/somewhere/business_glossary.xml"
     assets_to_keep:
-      - { rid: "6662c0f2.e1b1ec6c.kr1ln91jg.luh344a.s06cl0.6k98oeiknhrlo4o4vskpn" }
-      - { rid: "6662c0f2.e1b1ec6c.kr1lcdf12.96sa892.mikeko.a3ksv27ro2a3ufb69h7o5" }
+      - "6662c0f2.e1b1ec6c.kr1ln91jg.luh344a.s06cl0.6k98oeiknhrlo4o4vskpn"
+      - "6662c0f2.e1b1ec6c.kr1lcdf12.96sa892.mikeko.a3ksv27ro2a3ufb69h7o5"
 '''
 
 RETURN = '''

@@ -126,6 +126,26 @@
         ingest.infoanalyzer is defined
         and ('ibm-information-server-engine' in group_names)
 
+- name: import OpenIGC bundles
+  include_tasks: imports/openigc_bundles.yml
+  with_items: "{{ ingest.openigc.bundles }}"
+  loop_control:
+    loop_var: outer_item
+  when: >
+        ingest.openigc is defined
+        and ingest.openigc.bundles is defined
+        and ('ibm-information-server-engine' in group_names)
+
+- name: import OpenIGC assets
+  include_tasks: imports/openigc_assets.yml
+  with_items: "{{ ingest.openigc.assets }}"
+  loop_control:
+    loop_var: outer_item
+  when: >
+        ingest.openigc is defined
+        and ingest.openigc.assets is defined
+        and ('ibm-information-server-engine' in group_names)
+
 ## FastTrack (-fasttrack)
 
 - name: import extended data sources

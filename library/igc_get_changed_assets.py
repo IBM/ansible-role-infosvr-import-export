@@ -214,8 +214,8 @@ def main():
 
     # Basic query
     reqJSON = {
-        "properties": get_properties(module.params['asset_type']),
-        "types": [module.params['asset_type']],
+        "properties": get_properties(asset_type),
+        "types": [asset_type],
         "where": {
             "conditions": [],
             "operator": "and"
@@ -225,7 +225,19 @@ def main():
 
     # Handle extended data sources in special way (to catch any changes in their underlying
     # granular assets as well) -- requires nested OR'd conditions to check for changes
-    if asset_type == 'application':
+    if asset_type.startswith('$'):
+        a_types = igcrest.getTypesForOpenIGCBundle(asset_type)
+        if not a_types:
+            module.fail_json(msg='Unable to find specified OpenIGC bundle: ' + asset_type, **result)
+        reqJSON['types'] = a_types
+        reqJSON['where']['conditions'].append({"conditions": [], "operator": "or"})
+        reqJSON['where']['conditions'][0]['conditions'].append({
+            "min": module.params['from_time'],
+            "max": module.params['to_time'],
+            "property": "modified_on",
+            "operator": "between"
+        })
+    elif asset_type == 'application':
         reqJSON['where']['conditions'].append({"conditions": [], "operator": "or"})
         reqJSON['where']['conditions'][0]['conditions'].append({
             "min": module.params['from_time'],
