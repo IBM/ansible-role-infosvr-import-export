@@ -178,7 +178,7 @@ def main():
         module.fail_json(msg='Retrieval of modified asset XML failed', **result)
     else:
         asset_details = igcrest.uploadOpenIGCAssets(xmlToSend)
-        if asset_detailsis is not None:
+        if asset_details is not None:
             result['rids'] = asset_details
             result['changed'] = True
         else:
