@@ -169,18 +169,6 @@ class RestIGC(object):
             else:
                 return asset_type, {}
 
-    def downloadOpenIGCBundle(self, bundle_name):
-        url = "/ibm/iis/igc-rest/v1/bundles/" + bundle_name
-        r = self.session.request(
-            "GET",
-            self.baseURL + url,
-            auth=(self.username, self.password)
-        )
-        if r.status_code == 200:
-            return r.content
-        else:
-            return None
-
     def getOpenIGCAssets(self, bundle_name):
         url = "/ibm/iis/igc-rest/v1/bundles/assets?family=" + bundle_name
         r = self.session.request(
