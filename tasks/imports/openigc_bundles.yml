@@ -31,6 +31,21 @@
     warn: False
   register: ibm_infosvr_impexp_openigc_existing_bundles
 
+- name: openigc_bundles - extract bundle to temporary location
+  unarchive:
+    src: /tmp/__load_openigc_bundle_{{ outer_item.from | basename }}
+    dest: /tmp/__load_openigc_bundle_{{ outer_item.from | basename }}_tmp
+    remote_src: yes
+
+- name: openigc_bundles - get bundle ID
+  xml:
+    path: /tmp/__load_openigc_bundle_{{ outer_item.from | basename }}_tmp/asset_type_descriptor.xml
+    xpath: /x:descriptor
+    namespaces:
+      x: http://www.ibm.com/iis/igc/asset-type-descriptor
+    content: attribute
+  register: __ibm_infosvr_impexp_bundle_xml
+
 - name: openigc_bundles - create bundles that are not registered
   shell: >
           curl
@@ -40,7 +55,7 @@
           -f -F file=@/tmp/__load_openigc_bundle_{{ outer_item.from | basename }}
   args:
     warn: False
-  when: not ((outer_item | basename | splitext | first) in (ibm_infosvr_impexp_openigc_existing_bundles.stdout | to_json))
+  when: not __ibm_infosvr_impexp_bundle_xml.matches[0]["{http://www.ibm.com/iis/igc/asset-type-descriptor}descriptor"].bundleId in (ibm_infosvr_impexp_openigc_existing_bundles.stdout | to_json)
 
 - name: update OpenIGC bundles that are already registered
   shell: >
@@ -51,9 +66,12 @@
           -f -F file=@/tmp/__load_openigc_bundle_{{ outer_item.from | basename }}
   args:
     warn: False
-  when: (outer_item | basename | splitext | first) in (ibm_infosvr_impexp_openigc_existing_bundles.stdout | to_json)
+  when: __ibm_infosvr_impexp_bundle_xml.matches[0]["{http://www.ibm.com/iis/igc/asset-type-descriptor}descriptor"].bundleId in (ibm_infosvr_impexp_openigc_existing_bundles.stdout | to_json)
 
 - name: openigc_bundles - cleanup transferred files
   file:
-    path: /tmp/__load_openigc_bundle_{{ outer_item.from | basename }}
+    path: "{{ item }}"
     state: absent
+  with_items:
+    - /tmp/__load_openigc_bundle_{{ outer_item.from | basename }}
+    - /tmp/__load_openigc_bundle_{{ outer_item.from | basename }}_tmp
