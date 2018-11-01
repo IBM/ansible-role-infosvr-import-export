@@ -33,8 +33,6 @@
     conditions: "{% if outer_item.limited_to is defined %}{{ outer_item.limited_to.only_with_conditions | default([]) }}{% else %}[]{% endif %}"
     cert: "{{ __ibm_infosvr_impexp_ssl_cert_location | default(omit) }}"
   register: __ibm_infosvr_impexp_oigc_asset_changes
-  loop_control:
-    label: "{{ outer_item.from_bundle }} - {{ outer_item.into | basename }}"
 
 - debug:
     var: __ibm_infosvr_impexp_oigc_asset_changes
@@ -50,15 +48,9 @@
     dest: /tmp/__export_{{ __ibm_infosvr_impexp_type }}_{{ outer_item.into | basename }}
     assets_to_keep: "{{ __ibm_infosvr_impexp_oigc_asset_changes.assets }}"
     cert: "{{ __ibm_infosvr_impexp_ssl_cert_location | default(omit) }}"
-  loop_control:
-    label: "{{ outer_item.from_bundle }} - {{ outer_item.into | basename }}"
 
 - name: transfer files
   fetch: src=/tmp/__export_{{ __ibm_infosvr_impexp_type }}_{{ outer_item.into | basename }} dest={{ outer_item.into }} flat=yes
-  loop_control:
-    label: "{{ outer_item.into | basename }}"
 
 - name: cleanup exported files
   file: path=/tmp/__export_{{ __ibm_infosvr_impexp_type }}_{{ outer_item.into | basename }} state=absent
-  loop_control:
-    label: "{{ outer_item.into | basename }}"
