@@ -94,8 +94,8 @@ EXAMPLES = '''
 
 RETURN = '''
 rids:
-  description: A list of RIDs that were updated or created by the operation
-  type: list
+  description: A list of RID mappings that were updated or created by the operation
+  type: dict
   returned: always
 '''
 
@@ -127,7 +127,7 @@ def main():
 
     result = dict(
         changed=False,
-        rids=[]
+        rids={}
     )
 
     # if the user is working with this module in only check mode we do not
