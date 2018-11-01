@@ -76,6 +76,13 @@ options:
       - A list of assets to keep in the extract
     required: true
     type: list
+  complete_types:
+    description:
+      - A list of type IDs for which complete changes should be processed.
+      - If empty, every asset (including leaves) will be listed as partials.
+      - Any type IDs in the list will have their assets in completeAssetIDs.
+    required: false
+    type: list
   cert:
     description:
       - The path to a certificate file to use for SSL verification against the server
@@ -126,6 +133,7 @@ def main():
         bundle_name=dict(type='str', required=True),
         dest=dict(type='path', required=True),
         assets_to_keep=dict(type='list', required=True),
+        complete_types=dict(type='list', required=False, default=[]),
         cert=dict(type='path', required=False),
         unsafe_writes=dict(type='bool', required=False, default=False)
     )
@@ -157,6 +165,8 @@ def main():
         cert=module.params['cert']
     )
 
+    complete_types = module.params['complete_types']
+
     # Execute the retrieval
     xmlResults = igcrest.getOpenIGCAssets(module.params['bundle_name'])
 
@@ -176,29 +186,44 @@ def main():
     assets_to_keep = module.params['assets_to_keep']
     oigc_xml = OpenIGCHandler(module, result, tmpfile_full)
 
-    all_assets_to_keep = []
+    partial_assets = []
+    complete_assets = []
     assets_to_drop = []
 
     for rid in assets_to_keep:
-        all_assets_to_keep.append(rid)
+        e_asset = oigc_xml.getAssetById(rid)
+        asset_type = oigc_xml.getType(e_asset)
+        if asset_type in complete_types:
+            complete_assets.append(rid)
+        else:
+            partial_assets.append(rid)
         a_ancestors = oigc_xml.getAncestralAssetRids(rid)
         for ancenstor in a_ancestors:
-            if ancenstor not in all_assets_to_keep:
-                all_assets_to_keep.append(ancenstor)
+            e_ancestor = oigc_xml.getAssetById(ancenstor)
+            ancestor_type = oigc_xml.getType(e_ancestor)
+            if ancestor_type in complete_types and ancenstor not in complete_assets:
+                complete_assets.append(ancenstor)
+            elif ancenstor not in partial_assets:
+                partial_assets.append(ancenstor)
         a_children = oigc_xml.getAssetChildrenRids(rid)
         for child in a_children:
-            if child not in all_assets_to_keep:
-                all_assets_to_keep.append(child)
+            e_child = oigc_xml.getAssetById(child)
+            child_type = oigc_xml.getType(e_child)
+            if child_type in complete_types and child not in complete_assets:
+                complete_assets.append(child)
+            elif child not in partial_assets:
+                partial_assets.append(child)
 
     for e_asset in oigc_xml.getAssets():
         rid = oigc_xml.getRid(e_asset)
-        if rid not in all_assets_to_keep:
+        if rid not in partial_assets and rid not in complete_assets:
             if rid is not None:
                 oigc_xml.dropAsset(e_asset)
         else:
             result['asset_count'] += 1
 
-    oigc_xml.setImportActionPartials(all_assets_to_keep)
+    oigc_xml.setImportActionPartials(partial_assets)
+    oigc_xml.setImportActionCompletes(complete_assets)
 
     # Remove the interim temporary file
     os.unlink(tmpfile_full)

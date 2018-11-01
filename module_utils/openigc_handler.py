@@ -55,6 +55,17 @@ class OpenIGCHandler(object):
             self.module.warn("No ID attribute found: " + e_asset)
             return None
 
+    def getType(self, e_asset):
+        type_id = e_asset.xpath("./@class", namespaces=ns)
+        if len(type_id) == 1:
+            return type_id[0]
+        elif len(type_id) > 1:
+            self.module.warn("Found multiple class attributes!")
+            return type_id[0]
+        else:
+            self.module.warn("No class attribute found: " + e_asset)
+            return None
+
     def getAssetById(self, rid):
         asset_list = self.root.xpath("./x:assets/x:asset[@ID='ID_" + rid + "']", namespaces=ns)
         if len(asset_list) == 1:
@@ -105,8 +116,18 @@ class OpenIGCHandler(object):
     def setImportActionPartials(self, asset_rids):
         e_importAction = self.root.xpath("./x:importAction", namespaces=ns)
         # Put the 'ID_' prefix back onto all of the assets that are left
-        partial_ids = "ID_" + (" ID_".join(asset_rids))
+        partial_ids = ""
+        if len(asset_rids) > 0:
+            partial_ids = "ID_" + (" ID_".join(asset_rids))
         e_importAction[0].set("partialAssetIDs", partial_ids)
+
+    def setImportActionCompletes(self, asset_rids):
+        e_importAction = self.root.xpath("./x:importAction", namespaces=ns)
+        # Put the 'ID_' prefix back onto all of the assets that are left
+        complete_ids = ""
+        if len(asset_rids) > 0:
+            complete_ids = "ID_" + (" ID_".join(asset_rids))
+        e_importAction[0].set("completeAssetIDs", complete_ids)
 
     def dropAsset(self, e_asset):
         parent = e_asset.getparent()
