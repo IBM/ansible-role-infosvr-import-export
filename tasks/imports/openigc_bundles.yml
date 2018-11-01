@@ -31,6 +31,11 @@
     warn: False
   register: ibm_infosvr_impexp_openigc_existing_bundles
 
+- name: openigc_bundles - create temporary extract location
+  file:
+    path: /tmp/__load_openigc_bundle_{{ outer_item.from | basename }}_tmp
+    state: directory
+
 - name: openigc_bundles - extract bundle to temporary location
   unarchive:
     src: /tmp/__load_openigc_bundle_{{ outer_item.from | basename }}
