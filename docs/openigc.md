@@ -41,10 +41,16 @@ ingest:
       - ...
     assets:
       - from: <path>
+        with_options:
+          replace_types:
+            - $<bundleId>-<class>
+            - ...
       - ...
 ```
 
-The required parameters for the ingest are simply the file `from` which to load the assets.
+The required parameters for the ingest are simply the file `from` which to load the assets. For assets, you can also optionally specify the types that you would like to load as replacements under `with_options.replace_types`. Replacements will ensure that the assets of those types being loaded are a full replacement in the target environment -- any properties not in the file will be removed from the asset (if the asset exists) in the target environment.
+
+Any types not listed here will be merged with any matching assets already in the target environment. (This includes merging not appending children to existing parents, but also merging attributes that may be missing in the file but are already present on the assets in the environment.)
 
 ## Examples
 
@@ -68,6 +74,9 @@ ingest:
       - from: cache/igc-x-json_schema.zip
     assets:
       - from: cache/igc-x-json_schema-assets.xml
+        with_options:
+          replace_types:
+            - $JSON_Schema-JSchema
 ```
 
 [<- Back to the overview](../README.md)

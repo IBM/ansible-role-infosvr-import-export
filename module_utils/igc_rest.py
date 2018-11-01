@@ -211,6 +211,21 @@ class RestIGC(object):
         else:
             return None
 
+    def uploadOpenIGCAssets(self, payload):
+        url = "/ibm/iis/igc-rest/v1/bundles/assets"
+        headers = {'Content-Type': 'application/xml'}
+        r = self.session.request(
+            "POST",
+            self.baseURL + url,
+            data=payload,
+            headers=headers,
+            auth=(self.username, self.password)
+        )
+        if r.status_code == 200:
+            return r.json()
+        else:
+            return None
+
     def takeWorkflowAction(self, rids, action, comment=''):
         payload = {
             "ids": rids,
