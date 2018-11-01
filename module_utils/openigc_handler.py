@@ -119,7 +119,9 @@ class OpenIGCHandler(object):
         partial_ids = ""
         if len(asset_rids) > 0:
             partial_ids = "ID_" + (" ID_".join(asset_rids))
-        e_importAction[0].set("partialAssetIDs", partial_ids)
+            e_importAction[0].set("partialAssetIDs", partial_ids)
+        else:
+            e_importAction[0].attrib.pop("partialAssetIDs", None)
 
     def setImportActionCompletes(self, asset_rids):
         e_importAction = self.root.xpath("./x:importAction", namespaces=ns)
@@ -127,7 +129,9 @@ class OpenIGCHandler(object):
         complete_ids = ""
         if len(asset_rids) > 0:
             complete_ids = "ID_" + (" ID_".join(asset_rids))
-        e_importAction[0].set("completeAssetIDs", complete_ids)
+            e_importAction[0].set("completeAssetIDs", complete_ids)
+        else:
+            e_importAction[0].attrib.pop("completeAssetIDs", None)
 
     def dropAsset(self, e_asset):
         parent = e_asset.getparent()
