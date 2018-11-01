@@ -18,7 +18,7 @@
 - name: "{{ __ibm_infosvr_impexp_type }} - export"
   shell: >
           curl
-          -X GET "https://{{ ibm_infosvr_impexp_services_host }}:{{ ibm_infosvr_impexp_services_console_port }}/ibm/iis/igc-rest/v1/bundles/"
+          -X GET "https://{{ ibm_infosvr_impexp_services_host }}:{{ ibm_infosvr_impexp_services_console_port }}/ibm/iis/igc-rest/v1/bundles/{{ outer_item.name }}"
           -u {{ ibm_infosvr_impexp_infosvr_admin_user }}:{{ ibm_infosvr_impexp_infosvr_admin_user_pwd }}
           {% if __ibm_infosvr_impexp_ssl_cert_location is defined %}--cacert {{ __ibm_infosvr_impexp_ssl_cert_location }}{% endif %}
           -f
