@@ -97,6 +97,10 @@ rids:
   description: A list of RID mappings that were updated or created by the operation
   type: dict
   returned: always
+uploaded_xml:
+  description: the XML string that was used to load the assets
+  type: string
+  returned: always
 '''
 
 from ansible.module_utils.basic import AnsibleModule
@@ -127,7 +131,8 @@ def main():
 
     result = dict(
         changed=False,
-        rids={}
+        rids={},
+        uploaded_xml=""
     )
 
     # if the user is working with this module in only check mode we do not
@@ -177,6 +182,7 @@ def main():
     if not xmlToSend:
         module.fail_json(msg='Retrieval of modified asset XML failed', **result)
     else:
+        result['uploaded_xml'] = xmlToSend
         asset_details = igcrest.uploadOpenIGCAssets(xmlToSend)
         if asset_details is not None:
             result['rids'] = asset_details
