@@ -2,6 +2,8 @@
 
 Ansible role for automating the import and export of content and structures within IBM InfoSphere Information Server.
 
+New to Ansible? This [simple introduction](https://cmgrote.github.io/ansible-tutorial/) might help.
+
 ## Requirements
 
 - Ansible v2.4.x
