@@ -1,13 +1,13 @@
 ---
 ###
 # Copyright 2018 IBM Corp. All Rights Reserved.
-# 
+#
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
-# 
+#
 #      http://www.apache.org/licenses/LICENSE-2.0
-# 
+#
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -60,11 +60,22 @@
 
 - name: get project lineage details
   uri:
-    url: "https://{{ ibm_infosvr_impexp_services_host }}:{{ ibm_infosvr_impexp_services_console_port }}/ibm/iis/igc-rest/v1/search/"
+    url: "https://{{ ibm_infosvr_impexp_services_host }}:{{ ibm_infosvr_impexp_services_console_port }}\
+          /ibm/iis/igc-rest/v1/search/"
     method: POST
     user: "{{ ibm_infosvr_impexp_infosvr_admin_user }}"
     password: "{{ ibm_infosvr_impexp_infosvr_admin_user_pwd }}"
-    body: '{"properties":["name","include_for_lineage"],"types":["transformation_project"],"where":{"conditions":[{"value":"{{ item.dsproject }}","property":"name","operator":"="}],"operator":"and"}}'
+    body: >-
+            {
+              "properties": ["name", "include_for_lineage"],
+              "types": ["transformation_project"],
+              "where": {
+                "conditions": [{
+                  "value": "{{ item.dsproject }}", "property": "name", "operator": "="
+                }],
+                "operator":"and"
+              }
+            }
     body_format: json
     validate_certs: no
     status_code: 200
@@ -78,7 +89,8 @@
 
 - name: enable lineage for any project where it is disabled
   uri:
-    url: "https://{{ ibm_infosvr_impexp_services_host }}:{{ ibm_infosvr_impexp_services_console_port }}/ibm/iis/igc-rest/v1/assets/{{ item.json['items'][0]._id }}/include_for_lineage"
+    url: "https://{{ ibm_infosvr_impexp_services_host }}:{{ ibm_infosvr_impexp_services_console_port }}\
+          /ibm/iis/igc-rest/v1/assets/{{ item.json['items'][0]._id }}/include_for_lineage"
     method: PUT
     user: "{{ ibm_infosvr_impexp_infosvr_admin_user }}"
     password: "{{ ibm_infosvr_impexp_infosvr_admin_user_pwd }}"
@@ -97,7 +109,7 @@
   shell: >
           source ~/.bashrc &&
           cd `cat /.dshome` &&
-          . dsenv &&
+          source dsenv &&
           {{ ibm_infosvr_impexp_infosvr_install_location }}/Clients/istools/cli/istool.sh
           workbench importOMD
           -u {{ ibm_infosvr_impexp_infosvr_admin_user }}

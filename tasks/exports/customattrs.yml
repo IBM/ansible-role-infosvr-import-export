@@ -1,13 +1,13 @@
 ---
 ###
 # Copyright 2018 IBM Corp. All Rights Reserved.
-# 
+#
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
-# 
+#
 #      http://www.apache.org/licenses/LICENSE-2.0
-# 
+#
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,7 +18,7 @@
 - name: export custom attribute definitions
   shell: >
           source ~/.bashrc &&
-          . dsenv &&
+          source dsenv &&
           {{ ibm_infosvr_impexp_infosvr_install_location }}/Clients/istools/cli/istool.sh
           export
           -u {{ ibm_infosvr_impexp_infosvr_admin_user }}
@@ -65,16 +65,20 @@
   customattr_get_changes:
     src: "{{ item.1.path }}"
     from_time: >
-              {% if item.0.item.limited_to is defined and item.0.item.limited_to.changes_in_last_hours is defined %}
-              {{ (__ibm_infosvr_impexp_to_epoch | int) - ((item.0.item.limited_to.changes_in_last_hours | int) * 3600 * 1000) }}
-              {% else %}
-              -1
-              {% endif %}
+        {% if item.0.item.limited_to is defined and item.0.item.limited_to.changes_in_last_hours is defined %}
+        {{ (__ibm_infosvr_impexp_to_epoch|int) - ((item.0.item.limited_to.changes_in_last_hours|int) * 3600 * 1000) }}
+        {% else %}
+        -1
+        {% endif %}
     to_time: >
               {{ __ibm_infosvr_impexp_to_epoch | int }}
     model_ver: >
               {{ hostvars[groups['ibm-information-server-domain'][0]]['__ibm_infosvr_impexp_model_versions'] | json_query("[?model == 'ASCLCustomAttribute'].version | [0]") }}
-    names: "{% if item.0.item.limited_to is defined %}{{ item.0.item.limited_to.names | default([]) }}{% else %}[]{% endif %}"
+    names: "{% if item.0.item.limited_to is defined %}\
+            {{ item.0.item.limited_to.names | default([]) }}\
+            {% else %}\
+            []\
+            {% endif %}"
   register: __ibm_infosvr_impexp_ca_extract
   with_subelements:
     - "{{ __ibm_infosvr_impexp_ca_unarchived.results }}"
@@ -104,7 +108,10 @@
     label: "/tmp/__export_{{ __ibm_infosvr_impexp_type }}_{{ item.into | basename }}_tmp"
 
 - name: transfer files
-  fetch: src=/tmp/__export_{{ __ibm_infosvr_impexp_type }}_{{ item.into | basename }}.zip dest={{ item.into }} flat=yes
+  fetch:
+    src: /tmp/__export_{{ __ibm_infosvr_impexp_type }}_{{ item.into | basename }}.zip
+    dest: "{{ item.into }}"
+    flat: yes
   with_items: "{{ __ibm_infosvr_impexp_items }}"
   loop_control:
     label: "{{ item.into | basename }}"
