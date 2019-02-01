@@ -50,18 +50,18 @@
           (outer_item.from | basename) + '_tmp/','')).find('/') != -1 %}\
           {% if outer_item.with_options is defined and outer_item.with_options.folder is defined %}\
           -folder '{{ outer_item.with_options.folder }}\
-          /{{ (item.path | replace("/tmp/__load_" + __ibm_infosvr_impexp_type + "_" + (outer_item.from | basename) + \
-          "_tmp/", "") | dirname) }}' \
+          /{{ (item.path | replace(\"/tmp/__load_\" + __ibm_infosvr_impexp_type + \"_\" + (outer_item.from | basename) + \
+          \"_tmp/\", \"\") | dirname) }}' \
           {% else %}\
-          -folder 'root/{{ (item.path | replace("/tmp/__load_" + __ibm_infosvr_impexp_type + "_" + \
-          (outer_item.from | basename) + "_tmp/", "") | dirname) }}' \
+          -folder 'root/{{ (item.path | replace(\"/tmp/__load_\" + __ibm_infosvr_impexp_type + \"_\" + \
+          (outer_item.from | basename) + \"_tmp/\", \"\") | dirname) }}' \
           {% endif %}\
           {% elif outer_item.with_options is defined and outer_item.with_options.folder is defined %}\
           -folder '{{ outer_item.with_options.folder }}' \
           {% endif %}\
           -f {{ item.path }} \
           -o /tmp/__load_{{ __ibm_infosvr_impexp_type }}.log \
-          {% if outer_item.with_options is defined %}{{ outer_item.with_options.args | default("") }}{% endif %}"
+          {% if outer_item.with_options is defined %}{{ outer_item.with_options.args | default(\"\") }}{% endif %}"
   args:
     executable: /bin/bash
     chdir: "{{ ibm_infosvr_impexp_infosvr_install_location }}/Server/DSEngine"
