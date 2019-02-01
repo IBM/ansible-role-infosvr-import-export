@@ -30,7 +30,7 @@
           {{ __ibm_infosvr_impexp_switch }} \
           '{% if item.with_options is defined and item.with_options.transformed_by is defined %}\
           -map /tmp/__load_{{ __ibm_infosvr_impexp_type }}_{{ item.from | basename }}_mapping.xml {% endif %}\
-          {% if item.with_options is defined %}{{ item.with_options.args | default("") }}{% endif %}'"
+          {% if item.with_options is defined %}{{ item.with_options.args | default(\"\") }}{% endif %}'"
   args:
     executable: /bin/bash
     chdir: "{{ ibm_infosvr_impexp_infosvr_install_location }}/Server/DSEngine"
