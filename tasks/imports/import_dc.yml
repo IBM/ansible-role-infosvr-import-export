@@ -37,7 +37,7 @@
           -dca \
           '{% if item.map is defined %}\
           -map /tmp/__load_dc_{{ item.src | basename }}_mapping.xml {% endif %}\
-          {{ item.options | default("") }}'"
+          {{ item.options | default(\"\") }}'"
   args:
     executable: /bin/bash
     chdir: "{{ ibm_infosvr_impexp_infosvr_install_location }}/Server/DSEngine"
