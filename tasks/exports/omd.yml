@@ -37,7 +37,7 @@
   become_user: "{{ ibm_infosvr_impexp_infosvr_dsadm_user }}"
 
 - name: shutdown OMDMonApp (if needed)
-  shell: ". `cat /.dshome`/dsenv && ./bin/DSOMDMonApp.sh -stop"
+  shell: "source `cat /.dshome`/dsenv && ./bin/DSOMDMonApp.sh -stop"
   args:
     executable: /bin/bash
     chdir: "{{ ibm_infosvr_impexp_infosvr_install_location }}/Server/DSOMD"
@@ -67,7 +67,7 @@
   when: (__ibm_infosvr_impexp_omd_enabled | changed) or (__ibm_infosvr_impexp_omd_enabled | failed)
 
 - name: startup OMDMonApp (if needed)
-  shell: ". `cat /.dshome`/dsenv && ./bin/DSOMDMonApp.sh -start"
+  shell: "source `cat /.dshome`/dsenv && ./bin/DSOMDMonApp.sh -start"
   args:
     executable: /bin/bash
     chdir: "{{ ibm_infosvr_impexp_infosvr_install_location }}/Server/DSOMD"
