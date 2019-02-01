@@ -57,6 +57,7 @@
   become_user: "{{ ibm_infosvr_impexp_infosvr_dsadm_user }}"
   when: __ibm_infosvr_impexp_ds_project_env_vars.stdout.find(item.name) == -1
   with_items: "{{ ibm_infosvr_impexp_ds_vars_import_values }}"
+  when: outer_item is defined
   loop_control:
     label: "{{ outer_item.into_project }} - {{ item.name }}"
 
@@ -78,5 +79,6 @@
   become: yes
   become_user: "{{ ibm_infosvr_impexp_infosvr_dsadm_user }}"
   with_items: "{{ ibm_infosvr_impexp_ds_vars_import_values }}"
+  when: outer_item is defined
   loop_control:
     label: "{{ outer_item.into_project }} - {{ item.name }}"
