@@ -16,17 +16,16 @@
 ###
 
 - name: ensure any destination paths exist
-  local_action:
-    module: file
+  file:
     path: "{{ item.into | dirname }}"
     state: directory
+  delegate_to: localhost
   with_items: "{{ __ibm_infosvr_impexp_items }}"
   loop_control:
     label: "{{ item.into | dirname }}"
 
 - name: merge IGC metadata relationships
-  local_action:
-    module: igc_merge_relationships
+  igc_merge_relationships:
     src: "{{ item.from }}"
     dest: "{{ item.into }}"
     mappings: "{% if item.with_options is defined %}\
@@ -34,6 +33,7 @@
               {% else %}\
               []\
               {% endif %}"
+  delegate_to: localhost
   with_items: "{{ __ibm_infosvr_impexp_items }}"
   register: __ibm_infosvr_impexp_igc_relns_merge
   loop_control:

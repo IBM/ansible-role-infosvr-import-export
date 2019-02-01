@@ -31,6 +31,7 @@
             -f"
   args:
     warn: False
+  when: outer_item is defined
   register: ibm_infosvr_impexp_openigc_existing_bundles
 
 - name: openigc_bundles - create temporary extract location
