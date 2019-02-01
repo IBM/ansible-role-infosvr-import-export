@@ -1,13 +1,13 @@
 ---
 ###
 # Copyright 2018 IBM Corp. All Rights Reserved.
-# 
+#
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
-# 
+#
 #      http://www.apache.org/licenses/LICENSE-2.0
-# 
+#
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -26,14 +26,22 @@
     dest: /tmp/__export_{{ __ibm_infosvr_impexp_type }}_{{ item.into | basename }}
     from_time: >
               {% if item.limited_to is defined and item.limited_to.changes_in_last_hours is defined %}
-              {{ (__ibm_infosvr_impexp_to_epoch | int) - ((item.limited_to.changes_in_last_hours | int) * 3600 * 1000) }}
+              {{ (__ibm_infosvr_impexp_to_epoch|int) - ((item.limited_to.changes_in_last_hours|int) * 3600 * 1000) }}
               {% else %}
               -1
               {% endif %}
     to_time: >
               {{ __ibm_infosvr_impexp_to_epoch | int }}
-    limit: "{% if item.limited_to is defined %}{{ item.limited_to.only_including_related_types | default([]) }}{% else %}[]{% endif %}"
-    conditions: "{% if item.limited_to is defined %}{{ item.limited_to.only_with_conditions | default([]) }}{% else %}[]{% endif %}"
+    limit: "{% if item.limited_to is defined %}\
+            {{ item.limited_to.only_including_related_types | default([]) }}\
+            {% else %}\
+            []\
+            {% endif %}"
+    conditions: "{% if item.limited_to is defined %}\
+                {{ item.limited_to.only_with_conditions | default([]) }}\
+                {% else %}\
+                []\
+                {% endif %}"
     dev_glossary: >
               {% if item.limited_to is defined %}
               {{ item.limited_to.dev_glossary_entries | default(False) }}
@@ -51,13 +59,18 @@
     verbosity: 1
 
 - name: transfer files
-  fetch: src=/tmp/__export_{{ __ibm_infosvr_impexp_type }}_{{ item.item.into | basename }} dest={{ item.item.into }} flat=yes
+  fetch:
+    src: /tmp/__export_{{ __ibm_infosvr_impexp_type }}_{{ item.item.into | basename }}
+    dest: "{{ item.item.into }}"
+    flat: yes
   with_items: "{{ __ibm_infosvr_impexp_igc_relns_extract.results }}"
   loop_control:
     label: "{{ item.item.into }}"
 
 - name: cleanup exported files
-  file: path=/tmp/__export_{{ __ibm_infosvr_impexp_type }}_{{ item.item.into | basename }} state=absent
+  file:
+    path: /tmp/__export_{{ __ibm_infosvr_impexp_type }}_{{ item.item.into | basename }}
+    state: absent
   with_items: "{{ __ibm_infosvr_impexp_igc_relns_extract.results }}"
   loop_control:
     label: "/tmp/__export_{{ __ibm_infosvr_impexp_type }}_{{ item.item.into | basename }}"

@@ -1,13 +1,13 @@
 ---
 ###
 # Copyright 2018 IBM Corp. All Rights Reserved.
-# 
+#
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
-# 
+#
 #      http://www.apache.org/licenses/LICENSE-2.0
-# 
+#
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,7 +18,7 @@
 - name: export assets
   shell: >
           source ~/.bashrc &&
-          . dsenv &&
+          source dsenv &&
           {{ ibm_infosvr_impexp_infosvr_install_location }}/Clients/istools/cli/istool.sh
           glossary export
           -u {{ ibm_infosvr_impexp_infosvr_admin_user }}
@@ -26,7 +26,11 @@
           -dom {{ ibm_infosvr_impexp_services_host | lower }}:{{ ibm_infosvr_impexp_services_console_port }}
           -fm XML
           -f /tmp/__export_{{ __ibm_infosvr_impexp_type }}_{{ outer_item.into | basename }}
-          {% if outer_item.limited_to_categories is defined %}-cat "{{ outer_item.limited_to_categories }}"{% else %}-all{% endif %}
+          {% if outer_item.limited_to_categories is defined %}
+          -cat "{{ outer_item.limited_to_categories }}"
+          {% else %}
+          -all
+          {% endif %}
           {{ outer_item.with_options | default('') }}
           -allpoliciesrules
   args:
