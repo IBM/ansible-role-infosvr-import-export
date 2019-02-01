@@ -33,5 +33,6 @@
     executable: /bin/bash
     chdir: "{{ ibm_infosvr_impexp_infosvr_install_location }}/Server/DSEngine"
   with_items: "{{ __ibm_infosvr_impexp_items }}"
+  when: __ibm_infosvr_impexp_items is defined
   loop_control:
     label: "{{ item.from | basename }}"

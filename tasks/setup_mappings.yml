@@ -71,7 +71,9 @@
 
 - name: simplify model version fact
   set_fact:
-    __ibm_infosvr_impexp_model_versions: "{{ __ibm_infosvr_impexp_model_versions_tmp.results | map(attribute='ansible_facts.__ibm_infosvr_impexp_model_version.model') | list }}"
+    __ibm_infosvr_impexp_model_versions: "{{ __ibm_infosvr_impexp_model_versions_tmp.results | \
+                                          map(attribute='ansible_facts.__ibm_infosvr_impexp_model_version.model') | \
+                                          list }}"
   changed_when: False
 
 - debug:

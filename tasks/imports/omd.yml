@@ -26,12 +26,12 @@
   become_user: "{{ ibm_infosvr_impexp_infosvr_dsadm_user }}"
 
 - name: list files to transfer
-  local_action:
-    module: find
+  find:
     paths: "{{ item.from }}"
     patterns: "*.flow"
     recurse: yes
   become: no
+  delegate_to: localhost
   with_items: "{{ __ibm_infosvr_impexp_items }}"
   register: __ibm_infosvr_impexp_omd_flows
 
@@ -123,6 +123,7 @@
   with_subelements:
     - "{{ __ibm_infosvr_impexp_omd_flows.results }}"
     - files
+  when: __ibm_infosvr_impexp_items is defined
   loop_control:
     label: "{{ ibm_infosvr_impexp_omd_backup_dir }}/{{ item.1.path | basename }}"
 

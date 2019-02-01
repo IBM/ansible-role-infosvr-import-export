@@ -27,6 +27,7 @@
             -o /tmp/__export_{{ __ibm_infosvr_impexp_type }}_{{ outer_item.into | basename }}"
   args:
     warn: False
+  when: outer_item is defined
 
 - name: "{{ __ibm_infosvr_impexp_type }} - transfer files"
   fetch:

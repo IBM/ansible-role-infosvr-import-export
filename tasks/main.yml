@@ -29,8 +29,15 @@
 
 # Must be outside the 'include' below for privilege escalation to work
 - name: ensure XML library is installed
-  yum: name=python-lxml state=latest
+  yum:
+    state: present
+    name:
+      - python-lxml
   become: yes
+  retries: 3
+  delay: 5
+  register: __ibm_infosvr_impexp_yum_lxml
+  until: __ibm_infosvr_impexp_yum_lxml is succeeded
   when: >
         ibm_infosvr_impexp_priv_escalate
         and not ('ibm-information-server-ug' in group_names)
@@ -47,11 +54,15 @@
 
 - name: install prerequisite packages
   yum:
+    state: present
     name:
       - python-requests
       - curl
-    state: latest
   become: yes
+  retries: 3
+  delay: 5
+  register: __ibm_infosvr_impexp_yum
+  until: __ibm_infosvr_impexp_yum is succeeded
   when: >
           ibm_infosvr_impexp_priv_escalate
           and ('ibm-information-server-engine' in group_names)

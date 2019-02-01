@@ -31,6 +31,7 @@
   become: yes
   become_user: "{{ ibm_infosvr_impexp_infosvr_dsadm_user }}"
   with_items: "{{ __ibm_infosvr_impexp_items }}"
+  when: __ibm_infosvr_impexp_items is defined
   loop_control:
     label: "{{ item.into | basename }} - {{ item.from_project }}"
 
@@ -44,6 +45,7 @@
   with_subelements:
     - "{{ __ibm_infosvr_impexp_items | selectattr('limited_to', 'defined') | list }}"
     - "limited_to"
+  when: __ibm_infosvr_impexp_items is defined
   loop_control:
     label: "{{ item.0.into | basename }} - {{ item.1 }}"
 
@@ -99,31 +101,31 @@
     label: "{{ item.into | basename }}"
 
 - name: convert properties to YAML
-  local_action:
-    module: template
+  template:
     src: ds_vars.yml.j2
     dest: "{{ item.into }}"
   become: no
+  delegate_to: localhost
   with_items: "{{ __ibm_infosvr_impexp_items }}"
   loop_control:
     label: "{{ item.into | basename }}"
 
 - name: remove properties file
-  local_action:
-    module: file
+  file:
     path: "{{ item.into }}.properties"
     state: absent
   become: no
+  delegate_to: localhost
   with_items: "{{ __ibm_infosvr_impexp_items }}"
   loop_control:
     label: "{{ item.into | basename }}"
 
 - name: remove DSParams file
-  local_action:
-    module: file
+  file:
     path: "{{ item.into }}.dsparams"
     state: absent
   become: no
+  delegate_to: localhost
   with_items: "{{ __ibm_infosvr_impexp_items }}"
   loop_control:
     label: "{{ item.into | basename }}"

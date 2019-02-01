@@ -31,6 +31,7 @@
   become: yes
   become_user: "{{ ibm_infosvr_impexp_infosvr_dsadm_user }}"
   changed_when: False
+  when: outer_item is defined
   register: __ibm_infosvr_impexp_ds_project_env_vars
 
 - name: parse DataStage environment variables
