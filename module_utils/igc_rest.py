@@ -665,7 +665,7 @@ class RestIGC(object):
                     if self._returnToEditableState(from_asset):
                         return self.update(from_asset['_id'], u)
                     else:
-                        403, "Cannot update asset to add relationships: " + json.dumps(from_asset)
+                        return 403, "Cannot update asset to add relationships: " + json.dumps(from_asset)
                 elif len(to_asset_rids) > 0:
                     # No relationships to replace, we should just add these
                     u = {}
@@ -676,7 +676,7 @@ class RestIGC(object):
                     if self._returnToEditableState(from_asset):
                         return self.update(from_asset['_id'], u)
                     else:
-                        403, "Cannot update asset to add relationships: " + json.dumps(from_asset)
+                        return 403, "Cannot update asset to add relationships: " + json.dumps(from_asset)
                 else:
                     return 200, "No relationships to add"
             elif len(to_asset_rids) > 0:
@@ -689,7 +689,7 @@ class RestIGC(object):
                 if self._returnToEditableState(from_asset):
                     return self.update(from_asset['_id'], u)
                 else:
-                    403, "Cannot update asset to add relationships: " + json.dumps(from_asset)
+                    return 403, "Cannot update asset to add relationships: " + json.dumps(from_asset)
             else:
                 return 200, "No relationships to add"
         elif mode == 'REPLACE_ALL':
@@ -703,7 +703,7 @@ class RestIGC(object):
             if self._returnToEditableState(from_asset):
                 return self.update(from_asset['_id'], u)
             else:
-                403, "Cannot update asset to add relationships: " + json.dumps(from_asset)
+                return 403, "Cannot update asset to add relationships: " + json.dumps(from_asset)
         elif len(to_asset_rids) > 0:
             # If a simple append, just do the update directly (only if there
             # are actually any RIDs to append)
@@ -715,7 +715,17 @@ class RestIGC(object):
             if self._returnToEditableState(from_asset):
                 return self.update(from_asset['_id'], u)
             else:
-                403, "Cannot update asset to add relationships: " + json.dumps(from_asset)
+                return 403, "Cannot update asset to add relationships: " + json.dumps(from_asset)
         else:
             # Otherwise it's an append, with no assets, so it is a NOOP
             return 200, "No relationships to add"
+
+    def replaceSingleRelationship(self, from_asset, to_asset_rid, reln_property):
+        # For a property that can only ever have a single relationship, just do
+        # the update directly (even if empty, to remove any existing relationship)
+        u = {}
+        u[reln_property] = to_asset_rid
+        if self._returnToEditableState(from_asset):
+            return self.update(from_asset['_id'], u)
+        else:
+            return 403, "Cannot update asset to add relationships: " + json.dumps(from_asset)

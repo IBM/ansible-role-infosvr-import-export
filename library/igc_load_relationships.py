@@ -285,39 +285,58 @@ def main():
             if not relnprop.startswith('_'):
                 aRelns = asset[relnprop]
                 aMappedRelnRIDs = []
-                for reln in aRelns:
-                    if '_type' in reln:
-                        mappedReln = igcrest.getMappedItem(reln, mappings, wfl_enabled, batch=batch)
-                        reln_editable = True
-                        # Need to ensure that any relationship to other business metadata
-                        # is in an editable state in the workflow
-                        if wfl_enabled and igcrest.isWorkflowType(mappedReln['_type']):
-                            reln_editable = igcrest._returnToEditableState(mappedReln)
-                        if mappedReln == "" or not reln_editable:
-                            result['unmapped_relations'].append(reln)
-                            continue
-                        aMappedRelnRIDs.append(mappedReln['_id'])
-                if len(aMappedRelnRIDs) > 0:
-                    update_rc, update_msg = igcrest.addRelationshipsToAsset(
-                        mappedItem,
-                        aMappedRelnRIDs,
-                        relnprop,
-                        module.params['mode'],
-                        replace_type=module.params['replace_type'],
-                        conditions=module.params['conditions'],
-                        batch=batch
-                    )
-                    if update_rc != 200:
-                        result['unupdated_assets'].append(mappedItem)
-                    else:
-                        result['changed'] = True
-                        result['asset_update_count'] += 1
-                        result['relationship_update_count'] += len(aMappedRelnRIDs)
+                if isinstance(aRelns, list):
+                    for reln in aRelns:
+                        getMappedRelation(igcrest, reln, mappings, wfl_enabled, batch, result, aMappedRelnRIDs)
+                    if len(aMappedRelnRIDs) > 0:
+                        update_rc, update_msg = igcrest.addRelationshipsToAsset(
+                            mappedItem,
+                            aMappedRelnRIDs,
+                            relnprop,
+                            module.params['mode'],
+                            replace_type=module.params['replace_type'],
+                            conditions=module.params['conditions'],
+                            batch=batch
+                        )
+                        if update_rc != 200:
+                            result['unupdated_assets'].append(mappedItem)
+                        else:
+                            result['changed'] = True
+                            result['asset_update_count'] += 1
+                            result['relationship_update_count'] += len(aMappedRelnRIDs)
+                elif isinstance(aRelns, dict):
+                    getMappedRelation(igcrest, aRelns, mappings, wfl_enabled, batch, result, aMappedRelnRIDs)
+                    if len(aMappedRelnRIDs) == 1:
+                        update_rc, update_msg = igcrest.replaceSingleRelationship(
+                            mappedItem,
+                            aMappedRelnRIDs[0],
+                            relnprop
+                        )
+                        if update_rc != 200:
+                            result['unupdated_assets'].append(mappedItem)
+                        else:
+                            result['changed'] = True
+                            result['asset_update_count'] += 1
+                            result['relationship_update_count'] += 1
 
     # Close the IGC REST API session
     igcrest.closeSession()
 
     module.exit_json(**result)
+
+
+def getMappedRelation(igcrest, reln, mappings, wfl_enabled, batch, result, aMappedRelnRIDs):
+    if '_type' in reln:
+        mappedReln = igcrest.getMappedItem(reln, mappings, wfl_enabled, batch=batch)
+        reln_editable = True
+        # Need to ensure that any relationship to other business metadata
+        # is in an editable state in the workflow
+        if wfl_enabled and igcrest.isWorkflowType(mappedReln['_type']):
+            reln_editable = igcrest._returnToEditableState(mappedReln)
+        if mappedReln == "" or not reln_editable:
+            result['unmapped_relations'].append(reln)
+        else:
+            aMappedRelnRIDs.append(mappedReln['_id'])
 
 
 if __name__ == '__main__':

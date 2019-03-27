@@ -303,9 +303,18 @@ def main():
         for itmCtx in item['_context']:
             minifyItem(itmCtx)
         for relnprop in relnprops:
-            item[relnprop] = igcrest.getAllPages(item[relnprop]['items'],
-                                                 item[relnprop]['paging'],
-                                                 (dev_glossary and wfl_enabled))
+            # Not all relationships are lists, some are singular; but we will wrap for ease of processing below
+            bSingleRelation = False
+            if 'items' in item[relnprop]:
+                item[relnprop] = igcrest.getAllPages(item[relnprop]['items'],
+                                                     item[relnprop]['paging'],
+                                                     (dev_glossary and wfl_enabled))
+            elif '_id' in item[relnprop]:
+                item[relnprop] = [item[relnprop]]
+                bSingleRelation = True
+            else:
+                item[relnprop] = []
+                bSingleRelation = True
             aRemoveIndices = []
             iIdx = 0
             for relation in item[relnprop]:
@@ -327,6 +336,12 @@ def main():
             for removal in aRemoveIndices:
                 del item[relnprop][removal - iIdx]
                 iIdx += 1
+            # Unbundle single relationships back out of their arrays
+            if bSingleRelation:
+                if len(item[relnprop]) > 0:
+                    item[relnprop] = item[relnprop][0]
+                else:
+                    item[relnprop] = {}
 
     # Close the IGC REST API session
     igcrest.closeSession()

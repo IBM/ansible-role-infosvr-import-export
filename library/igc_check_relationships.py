@@ -134,7 +134,7 @@ def main():
         asset_type = asset['_type']
         result['asset_type_is_supported_by_import_asset_values'] = is_supported_by_import_asset_values(asset_type)
         for prop in asset:
-            bRelation = isinstance(asset[prop], list)
+            bRelation = isinstance(asset[prop], list) or isinstance(asset[prop], dict)
             if prop.startswith('custom_'):
                 if bRelation and prop not in result['custom_relations']:
                     result['custom_relations'].append(prop)
