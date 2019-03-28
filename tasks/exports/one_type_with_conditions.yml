@@ -57,7 +57,11 @@
   when: __ibm_infosvr_impexp_type == 'extension_mapping_document'
 
 - name: "{{ __ibm_infosvr_impexp_type }} - transfer files"
-  fetch: src=/tmp/__export_{{ __ibm_infosvr_impexp_type }}_{{ item.into | basename }} dest={{ item.into }} flat=yes
+  fetch:
+    src: /tmp/__export_{{ __ibm_infosvr_impexp_type }}_{{ item.into | basename }}
+    dest: "{{ item.into }}"
+    flat: yes
+    fail_on_missing: no
   with_items: "{{ __ibm_infosvr_impexp_items }}"
   loop_control:
     label: "{{ item.into | basename }}"
