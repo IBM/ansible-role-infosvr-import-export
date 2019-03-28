@@ -35,6 +35,7 @@
   args:
     executable: /bin/bash
   with_items: "{{ ibm_infosvr_impexp_ds_import }}"
+  when: ibm_infosvr_impexp_ds_import is defined
 
 - name: import_datastage - cleanup transferred files
   file: path=/tmp/__load_ds_{{ item.src | basename }} state=absent

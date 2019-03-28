@@ -36,3 +36,4 @@
   with_items: "{{ __ibm_infosvr_impexp_assets }}"
   loop_control:
     label: "{{ outer_item.into | basename }} - {{ item.name }}"
+  when: __ibm_infosvr_impexp_assets is defined

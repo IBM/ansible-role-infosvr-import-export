@@ -42,6 +42,7 @@
     executable: /bin/bash
     chdir: "{{ ibm_infosvr_impexp_infosvr_install_location }}/Server/DSEngine"
   with_items: "{{ ibm_infosvr_impexp_dc_import }}"
+  when: ibm_infosvr_impexp_dc_import is defined
 
 - name: import_dc - cleanup transferred files
   file: path=/tmp/__load_dc_{{ item.src | basename }} state=absent

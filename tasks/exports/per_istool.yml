@@ -30,3 +30,4 @@
   args:
     executable: /bin/bash
     chdir: "{{ ibm_infosvr_impexp_infosvr_install_location }}/Server/DSEngine"
+  when: __ibm_infosvr_impexp_assets is defined

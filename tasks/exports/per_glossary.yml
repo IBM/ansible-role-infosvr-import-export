@@ -36,6 +36,7 @@
   args:
     executable: /bin/bash
     chdir: "{{ ibm_infosvr_impexp_infosvr_install_location }}/Server/DSEngine"
+  when: outer_item is defined
 
 - name: filter assets from the export
   glossary_filter_changes:

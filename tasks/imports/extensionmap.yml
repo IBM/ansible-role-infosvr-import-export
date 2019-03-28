@@ -34,7 +34,8 @@
   register: __ibm_infosvr_impexp_xm
 
 - name: load extension mapping documents
-  shell: "source ~/.bashrc && \
+  shell: "set -o pipefail && \
+          source ~/.bashrc && \
           source dsenv && \
           {{ ibm_infosvr_impexp_infosvr_install_location }}/Clients/istools/cli/istool.sh \
           workbench extension mapping import \

@@ -41,6 +41,7 @@
     executable: /bin/bash
     chdir: "{{ ibm_infosvr_impexp_infosvr_install_location }}/Server/DSEngine"
   with_items: "{{ ibm_infosvr_impexp_cadefs_import }}"
+  when: ibm_infosvr_impexp_cadefs_import is defined
 
 - name: import_cadefs - cleanup exported files
   file: path=/tmp/__load_cadefs_{{ item.src | basename }} state=absent
