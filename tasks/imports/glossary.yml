@@ -24,15 +24,15 @@
           -u {{ ibm_infosvr_impexp_infosvr_admin_user }}
           -p {{ ibm_infosvr_impexp_infosvr_admin_user_pwd }}
           -dom {{ ibm_infosvr_impexp_services_host | lower }}:{{ ibm_infosvr_impexp_services_console_port }}
-          -f /tmp/__load_{{ __ibm_infosvr_impexp_type }}_{{ item.from | basename }}
-          -fm {{ item.from | splitext | last | replace(".", "") | upper }}
-          -mrg {{ item.merged_by }}
-          {% if item.with_options is defined and item.with_options.transformed_by is defined -%}
-          -map /tmp/__load_glossary_{{ item.from | basename }}_mapping.xml{% endif %}
+          -f /tmp/__load_{{ __ibm_infosvr_impexp_type }}_{{ item.item.from | basename }}
+          -fm {{ item.item.from | splitext | last | replace(".", "") | upper }}
+          -mrg {{ item.item.merged_by }}
+          {% if item.item.with_options is defined and item.item.with_options.transformed_by is defined -%}
+          -map /tmp/__load_glossary_{{ item.item.from | basename }}_mapping.xml{% endif %}
   args:
     executable: /bin/bash
     chdir: "{{ ibm_infosvr_impexp_infosvr_install_location }}/Server/DSEngine"
-  with_items: "{{ __ibm_infosvr_impexp_items }}"
-  when: __ibm_infosvr_impexp_items is defined
+  when: item.stat.exists
+  with_items: "{{ __ibm_infosvr_impexp_files.results }}"
   loop_control:
-    label: "{{ item.from | basename }}"
+    label: "{{ item.item.from | basename }}"

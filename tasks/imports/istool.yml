@@ -15,18 +15,29 @@
 # limitations under the License.
 ###
 
-- name: "{{ __ibm_infosvr_impexp_type }} - transfer files"
-  copy: src={{ item.from }} dest=/tmp/__load_{{ __ibm_infosvr_impexp_type }}_{{ item.from | basename }}
+- name: "{{ __ibm_infosvr_impexp_type }} - check file exists"
+  stat:
+    path: "{{ item.from }}"
+  delegate_to: localhost
+  become: no
   with_items: "{{ __ibm_infosvr_impexp_items }}"
+  register: __ibm_infosvr_impexp_files
+
+- name: "{{ __ibm_infosvr_impexp_type }} - transfer files"
+  copy: src={{ item.item.from }} dest=/tmp/__load_{{ __ibm_infosvr_impexp_type }}_{{ item.item.from | basename }}
+  when: item.stat.exists
+  with_items: "{{ __ibm_infosvr_impexp_files.results }}"
   loop_control:
-    label: "{{ item.from | basename }}"
+    label: "{{ item.item.from | basename }}"
 
 - name: "{{ __ibm_infosvr_impexp_type }} - transfer mappings"
-  template: src=mapping.xml.j2 dest=/tmp/__load_{{ __ibm_infosvr_impexp_type }}_{{ item.from | basename }}_mapping.xml
-  when: item.with_options is defined and item.with_options.transformed_by is defined
-  with_items: "{{ __ibm_infosvr_impexp_items }}"
+  template:
+    src: mapping.xml.j2
+    dest: /tmp/__load_{{ __ibm_infosvr_impexp_type }}_{{ item.item.from | basename }}_mapping.xml
+  when: item.stat.exists and item.item.with_options is defined and item.item.with_options.transformed_by is defined
+  with_items: "{{ __ibm_infosvr_impexp_files.results }}"
   loop_control:
-    label: "{{ item.from | basename }}"
+    label: "{{ item.item.from | basename }}"
 
 - name: check if ISX-based load
   include_tasks: simple_switch.yml
@@ -42,10 +53,10 @@
 
 - name: check if CSV-based XM load
   include_tasks: extensionmap.yml
-  with_items: "{{ __ibm_infosvr_impexp_items }}"
+  when: outer_item.stat.exists and __ibm_infosvr_impexp_type == 'extensionmap'
+  with_items: "{{ __ibm_infosvr_impexp_files.results }}"
   loop_control:
     loop_var: outer_item
-  when: __ibm_infosvr_impexp_type == 'extensionmap'
 
 - name: check if XML-based load
   include_tasks: glossary.yml
