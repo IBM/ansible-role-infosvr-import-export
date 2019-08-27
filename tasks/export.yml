@@ -24,7 +24,7 @@
     __ibm_infosvr_impexp_items: "{{ export.customattrs }}"
   when: >
         export.customattrs is defined
-        and ('ibm-information-server-engine' in group_names)
+        and ('ibm_information_server_engine' in group_names)
 
 - name: export common metadata (low-level)
   include_tasks: exports/istool.yml
@@ -34,7 +34,7 @@
     __ibm_infosvr_impexp_switch: "-cm"
   when: >
         export.common is defined
-        and ('ibm-information-server-engine' in group_names)
+        and ('ibm_information_server_engine' in group_names)
 
 - name: export logical data model metadata
   include_tasks: exports/one_type_with_conditions.yml
@@ -44,7 +44,7 @@
     __ibm_infosvr_impexp_switch: "-lm"
   when: >
         export.logicalmodel is defined
-        and ('ibm-information-server-engine' in group_names)
+        and ('ibm_information_server_engine' in group_names)
 
 - name: export physical data model metadata
   include_tasks: exports/one_type_with_conditions.yml
@@ -54,7 +54,7 @@
     __ibm_infosvr_impexp_switch: "-cm"
   when: >
         export.physicalmodel is defined
-        and ('ibm-information-server-engine' in group_names)
+        and ('ibm_information_server_engine' in group_names)
 
 - name: export database metadata
   include_tasks: exports/loop_included_objects.yml
@@ -64,7 +64,7 @@
     __ibm_infosvr_impexp_switch: "-cm"
   when: >
         export.database is defined
-        and ('ibm-information-server-engine' in group_names)
+        and ('ibm_information_server_engine' in group_names)
 
 - name: export data file metadata
   include_tasks: exports/one_type_with_conditions.yml
@@ -74,7 +74,7 @@
     __ibm_infosvr_impexp_switch: "-cm"
   when: >
         export.datafile is defined
-        and ('ibm-information-server-engine' in group_names)
+        and ('ibm_information_server_engine' in group_names)
 
 - name: export master data management model metadata
   include_tasks: exports/istool.yml
@@ -84,7 +84,7 @@
     __ibm_infosvr_impexp_switch: "-mdm"
   when: >
         export.mdm is defined
-        and ('ibm-information-server-engine' in group_names)
+        and ('ibm_information_server_engine' in group_names)
 
 - name: export data class metadata
   include_tasks: exports/one_type_with_conditions.yml
@@ -94,7 +94,7 @@
     __ibm_infosvr_impexp_switch: "-dca"
   when: >
         export.dataclass is defined
-        and ('ibm-information-server-engine' in group_names)
+        and ('ibm_information_server_engine' in group_names)
 
 - name: export DataStage assets
   include_tasks: exports/loop_included_objects.yml
@@ -104,7 +104,7 @@
     __ibm_infosvr_impexp_switch: "-ds"
   when: >
         export.datastage is defined
-        and ('ibm-information-server-engine' in group_names)
+        and ('ibm_information_server_engine' in group_names)
 
 - name: export DataStage project variables
   include_tasks: exports/ds_vars.yml
@@ -113,7 +113,7 @@
     __ibm_infosvr_impexp_items: "{{ export.ds_vars }}"
   when: >
         export.ds_vars is defined
-        and ('ibm-information-server-engine' in group_names)
+        and ('ibm_information_server_engine' in group_names)
 
 ## Reports (-rep)
 
@@ -124,7 +124,7 @@
     __ibm_infosvr_impexp_items: "{{ export.infoanalyzer }}"
   when: >
         export.infoanalyzer is defined
-        and ('ibm-information-server-engine' in group_names)
+        and ('ibm_information_server_engine' in group_names)
 
 - name: export OpenIGC bundles
   include_tasks: exports/openigc_bundles.yml
@@ -136,7 +136,7 @@
   when: >
         export.openigc is defined
         and export.openigc.bundles is defined
-        and ('ibm-information-server-engine' in group_names)
+        and ('ibm_information_server_engine' in group_names)
 
 - name: export OpenIGC assets
   include_tasks: exports/openigc_assets.yml
@@ -148,7 +148,7 @@
   when: >
         export.openigc is defined
         and export.openigc.assets is defined
-        and ('ibm-information-server-engine' in group_names)
+        and ('ibm_information_server_engine' in group_names)
 
 ## FastTrack (-fasttrack)
 
@@ -159,7 +159,7 @@
     __ibm_infosvr_impexp_items: "{{ export.extendedsource }}"
   when: >
         export.extendedsource is defined
-        and ('ibm-information-server-engine' in group_names)
+        and ('ibm_information_server_engine' in group_names)
 
 - name: export extension mapping documents
   include_tasks: exports/one_type_with_conditions.yml
@@ -168,7 +168,7 @@
     __ibm_infosvr_impexp_items: "{{ export.extensionmap }}"
   when: >
         export.extensionmap is defined
-        and ('ibm-information-server-engine' in group_names)
+        and ('ibm_information_server_engine' in group_names)
 
 - name: export glossary metadata
   include_tasks: exports/loop_included_objects.yml
@@ -177,7 +177,7 @@
     __ibm_infosvr_impexp_items: "{{ export.glossary }}"
   when: >
         export.glossary is defined
-        and ('ibm-information-server-engine' in group_names)
+        and ('ibm_information_server_engine' in group_names)
 
 - name: export IGC metadata relationships
   include_tasks: exports/relationships.yml
@@ -186,7 +186,7 @@
     __ibm_infosvr_impexp_items: "{{ export.relationships }}"
   when: >
         export.relationships is defined
-        and ('ibm-information-server-engine' in group_names)
+        and ('ibm_information_server_engine' in group_names)
 
 - name: export operational metadata
   include_tasks: exports/omd.yml
@@ -195,4 +195,4 @@
     __ibm_infosvr_impexp_items: "{{ export.omd }}"
   when: >
         export.omd is defined
-        and ('ibm-information-server-engine' in group_names)
+        and ('ibm_information_server_engine' in group_names)

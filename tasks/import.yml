@@ -25,7 +25,7 @@
     __ibm_infosvr_impexp_switch: "-customattributes"
   when: >
         ingest.customattrs is defined
-        and ('ibm-information-server-engine' in group_names)
+        and ('ibm_information_server_engine' in group_names)
 
 - name: import common (low-level) metadata
   include_tasks: imports/istool.yml
@@ -35,7 +35,7 @@
     __ibm_infosvr_impexp_switch: "-cm"
   when: >
         ingest.common is defined
-        and ('ibm-information-server-engine' in group_names)
+        and ('ibm_information_server_engine' in group_names)
 
 - name: import logical data model metadata
   include_tasks: imports/istool.yml
@@ -45,7 +45,7 @@
     __ibm_infosvr_impexp_switch: "-lm"
   when: >
         ingest.logicalmodel is defined
-        and ('ibm-information-server-engine' in group_names)
+        and ('ibm_information_server_engine' in group_names)
 
 - name: import physical data model metadata
   include_tasks: imports/istool.yml
@@ -55,7 +55,7 @@
     __ibm_infosvr_impexp_switch: "-cm"
   when: >
         ingest.physicalmodel is defined
-        and ('ibm-information-server-engine' in group_names)
+        and ('ibm_information_server_engine' in group_names)
 
 - name: import database metadata
   include_tasks: imports/istool.yml
@@ -65,7 +65,7 @@
     __ibm_infosvr_impexp_switch: "-cm"
   when: >
         ingest.database is defined
-        and ('ibm-information-server-engine' in group_names)
+        and ('ibm_information_server_engine' in group_names)
 
 - name: import data file metadata
   include_tasks: imports/istool.yml
@@ -75,7 +75,7 @@
     __ibm_infosvr_impexp_switch: "-cm"
   when: >
         ingest.datafile is defined
-        and ('ibm-information-server-engine' in group_names)
+        and ('ibm_information_server_engine' in group_names)
 
 - name: import master data management model metadata
   include_tasks: imports/istool.yml
@@ -85,7 +85,7 @@
     __ibm_infosvr_impexp_switch: "-mdm"
   when: >
         ingest.mdm is defined
-        and ('ibm-information-server-engine' in group_names)
+        and ('ibm_information_server_engine' in group_names)
 
 - name: import data class metadata
   include_tasks: imports/istool.yml
@@ -95,7 +95,7 @@
     __ibm_infosvr_impexp_switch: "-dca"
   when: >
         ingest.dataclass is defined
-        and ('ibm-information-server-engine' in group_names)
+        and ('ibm_information_server_engine' in group_names)
 
 - name: import DataStage assets
   include_tasks: imports/istool.yml
@@ -104,7 +104,7 @@
     __ibm_infosvr_impexp_items: "{{ ingest.datastage }}"
   when: >
         ingest.datastage is defined
-        and ('ibm-information-server-engine' in group_names)
+        and ('ibm_information_server_engine' in group_names)
 
 - name: import DataStage project variables
   include_tasks: imports/ds_vars.yml
@@ -113,7 +113,7 @@
     __ibm_infosvr_impexp_items: "{{ ingest.ds_vars }}"
   when: >
         ingest.ds_vars is defined
-        and ('ibm-information-server-engine' in group_names)
+        and ('ibm_information_server_engine' in group_names)
   with_items: "{{ ingest.ds_vars }}"
   loop_control:
     loop_var: outer_item
@@ -124,7 +124,7 @@
   include_tasks: imports/infoanalyzer.yml
   when: >
         ingest.infoanalyzer is defined
-        and ('ibm-information-server-engine' in group_names)
+        and ('ibm_information_server_engine' in group_names)
 
 - name: import OpenIGC bundles
   include_tasks: imports/openigc_bundles.yml
@@ -134,7 +134,7 @@
   when: >
         ingest.openigc is defined
         and ingest.openigc.bundles is defined
-        and ('ibm-information-server-engine' in group_names)
+        and ('ibm_information_server_engine' in group_names)
 
 - name: import OpenIGC assets
   include_tasks: imports/openigc_assets.yml
@@ -144,7 +144,7 @@
   when: >
         ingest.openigc is defined
         and ingest.openigc.assets is defined
-        and ('ibm-information-server-engine' in group_names)
+        and ('ibm_information_server_engine' in group_names)
 
 ## FastTrack (-fasttrack)
 
@@ -155,7 +155,7 @@
     __ibm_infosvr_impexp_items: "{{ ingest.extendedsource }}"
   when: >
         ingest.extendedsource is defined
-        and ('ibm-information-server-engine' in group_names)
+        and ('ibm_information_server_engine' in group_names)
 
 - name: import extension mapping documents
   include_tasks: imports/istool.yml
@@ -164,7 +164,7 @@
     __ibm_infosvr_impexp_items: "{{ ingest.extensionmap }}"
   when: >
         ingest.extensionmap is defined
-        and ('ibm-information-server-engine' in group_names)
+        and ('ibm_information_server_engine' in group_names)
 
 - name: import glossary metadata
   include_tasks: imports/istool.yml
@@ -173,7 +173,7 @@
     __ibm_infosvr_impexp_items: "{{ ingest.glossary }}"
   when: >
         ingest.glossary is defined
-        and ('ibm-information-server-engine' in group_names)
+        and ('ibm_information_server_engine' in group_names)
 
 - name: import IGC metadata relationships
   include_tasks: imports/relationships.yml
@@ -182,7 +182,7 @@
     __ibm_infosvr_impexp_items: "{{ ingest.relationships }}"
   when: >
         ingest.relationships is defined
-        and ('ibm-information-server-engine' in group_names)
+        and ('ibm_information_server_engine' in group_names)
 
 - name: import operational metadata
   include_tasks: imports/omd.yml
@@ -191,4 +191,4 @@
     __ibm_infosvr_impexp_items: "{{ ingest.omd }}"
   when: >
         ingest.omd is defined
-        and ('ibm-information-server-engine' in group_names)
+        and ('ibm_information_server_engine' in group_names)

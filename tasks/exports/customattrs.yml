@@ -73,7 +73,7 @@
         {% endif %}
     to_time: >
               {{ __ibm_infosvr_impexp_to_epoch | int }}
-    model_ver: "{{ hostvars[groups['ibm-information-server-domain'][0]]['__ibm_infosvr_impexp_model_versions'] \
+    model_ver: "{{ hostvars[groups['ibm_information_server_domain'][0]]['__ibm_infosvr_impexp_model_versions'] \
                 | json_query(\"[?model == 'ASCLCustomAttribute'].version | [0]\") }}"
     names: "{% if item.0.item.limited_to is defined %}\
             {{ item.0.item.limited_to.names | default([]) }}\

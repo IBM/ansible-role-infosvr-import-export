@@ -19,7 +19,7 @@
 <Mapping xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="SampleArchiveMappingFile.xsd">
 	<ObjectMappings>
 {% for mapping in item.with_options.transformed_by %}
-{% for model in hostvars[groups['ibm-information-server-domain'][0]]['__ibm_infosvr_impexp_model_versions'] %}
+{% for model in hostvars[groups['ibm_information_server_domain'][0]]['__ibm_infosvr_impexp_model_versions'] %}
 {% if mapping.type in model.get('types') %}
 		<ObjectMapping>
 			<Attribute attrname="{{ mapping.attr }}" classname="{{ mapping.type }}" packageNsUri="{{ model.version }}"/>
