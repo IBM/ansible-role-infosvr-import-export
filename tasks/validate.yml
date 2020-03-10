@@ -47,6 +47,7 @@
   assert:
     that:
       - "item.item.is == item.asset_count"
+    quiet: yes
     msg: "Asset count does not match expectation: {{ item.asset_count }} assets were found by {{ item.queries }}"
   with_items: "{{ __ibm_infosvr_impexp_validation_query.results }}"
   loop_control:
