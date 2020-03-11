@@ -109,6 +109,7 @@
     url: "https://{{ ibm_infosvr_impexp_services_host }}:{{ ibm_infosvr_impexp_services_console_port }}\
           /ibm/iis/igc-rest/v1/logout/"
     method: GET
+    validate_certs: no
     headers:
       Cookie: "{{ __ibm_infosvr_impexp_omd_dsproject.set_cookie }}"
 
