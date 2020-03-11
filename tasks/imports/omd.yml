@@ -92,18 +92,25 @@
     url: "https://{{ ibm_infosvr_impexp_services_host }}:{{ ibm_infosvr_impexp_services_console_port }}\
           /ibm/iis/igc-rest/v1/assets/{{ item.json['items'][0]._id }}/include_for_lineage"
     method: PUT
-    user: "{{ ibm_infosvr_impexp_infosvr_admin_user }}"
-    password: "{{ ibm_infosvr_impexp_infosvr_admin_user_pwd }}"
     body: '"setToTrue"'
     body_format: json
     validate_certs: no
     status_code: 200
     headers:
       Content-Type: "application/json"
+      Cookie: "{{ __ibm_infosvr_impexp_omd_dsproject.set_cookie }}"
   when: item.json['items'][0].include_for_lineage == "setToFalse"
   loop_control:
     label: "{{ item.json['items'][0]._name }}"
   with_items: "{{ __ibm_infosvr_impexp_omd_dsproject.results }}"
+
+- name: close session
+  uri:
+    url: "https://{{ ibm_infosvr_impexp_services_host }}:{{ ibm_infosvr_impexp_services_console_port }}\
+          /ibm/iis/igc-rest/v1/logout/"
+    method: GET
+    headers:
+      Cookie: "{{ __ibm_infosvr_impexp_omd_dsproject.set_cookie }}"
 
 - name: load OMD into target
   shell: >
