@@ -6,7 +6,7 @@ New to Ansible? This [simple introduction](https://cmgrote.github.io/ansible-tut
 
 ## Requirements
 
-- Ansible v2.4.x
+- Ansible v2.8+
 - `dsadm`-become-able network access to an IBM Information Server environment
 - Inventory group names setup the same as `IBM.infosvr` role
 - (And for ease of use, the `IBM.infosvr` role installed and configured)
@@ -31,7 +31,7 @@ By default, the role will do SSL verification of self-signed certificates if you
 
 ## Example Playbook
 
-The role includes the ability to both export and import a number of different asset types in Information Server. The role can be imported into another playbook providing only the variables of interest in order to restrict the assets to include in either an import or export (empty variables will mean the role will skip any processing of those asset types). (Thus the need for Ansible v2.4.x and the `import_role` module.)
+The role includes the ability to both export and import a number of different asset types in Information Server. The role can be imported into another playbook providing only the variables of interest in order to restrict the assets to include in either an import or export (empty variables will mean the role will skip any processing of those asset types).
 
 The first level of variables provided to the role define the broad actions to take, and will always run in this order regardless of the order in which they're specified:
 
